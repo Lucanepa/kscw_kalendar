@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW Calendar</title>
+    <title>KSCW Calendar - Enhanced</title>
     <style>
         * {
             margin: 0;
@@ -26,7 +26,7 @@
             border-radius: 20px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
             overflow: hidden;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
         }
 
@@ -140,6 +140,10 @@
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
         }
 
+        .day.has-volleyball {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        }
+
         .event-indicator {
             position: absolute;
             bottom: 5px;
@@ -147,6 +151,16 @@
             width: 8px;
             height: 8px;
             background: #ff6b6b;
+            border-radius: 50%;
+        }
+
+        .volleyball-indicator {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            width: 8px;
+            height: 8px;
+            background: #fdcb6e;
             border-radius: 50%;
         }
 
@@ -174,6 +188,39 @@
             margin-bottom: 15px;
             color: #333;
             font-size: 1.1rem;
+        }
+
+        .predefined-calendars {
+            margin-bottom: 20px;
+        }
+
+        .predefined-calendars h5 {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .calendar-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .calendar-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
         }
 
         .import-form {
@@ -246,6 +293,12 @@
             border: 1px solid #bee5eb;
         }
 
+        .calendar-sources {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
         .event-form {
             display: flex;
             gap: 10px;
@@ -283,8 +336,69 @@
             box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
         }
 
+        .advanced-event-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .event-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .event-type-btn {
+            padding: 8px 16px;
+            border: 2px solid #e9ecef;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .event-type-btn.active {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
         .events-list {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
         }
 
@@ -299,6 +413,18 @@
             align-items: center;
         }
 
+        .event-item.imported {
+            border-left-color: #28a745;
+        }
+
+        .event-item.volleyball {
+            border-left-color: #fdcb6e;
+        }
+
+        .event-item.recurring {
+            border-left-color: #e17055;
+        }
+
         .event-text {
             flex: 1;
         }
@@ -307,6 +433,22 @@
             font-size: 0.9rem;
             color: #666;
             margin-top: 5px;
+        }
+
+        .event-source {
+            font-size: 0.8rem;
+            color: #28a745;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .event-type-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: #e9ecef;
+            color: #666;
+            margin-top: 2px;
         }
 
         .delete-event {
@@ -341,12 +483,16 @@
                 order: -1;
             }
 
-            .event-form {
+            .event-form, .form-row {
                 flex-direction: column;
             }
 
-            .event-input {
+            .event-input, .form-group {
                 min-width: auto;
+            }
+
+            .calendar-buttons {
+                flex-direction: column;
             }
         }
     </style>
@@ -354,7 +500,7 @@
 <body>
     <div class="calendar-container">
         <div class="calendar-header">
-            <h1>KSCW Calendar</h1>
+            <h1>KSCW Calendar - Enhanced</h1>
             <div class="calendar-nav">
                 <button class="nav-btn" onclick="previousMonth()">&larr; Previous</button>
                 <div class="current-month" id="currentMonth"></div>
@@ -378,20 +524,103 @@
         <div class="event-panel">
             <h3>Import Calendar Events</h3>
             <div class="import-section">
-                <h4>Import from iCal URL</h4>
+                <h4>Quick Import - Your Calendars</h4>
+                <div class="predefined-calendars">
+                    <h5>Select a calendar to import:</h5>
+                    <div class="calendar-buttons">
+                        <button class="calendar-btn" onclick="importPredefinedCalendar('calendar1')">📅 Calendar 1</button>
+                        <button class="calendar-btn" onclick="importPredefinedCalendar('calendar2')">📅 Calendar 2</button>
+                        <button class="calendar-btn" onclick="importVolleyballCalendar()">🏐 Volleyball (KSC Wiedikon)</button>
+                        <button class="calendar-btn" onclick="importAllCalendars()">📅 Import All</button>
+                    </div>
+                </div>
+                
+                <h4>Custom iCal URL</h4>
                 <div class="import-form">
                     <input type="url" class="ical-input" id="icalUrl" placeholder="Enter iCal URL (e.g., https://calendar.google.com/calendar/ical/...)">
                     <button class="import-btn" id="importBtn" onclick="importFromIcal()">Import Events</button>
                 </div>
                 <div class="import-status" id="importStatus"></div>
+                <div class="calendar-sources" id="calendarSources"></div>
             </div>
             
-            <h3>Add Event</h3>
-            <div class="event-form">
-                <input type="text" class="event-input" id="eventText" placeholder="Enter event description">
-                <input type="date" class="event-input" id="eventDate">
-                <button class="add-event-btn" onclick="addEvent()">Add Event</button>
+            <h3>Add Event - Advanced</h3>
+            <div class="advanced-event-form">
+                <div class="event-type-selector">
+                    <button class="event-type-btn active" onclick="setEventType('single')" id="singleBtn">Single Event</button>
+                    <button class="event-type-btn" onclick="setEventType('multiday')" id="multidayBtn">Multi-day Event</button>
+                    <button class="event-type-btn" onclick="setEventType('recurring')" id="recurringBtn">Recurring Event</button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventTitle">Event Title</label>
+                        <input type="text" id="eventTitle" placeholder="Enter event title">
+                    </div>
+                    <div class="form-group">
+                        <label for="eventCategory">Category</label>
+                        <select id="eventCategory">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="volleyball">Volleyball</option>
+                            <option value="meeting">Meeting</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row" id="singleEventForm">
+                    <div class="form-group">
+                        <label for="eventStartDate">Date</label>
+                        <input type="date" id="eventStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="eventTime">Time (optional)</label>
+                        <input type="time" id="eventTime">
+                    </div>
+                </div>
+
+                <div class="form-row" id="multidayEventForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="eventStartDateMulti">Start Date</label>
+                        <input type="date" id="eventStartDateMulti">
+                    </div>
+                    <div class="form-group">
+                        <label for="eventEndDate">End Date</label>
+                        <input type="date" id="eventEndDate">
+                    </div>
+                </div>
+
+                <div class="form-row" id="recurringEventForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="eventStartDateRecur">Start Date</label>
+                        <input type="date" id="eventStartDateRecur">
+                    </div>
+                    <div class="form-group">
+                        <label for="recurringType">Repeat</label>
+                        <select id="recurringType">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recurringCount">Times to repeat</label>
+                        <input type="number" id="recurringCount" min="1" max="365" value="1">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDescription">Description (optional)</label>
+                        <input type="text" id="eventDescription" placeholder="Event description">
+                    </div>
+                </div>
+
+                <button class="add-event-btn" onclick="addAdvancedEvent()">Add Event</button>
             </div>
+            
             <div class="events-list" id="eventsList"></div>
         </div>
     </div>
@@ -400,9 +629,82 @@
         let currentDate = new Date();
         let selectedDate = null;
         let events = JSON.parse(localStorage.getItem('calendarEvents')) || [];
+        let importedSources = JSON.parse(localStorage.getItem('calendarSources')) || {};
+        let currentEventType = 'single';
 
-        // iCal Import Functions
-        async function importFromIcal() {
+        // Predefined calendar URLs with volleyball calendar
+        const predefinedCalendars = {
+            calendar1: {
+                name: 'Calendar 1',
+                url: 'https://calendar.google.com/calendar/ical/145bqacb4v5qfkr97u2fdchi5o%40group.calendar.google.com/public/basic.ics'
+            },
+            calendar2: {
+                name: 'Calendar 2', 
+                url: 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics'
+            }
+        };
+
+        // Event type management
+        function setEventType(type) {
+            currentEventType = type;
+            
+            // Update button states
+            document.querySelectorAll('.event-type-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(type + 'Btn').classList.add('active');
+            
+            // Show/hide appropriate forms
+            document.getElementById('singleEventForm').style.display = type === 'single' ? 'flex' : 'none';
+            document.getElementById('multidayEventForm').style.display = type === 'multiday' ? 'flex' : 'none';
+            document.getElementById('recurringEventForm').style.display = 'recurring' === type ? 'flex' : 'none';
+        }
+
+        // Enhanced iCal Import Functions
+        async function importPredefinedCalendar(calendarId) {
+            const calendar = predefinedCalendars[calendarId];
+            if (!calendar) return;
+            
+            document.getElementById('icalUrl').value = calendar.url;
+            await importFromIcal(calendar.name);
+        }
+
+        async function importVolleyballCalendar() {
+            // Import both calendars and filter for volleyball events
+            showImportStatus('Importing volleyball events (KSC Wiedikon home games)...', 'loading');
+            let totalImported = 0;
+            
+            for (const [calendarId, calendar] of Object.entries(predefinedCalendars)) {
+                try {
+                    const importedCount = await importFromIcalSilent(calendar.url, calendar.name, true);
+                    totalImported += importedCount;
+                } catch (error) {
+                    console.error(`Failed to import ${calendar.name}:`, error);
+                }
+            }
+            
+            updateCalendar();
+            showImportStatus(`Successfully imported ${totalImported} volleyball home games`, 'success');
+            updateCalendarSources();
+        }
+
+        async function importAllCalendars() {
+            showImportStatus('Importing all calendars...', 'loading');
+            let totalImported = 0;
+            
+            for (const [calendarId, calendar] of Object.entries(predefinedCalendars)) {
+                try {
+                    const importedCount = await importFromIcalSilent(calendar.url, calendar.name);
+                    totalImported += importedCount;
+                } catch (error) {
+                    console.error(`Failed to import ${calendar.name}:`, error);
+                }
+            }
+            
+            updateCalendar();
+            showImportStatus(`Successfully imported ${totalImported} events from all calendars`, 'success');
+            updateCalendarSources();
+        }
+
+        async function importFromIcal(sourceName = null) {
             const icalUrl = document.getElementById('icalUrl').value.trim();
             const importBtn = document.getElementById('importBtn');
             const importStatus = document.getElementById('importStatus');
@@ -424,55 +726,83 @@
             showImportStatus('Importing events...', 'loading');
 
             try {
-                // Use a CORS proxy for external iCal URLs
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icalUrl)}`;
-                const response = await fetch(proxyUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const icalData = data.contents;
-
-                const importedEvents = parseIcalData(icalData);
-                
-                if (importedEvents.length === 0) {
-                    showImportStatus('No events found in the iCal file', 'error');
-                    return;
-                }
-
-                // Add imported events to existing events
-                let addedCount = 0;
-                importedEvents.forEach(event => {
-                    // Check if event already exists (by date and text)
-                    const exists = events.some(existing => 
-                        existing.date === event.date && 
-                        existing.text.toLowerCase() === event.text.toLowerCase()
-                    );
-                    
-                    if (!exists) {
-                        events.push({
-                            id: Date.now() + Math.random(),
-                            text: event.text,
-                            date: event.date
-                        });
-                        addedCount++;
-                    }
-                });
-
-                localStorage.setItem('calendarEvents', JSON.stringify(events));
+                const importedCount = await importFromIcalSilent(icalUrl, sourceName);
                 updateCalendar();
-
-                showImportStatus(`Successfully imported ${addedCount} new events`, 'success');
+                showImportStatus(`Successfully imported ${importedCount} new events`, 'success');
                 document.getElementById('icalUrl').value = '';
-
+                updateCalendarSources();
             } catch (error) {
                 console.error('Import error:', error);
                 showImportStatus(`Import failed: ${error.message}`, 'error');
             } finally {
                 importBtn.disabled = false;
             }
+        }
+
+        async function importFromIcalSilent(icalUrl, sourceName = null, volleyballOnly = false) {
+            // Use a CORS proxy for external iCal URLs
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icalUrl)}`;
+            const response = await fetch(proxyUrl);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const icalData = data.contents;
+
+            const importedEvents = parseIcalData(icalData);
+            
+            if (importedEvents.length === 0) {
+                throw new Error('No events found in the iCal file');
+            }
+
+            // Filter for volleyball events if requested
+            let filteredEvents = importedEvents;
+            if (volleyballOnly) {
+                filteredEvents = importedEvents.filter(event => 
+                    event.text.toLowerCase().includes('ksc wiedikon') && 
+                    (event.text.toLowerCase().includes('home') || event.text.toLowerCase().includes('heim'))
+                );
+            }
+
+            // Add imported events to existing events
+            let addedCount = 0;
+            const source = sourceName || new URL(icalUrl).hostname;
+            
+            filteredEvents.forEach(event => {
+                // Check if event already exists (by date and text)
+                const exists = events.some(existing => 
+                    existing.date === event.date && 
+                    existing.text.toLowerCase() === event.text.toLowerCase()
+                );
+                
+                if (!exists) {
+                    events.push({
+                        id: Date.now() + Math.random(),
+                        text: event.text,
+                        date: event.date,
+                        source: source,
+                        imported: true,
+                        type: volleyballOnly ? 'volleyball' : 'imported',
+                        category: volleyballOnly ? 'volleyball' : 'imported'
+                    });
+                    addedCount++;
+                }
+            });
+
+            // Track import source
+            importedSources[source] = {
+                url: icalUrl,
+                lastImported: new Date().toISOString(),
+                eventCount: addedCount,
+                volleyballOnly: volleyballOnly
+            };
+
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            localStorage.setItem('calendarSources', JSON.stringify(importedSources));
+
+            return addedCount;
         }
 
         function parseIcalData(icalData) {
@@ -535,7 +865,153 @@
             }
         }
 
-        // Existing Calendar Functions
+        function updateCalendarSources() {
+            const sourcesElement = document.getElementById('calendarSources');
+            const sourceNames = Object.keys(importedSources);
+            
+            if (sourceNames.length > 0) {
+                sourcesElement.innerHTML = `<strong>Imported sources:</strong> ${sourceNames.join(', ')}`;
+            } else {
+                sourcesElement.innerHTML = '';
+            }
+        }
+
+        // Advanced Event Management
+        function addAdvancedEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const category = document.getElementById('eventCategory').value;
+            const description = document.getElementById('eventDescription').value.trim();
+
+            if (!title) {
+                alert('Please enter an event title');
+                return;
+            }
+
+            switch (currentEventType) {
+                case 'single':
+                    addSingleEvent(title, category, description);
+                    break;
+                case 'multiday':
+                    addMultidayEvent(title, category, description);
+                    break;
+                case 'recurring':
+                    addRecurringEvent(title, category, description);
+                    break;
+            }
+
+            // Clear form
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+        }
+
+        function addSingleEvent(title, category, description) {
+            const date = document.getElementById('eventStartDate').value;
+            const time = document.getElementById('eventTime').value;
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const newEvent = {
+                id: Date.now(),
+                text: title,
+                date: date,
+                time: time,
+                category: category,
+                description: description,
+                type: 'single',
+                imported: false
+            };
+
+            events.push(newEvent);
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            updateCalendar();
+        }
+
+        function addMultidayEvent(title, category, description) {
+            const startDate = document.getElementById('eventStartDateMulti').value;
+            const endDate = document.getElementById('eventEndDate').value;
+
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('End date must be after start date');
+                return;
+            }
+
+            // Create events for each day
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                events.push({
+                    id: Date.now() + Math.random(),
+                    text: title,
+                    date: dateStr,
+                    category: category,
+                    description: description,
+                    type: 'multiday',
+                    imported: false
+                });
+            }
+
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            updateCalendar();
+        }
+
+        function addRecurringEvent(title, category, description) {
+            const startDate = document.getElementById('eventStartDateRecur').value;
+            const recurringType = document.getElementById('recurringType').value;
+            const count = parseInt(document.getElementById('recurringCount').value);
+
+            if (!startDate) {
+                alert('Please select a start date');
+                return;
+            }
+
+            const start = new Date(startDate);
+            
+            for (let i = 0; i < count; i++) {
+                const eventDate = new Date(start);
+                
+                switch (recurringType) {
+                    case 'daily':
+                        eventDate.setDate(start.getDate() + i);
+                        break;
+                    case 'weekly':
+                        eventDate.setDate(start.getDate() + (i * 7));
+                        break;
+                    case 'monthly':
+                        eventDate.setMonth(start.getMonth() + i);
+                        break;
+                    case 'yearly':
+                        eventDate.setFullYear(start.getFullYear() + i);
+                        break;
+                }
+
+                const dateStr = eventDate.toISOString().split('T')[0];
+                events.push({
+                    id: Date.now() + Math.random(),
+                    text: title,
+                    date: dateStr,
+                    category: category,
+                    description: description,
+                    type: 'recurring',
+                    recurringType: recurringType,
+                    imported: false
+                });
+            }
+
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            updateCalendar();
+        }
+
+        // Existing Calendar Functions (Enhanced)
         function updateCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -592,8 +1068,20 @@
                 dayElement.classList.add('today');
             }
 
-            if (hasEvent(dateStr)) {
+            const dayEvents = getEventsForDate(dateStr);
+            if (dayEvents.length > 0) {
                 dayElement.classList.add('has-event');
+                
+                // Check for volleyball events
+                const hasVolleyball = dayEvents.some(event => event.type === 'volleyball' || event.category === 'volleyball');
+                if (hasVolleyball) {
+                    dayElement.classList.add('has-volleyball');
+                    const volleyballIndicator = document.createElement('div');
+                    volleyballIndicator.className = 'volleyball-indicator';
+                    dayElement.appendChild(volleyballIndicator);
+                }
+                
+                // Add general event indicator
                 const indicator = document.createElement('div');
                 indicator.className = 'event-indicator';
                 dayElement.appendChild(indicator);
@@ -602,6 +1090,10 @@
             dayElement.addEventListener('click', () => selectDate(dateStr, dayElement));
 
             return dayElement;
+        }
+
+        function getEventsForDate(dateStr) {
+            return events.filter(event => event.date === dateStr);
         }
 
         function selectDate(dateStr, element) {
@@ -613,7 +1105,9 @@
             // Add selection to clicked day
             element.classList.add('selected');
             selectedDate = dateStr;
-            document.getElementById('eventDate').value = dateStr;
+            document.getElementById('eventStartDate').value = dateStr;
+            document.getElementById('eventStartDateMulti').value = dateStr;
+            document.getElementById('eventStartDateRecur').value = dateStr;
         }
 
         function hasEvent(dateStr) {
@@ -627,30 +1121,6 @@
 
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
-            updateCalendar();
-        }
-
-        function addEvent() {
-            const eventText = document.getElementById('eventText').value.trim();
-            const eventDate = document.getElementById('eventDate').value;
-
-            if (!eventText || !eventDate) {
-                alert('Please enter both event description and date');
-                return;
-            }
-
-            const newEvent = {
-                id: Date.now(),
-                text: eventText,
-                date: eventDate
-            };
-
-            events.push(newEvent);
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-
-            document.getElementById('eventText').value = '';
-            document.getElementById('eventDate').value = '';
-
             updateCalendar();
         }
 
@@ -674,11 +1144,22 @@
 
             sortedEvents.forEach(event => {
                 const eventElement = document.createElement('div');
-                eventElement.className = 'event-item';
+                let eventClass = 'event-item';
+                if (event.imported) eventClass += ' imported';
+                if (event.type === 'volleyball' || event.category === 'volleyball') eventClass += ' volleyball';
+                if (event.type === 'recurring') eventClass += ' recurring';
+                
+                eventElement.className = eventClass;
+                
+                const typeText = event.type === 'recurring' ? `${event.type} (${event.recurringType})` : event.type || 'single';
+                
                 eventElement.innerHTML = `
                     <div class="event-text">
                         <div>${event.text}</div>
-                        <div class="event-date">${formatDate(event.date)}</div>
+                        <div class="event-date">${formatDate(event.date)}${event.time ? ` at ${event.time}` : ''}</div>
+                        ${event.source ? `<div class="event-source">Source: ${event.source}</div>` : ''}
+                        ${event.description ? `<div class="event-source">Description: ${event.description}</div>` : ''}
+                        <div class="event-type-badge">${typeText} | ${event.category || 'general'}</div>
                     </div>
                     <button class="delete-event" onclick="deleteEvent(${event.id})">Delete</button>
                 `;
@@ -698,9 +1179,13 @@
 
         // Initialize calendar
         updateCalendar();
+        updateCalendarSources();
 
         // Set today's date as default
-        document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('eventStartDate').value = today;
+        document.getElementById('eventStartDateMulti').value = today;
+        document.getElementById('eventStartDateRecur').value = today;
     </script>
 </body>
 </html>
