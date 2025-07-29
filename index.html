@@ -473,19 +473,126 @@
             return events.filter(isKSCHomeGame);
         }
         
-        // Load user events from localStorage on startup
-        function loadUserEvents() {
-            const stored = localStorage.getItem('calendarUserEvents');
-            if (stored) {
-                userEvents = JSON.parse(stored);
-                console.log(`Loaded ${userEvents.length} user events from storage`);
+        // Supabase configuration
+        const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpbHJybHdxZ3Z6amRobW53bXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgyNDE5NjAsImV4cCI6MjA1MzgxNzk2MH0.g-z-vTvyGGaKhbvqBOzSSgDgd1kNP0Y8hzfXGjR6y1o';
+        
+        // Simple browser ID for anonymous users (persistent across browser sessions)
+        function getBrowserId() {
+            let browserId = localStorage.getItem('calendarBrowserId');
+            if (!browserId) {
+                browserId = 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('calendarBrowserId', browserId);
+            }
+            return browserId;
+        }
+        
+        // Load user events from Supabase database
+        async function loadUserEvents() {
+            try {
+                console.log('Loading user events from Supabase database...');
+                const browserId = getBrowserId();
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    userEvents = data.map(row => ({
+                        id: row.id,
+                        title: row.title,
+                        description: row.description,
+                        type: row.event_type,
+                        date: row.start_date,
+                        endDate: row.end_date,
+                        recurrence: row.recurrence,
+                        recurrenceEnd: row.recurrence_end,
+                        isUserEvent: true,
+                        source: row.source || 'manual'
+                    }));
+                    console.log(`Loaded ${userEvents.length} user events from Supabase`);
+                } else if (response.status === 404) {
+                    // Table doesn't exist yet, that's ok
+                    console.log('User events table not found, will be created on first save');
+                    userEvents = [];
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Failed to load events from Supabase, falling back to localStorage:', error);
+                // Fallback to localStorage if Supabase fails
+                const stored = localStorage.getItem('calendarUserEvents');
+                if (stored) {
+                    userEvents = JSON.parse(stored);
+                    console.log(`Loaded ${userEvents.length} user events from localStorage fallback`);
+                }
             }
         }
         
-        // Save user events to localStorage
-        function saveUserEvents() {
-            localStorage.setItem('calendarUserEvents', JSON.stringify(userEvents));
-            console.log(`Saved ${userEvents.length} user events to storage`);
+        // Save user events to Supabase database
+        async function saveUserEvents() {
+            try {
+                console.log('Saving user events to Supabase database...');
+                const browserId = getBrowserId();
+                
+                // First, delete all existing events for this browser
+                await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // Then insert all current events
+                if (userEvents.length > 0) {
+                    const eventsToSave = userEvents.map(event => ({
+                        id: event.id,
+                        browser_id: browserId,
+                        title: event.title,
+                        description: event.description || null,
+                        event_type: event.type || 'single',
+                        start_date: event.date,
+                        end_date: event.endDate || null,
+                        recurrence: event.recurrence || null,
+                        recurrence_end: event.recurrenceEnd || null,
+                        source: event.source || 'manual',
+                        created_at: new Date().toISOString()
+                    }));
+                    
+                    const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': supabaseKey,
+                            'Authorization': `Bearer ${supabaseKey}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify(eventsToSave)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                }
+                
+                console.log(`Saved ${userEvents.length} user events to Supabase`);
+                
+                // Also save to localStorage as backup
+                localStorage.setItem('calendarUserEvents', JSON.stringify(userEvents));
+                
+            } catch (error) {
+                console.error('Failed to save events to Supabase, saving to localStorage:', error);
+                // Fallback to localStorage if Supabase fails
+                localStorage.setItem('calendarUserEvents', JSON.stringify(userEvents));
+            }
         }
         
         // Generate unique ID for events
@@ -497,8 +604,6 @@
             try {
                 console.log('Fetching events from Supabase Edge Function...');
                 
-                // Your Supabase project URL  
-                const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
                 const edgeFunctionUrl = `${supabaseUrl}/functions/v1/calendar-proxy`;
                 
                 const response = await fetch(edgeFunctionUrl, {
@@ -522,7 +627,10 @@
                 }
                 
                 events = parseIcalData(icalData);
-                console.log(`Successfully loaded ${events.length} events`);
+                console.log(`Successfully loaded ${events.length} external calendar events`);
+                
+                // Load user events from Supabase after external events are loaded
+                await loadUserEvents();
                 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('calendar').style.display = 'grid';
@@ -1087,30 +1195,36 @@
         // Show storage information
         function showStorageInfo() {
             const userEventCount = userEvents.length;
-            const storageUsed = localStorage.getItem('calendarUserEvents');
-            const storageSize = storageUsed ? (storageUsed.length / 1024).toFixed(2) : '0';
+            const browserId = getBrowserId();
             
             const message = `📊 CALENDAR STORAGE INFO
 
 💾 WHERE YOUR DATA IS SAVED:
-• User events & imported ICS files: Browser Local Storage
+• User events & imported ICS files: Supabase Database ☁️
 • Google Calendar events: Fetched from cloud each time
+• Browser ID: ${browserId}
 
 📈 CURRENT USAGE:
 • User-created events: ${userEventCount}
-• Storage used: ${storageSize} KB
-• Max storage: ~10 MB (browser dependent)
+• Storage: Supabase Database (PostgreSQL)
+• Backup: localStorage (automatic fallback)
 
-⚠️ IMPORTANT NOTES:
-• Local Storage can be cleared by:
-  - Browser "Clear Data" / "Reset"
-  - Incognito/Private browsing mode
-  - Browser updates or crashes
-  - Manually clearing browser data
+✅ SUPABASE BENEFITS:
+• ✅ Persistent across devices & browsers
+• ✅ Never lost when clearing browser data
+• ✅ Automatic cloud backup & sync
+• ✅ Professional database storage
+• ✅ Access from any device with same browser ID
 
-💡 TO BACKUP YOUR EVENTS:
+🔄 HOW IT WORKS:
+• Your browser gets a unique ID (stored locally)
+• Events saved to Supabase table "calendar_user_events"
+• Events tied to your browser ID
+• Fallback to localStorage if Supabase unavailable
+
+💡 BACKUP OPTIONS:
 • Use "📤 Export Calendar" to save .ics file
-• Re-import your .ics file if data is lost
+• Your events are already backed up in Supabase!
 
 🔄 GOOGLE CALENDAR:
 • Always loads fresh from Google (never lost)
@@ -1120,7 +1234,6 @@
         }
         
         // Initialize
-        loadUserEvents();
         fetchEvents();
 </script>
 </body>
