@@ -61,8 +61,8 @@
             padding: 5px;
             text-align: center;
             border: 1px solid #ddd;
-            min-height: 60px;
-            max-height: 120px;
+            min-height: 80px;
+            max-height: 200px;
             max-width: 100%;
             width: 100%;
             position: relative;
@@ -88,6 +88,7 @@
         .day-number {
             flex-shrink: 0;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         
         .events-container {
@@ -96,15 +97,13 @@
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            gap: 1px;
+            gap: 2px;
         }
         
         .event {
-            font-size: 9px;
-            background: #007cba;
-            color: white;
-            padding: 1px 2px;
-            border-radius: 2px;
+            font-size: 10px;
+            padding: 3px 4px;
+            border-radius: 3px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -113,16 +112,71 @@
             max-width: 100%;
             width: 100%;
             box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            min-height: 20px;
+        }
+        
+        .event.user-event {
+            background: #fd7e14;
+            color: white;
+            border-left: 3px solid #e76500;
+        }
+        
+        .event.external-event {
+            background: #007cba;
+            color: white;
+            border-left: 3px solid #005a87;
+        }
+        
+        .event.multi-day {
+            background: #fd7e14;
+            border-left: 3px solid #e76500;
+        }
+        
+        .event.selected {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .day.selected {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+        
+        /* Event time display */
+        .event-time {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-right: 6px;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: left;
+        }
+        
+        .event-content {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            flex: 1;
+        }
+        
+        .event-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .events-more {
             font-size: 9px;
             color: #666;
             text-align: center;
-            padding: 1px;
+            padding: 2px;
             background: #f0f0f0;
             border-radius: 2px;
             cursor: pointer;
+            margin-top: 2px;
         }
 
         .loading {
@@ -427,6 +481,9 @@
                 <button onclick="previousMonth()">← Previous</button>
                 <span id="monthYear"></span>
                 <button onclick="nextMonth()">Next →</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <a href="admin.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8;">🔧 Admin Panel</a>
             </div>
         </div>
 
@@ -898,38 +955,79 @@
             if (dayEvents.length > 0) {
                 dayElement.classList.add('has-event');
                 
-                // Show event count with time info
-                const eventCount = dayEvents.length;
-                const eventIndicator = document.createElement('div');
-                eventIndicator.className = 'event event-indicator';
+                // Show first 3 events expanded, then "+ X more" if there are more
+                const maxVisibleEvents = 3;
+                const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
+                const remainingCount = dayEvents.length - maxVisibleEvents;
                 
-                // Create event content with time
-                const eventContent = document.createElement('div');
-                eventContent.className = 'event-content';
-                
-                // Add time if available (for user events)
-                const userEvents = dayEvents.filter(e => e.isUserEvent);
-                if (userEvents.length > 0) {
-                    const timeElement = document.createElement('span');
-                    timeElement.className = 'event-time';
-                    timeElement.textContent = '⏰';
-                    eventContent.appendChild(timeElement);
-                }
-                
-                const countElement = document.createElement('span');
-                countElement.textContent = `${eventCount} event${eventCount > 1 ? 's' : ''}`;
-                eventContent.appendChild(countElement);
-                
-                eventIndicator.appendChild(eventContent);
-                eventIndicator.title = `Click to view ${eventCount} event${eventCount > 1 ? 's' : ''}`;
-                
-                // Make the event indicator clickable
-                eventIndicator.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    showDayPopup(dateStr);
+                visibleEvents.forEach(event => {
+                    const eventElement = document.createElement('div');
+                    eventElement.className = 'event';
+                    
+                    // Add appropriate class based on event source
+                    if (event.isUserEvent) {
+                        eventElement.classList.add('user-event');
+                    } else {
+                        eventElement.classList.add('external-event');
+                    }
+                    
+                    if (event.type === 'multi') {
+                        eventElement.classList.add('multi-day');
+                    }
+                    
+                    // Create event content with time
+                    const eventContent = document.createElement('div');
+                    eventContent.className = 'event-content';
+                    
+                    // Add time if available
+                    if (event.startTime) {
+                        const timeElement = document.createElement('span');
+                        timeElement.className = 'event-time';
+                        timeElement.textContent = event.startTime;
+                        eventContent.appendChild(timeElement);
+                    } else {
+                        // Add empty space for alignment
+                        const timeElement = document.createElement('span');
+                        timeElement.className = 'event-time';
+                        timeElement.textContent = '';
+                        eventContent.appendChild(timeElement);
+                    }
+                    
+                    // Add event title
+                    const titleElement = document.createElement('span');
+                    titleElement.className = 'event-title';
+                    titleElement.textContent = event.title;
+                    eventContent.appendChild(titleElement);
+                    
+                    eventElement.appendChild(eventContent);
+                    
+                    // Make the event clickable
+                    eventElement.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (event.isUserEvent) {
+                            editEvent(event);
+                        } else {
+                            showDayPopup(dateStr);
+                        }
+                    });
+                    
+                    eventsContainer.appendChild(eventElement);
                 });
                 
-                eventsContainer.appendChild(eventIndicator);
+                // Add "+ X more" indicator if there are more events
+                if (remainingCount > 0) {
+                    const moreIndicator = document.createElement('div');
+                    moreIndicator.className = 'events-more';
+                    moreIndicator.textContent = `+ ${remainingCount} more`;
+                    moreIndicator.title = `Click to view all ${dayEvents.length} events`;
+                    
+                    moreIndicator.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showDayPopup(dateStr);
+                    });
+                    
+                    eventsContainer.appendChild(moreIndicator);
+                }
             }
             
             return dayElement;
