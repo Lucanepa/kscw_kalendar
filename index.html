@@ -517,6 +517,12 @@
                         source: row.source || 'manual'
                     }));
                     console.log(`Loaded ${userEvents.length} user events from Supabase`);
+                    
+                    // Debug: Log multi-day events
+                    const multiDayEvents = userEvents.filter(e => e.type === 'multi');
+                    if (multiDayEvents.length > 0) {
+                        console.log('Multi-day events loaded:', multiDayEvents);
+                    }
                 } else if (response.status === 404) {
                     // Table doesn't exist yet, that's ok
                     console.log('User events table not found, will be created on first save');
@@ -525,13 +531,9 @@
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
-                console.error('Failed to load events from Supabase, falling back to localStorage:', error);
-                // Fallback to localStorage if Supabase fails
-                const stored = localStorage.getItem('calendarUserEvents');
-                if (stored) {
-                    userEvents = JSON.parse(stored);
-                    console.log(`Loaded ${userEvents.length} user events from localStorage fallback`);
-                }
+                console.error('Failed to load events from Supabase:', error);
+                userEvents = [];
+                alert('Failed to load your events from database. Please check your internet connection and refresh the page.');
             }
         }
         
@@ -567,6 +569,12 @@
                         created_at: new Date().toISOString()
                     }));
                     
+                    // Debug: Log multi-day events being saved
+                    const multiDaySaves = eventsToSave.filter(e => e.event_type === 'multi');
+                    if (multiDaySaves.length > 0) {
+                        console.log('Saving multi-day events:', multiDaySaves);
+                    }
+                    
                     const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
                         method: 'POST',
                         headers: {
@@ -585,13 +593,10 @@
                 
                 console.log(`Saved ${userEvents.length} user events to Supabase`);
                 
-                // Also save to localStorage as backup
-                localStorage.setItem('calendarUserEvents', JSON.stringify(userEvents));
-                
             } catch (error) {
-                console.error('Failed to save events to Supabase, saving to localStorage:', error);
-                // Fallback to localStorage if Supabase fails
-                localStorage.setItem('calendarUserEvents', JSON.stringify(userEvents));
+                console.error('Failed to save events to Supabase:', error);
+                alert('Failed to save your events to database. Please check your internet connection.');
+                throw error; // Re-throw to prevent silent failures
             }
         }
         
@@ -791,7 +796,16 @@
                         eventElement.classList.add('multi-day');
                     }
                     
-                    eventElement.textContent = event.title;
+                    // Display title with type indicator for debugging
+                    let displayTitle = event.title;
+                    if (event.isMultiDay && event.dayNumber && event.totalDays) {
+                        displayTitle = `${event.title} (${event.dayNumber}/${event.totalDays})`;
+                    } else if (event.type === 'recurring') {
+                        displayTitle = `${event.title} ♻️`;
+                    } else if (event.type === 'multi') {
+                        displayTitle = `${event.title} 📅`;
+                    }
+                    eventElement.textContent = displayTitle;
                     
                     // Enhanced tooltip with description
                     let tooltip = event.title;
@@ -801,7 +815,9 @@
                     if (event.type === 'recurring') {
                         tooltip += '\n(Recurring)';
                     } else if (event.isMultiDay && event.originalStartDate && event.originalEndDate) {
-                        tooltip += `\n(Multi-day: ${event.originalStartDate} to ${event.originalEndDate})`;
+                        const dayText = event.dayNumber && event.totalDays ? 
+                            ` - Day ${event.dayNumber} of ${event.totalDays}` : '';
+                        tooltip += `\n(Multi-day: ${event.originalStartDate} to ${event.originalEndDate}${dayText})`;
                     } else if (event.type === 'multi') {
                         tooltip += '\n(Multi-day)';
                     }
@@ -942,6 +958,10 @@
         function clearUserEvents() {
             if (confirm('Are you sure you want to clear all user-created events?')) {
                 userEvents = [];
+                
+                // Clear old localStorage backup if it exists
+                localStorage.removeItem('calendarUserEvents');
+                
                 saveUserEvents();
                 renderCalendar();
                 clearSelection();
@@ -1150,38 +1170,57 @@
         function getAllDisplayEvents() {
             let allEvents = [...getFilteredEvents()]; // Use filtered events instead of all events
             
+            console.log('Processing user events for display:', userEvents.length);
+            
             userEvents.forEach(event => {
                 if (event.type === 'recurring') {
-                    allEvents.push(...generateRecurringEvents(event));
+                    const recurringEvents = generateRecurringEvents(event);
+                    allEvents.push(...recurringEvents);
+                    console.log(`Generated ${recurringEvents.length} recurring instances for: ${event.title}`);
                 } else if (event.type === 'multi' && event.endDate) {
                     // Generate events for each day in the range
+                    console.log(`Processing multi-day event: ${event.title} from ${event.date} to ${event.endDate}`);
+                    
                     const startDate = new Date(event.date + 'T00:00:00');
                     const endDate = new Date(event.endDate + 'T00:00:00');
+                    
+                    console.log('Start date object:', startDate);
+                    console.log('End date object:', endDate);
                     
                     if (endDate >= startDate) {
                         let currentDate = new Date(startDate);
                         let dayCount = 0;
                         const maxDays = 365; // Safety limit to prevent infinite loops
+                        const generatedDays = [];
                         
                         while (currentDate <= endDate && dayCount < maxDays) {
+                            const dateStr = currentDate.toISOString().split('T')[0];
+                            generatedDays.push(dateStr);
+                            
                             allEvents.push({
                                 ...event,
-                                date: currentDate.toISOString().split('T')[0],
+                                date: dateStr,
                                 isMultiDay: true,
                                 originalStartDate: event.date,
-                                originalEndDate: event.endDate
+                                originalEndDate: event.endDate,
+                                dayNumber: dayCount + 1,
+                                totalDays: Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1
                             });
                             currentDate.setDate(currentDate.getDate() + 1);
                             dayCount++;
                         }
                         
-                        console.log(`Generated ${dayCount} days for multi-day event: ${event.title} (${event.date} to ${event.endDate})`);
+                        console.log(`Generated ${dayCount} days for multi-day event "${event.title}":`, generatedDays);
+                    } else {
+                        console.warn(`Invalid multi-day event: end date ${event.endDate} is before start date ${event.date}`);
                     }
                 } else {
                     allEvents.push(event);
+                    console.log(`Added single-day event: ${event.title} on ${event.date}`);
                 }
             });
             
+            console.log(`Total events for display: ${allEvents.length}`);
             return allEvents;
         }
         
@@ -1200,31 +1239,31 @@
             const message = `📊 CALENDAR STORAGE INFO
 
 💾 WHERE YOUR DATA IS SAVED:
-• User events & imported ICS files: Supabase Database ☁️
+• User events & imported ICS files: Supabase Database ONLY ☁️
 • Google Calendar events: Fetched from cloud each time
 • Browser ID: ${browserId}
 
 📈 CURRENT USAGE:
 • User-created events: ${userEventCount}
 • Storage: Supabase Database (PostgreSQL)
-• Backup: localStorage (automatic fallback)
+• Backup: None (all data in cloud database)
 
 ✅ SUPABASE BENEFITS:
 • ✅ Persistent across devices & browsers
 • ✅ Never lost when clearing browser data
-• ✅ Automatic cloud backup & sync
-• ✅ Professional database storage
+• ✅ Professional cloud database storage
 • ✅ Access from any device with same browser ID
+• ✅ No local storage dependencies
 
 🔄 HOW IT WORKS:
-• Your browser gets a unique ID (stored locally)
-• Events saved to Supabase table "calendar_user_events"
+• Your browser gets a unique ID (stored locally for identification)
+• Events saved ONLY to Supabase table "calendar_user_events"
 • Events tied to your browser ID
-• Fallback to localStorage if Supabase unavailable
+• No localStorage backup (cloud-only storage)
 
 💡 BACKUP OPTIONS:
 • Use "📤 Export Calendar" to save .ics file
-• Your events are already backed up in Supabase!
+• Your events are secured in Supabase cloud database!
 
 🔄 GOOGLE CALENDAR:
 • Always loads fresh from Google (never lost)
