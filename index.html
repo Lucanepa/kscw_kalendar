@@ -102,8 +102,8 @@
                 <span id="monthYear"></span>
                 <button onclick="nextMonth()">Next →</button>
             </div>
-        </div>
-        
+            </div>
+
         <div class="loading" id="loading">Loading events...</div>
         
         <div class="grid" id="calendar" style="display: none;">
@@ -114,11 +114,10 @@
             <div class="weekday">Thu</div>
             <div class="weekday">Fri</div>
             <div class="weekday">Sat</div>
-            <div id="days"></div>
         </div>
     </div>
 
-    <script>
+<script>
         let currentDate = new Date();
         let events = [];
         
@@ -225,9 +224,12 @@
                               'July', 'August', 'September', 'October', 'November', 'December'];
             document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
             
-            // Clear days
-            const daysContainer = document.getElementById('days');
-            daysContainer.innerHTML = '';
+            // Clear existing day elements (keep weekday headers)
+            const calendarContainer = document.getElementById('calendar');
+            const weekdayElements = calendarContainer.querySelectorAll('.weekday');
+            calendarContainer.innerHTML = '';
+            // Re-add weekday headers
+            weekdayElements.forEach(weekday => calendarContainer.appendChild(weekday));
             
             // Calculate calendar layout
             const firstDay = new Date(year, month, 1).getDay();
@@ -238,21 +240,21 @@
             for (let i = firstDay - 1; i >= 0; i--) {
                 const day = daysInPrevMonth - i;
                 const dayElement = createDayElement(day, 'other-month', year, month - 1);
-                daysContainer.appendChild(dayElement);
+                calendarContainer.appendChild(dayElement);
             }
             
             // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayElement = createDayElement(day, 'current-month', year, month);
-                daysContainer.appendChild(dayElement);
+                calendarContainer.appendChild(dayElement);
             }
             
             // Next month days
-            const totalCells = daysContainer.children.length;
-            const remainingCells = 42 - totalCells;
+            const totalDayCells = calendarContainer.children.length - 7; // Subtract weekday headers
+            const remainingCells = 42 - totalDayCells; // Need exactly 42 day cells (6 rows × 7 days)
             for (let day = 1; day <= remainingCells; day++) {
                 const dayElement = createDayElement(day, 'other-month', year, month + 1);
-                daysContainer.appendChild(dayElement);
+                calendarContainer.appendChild(dayElement);
             }
         }
         
