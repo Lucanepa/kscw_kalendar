@@ -58,7 +58,11 @@
             text-align: center;
             border: 1px solid #ddd;
             min-height: 60px;
+            max-height: 120px;
             position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .day.other-month {
@@ -74,19 +78,44 @@
             background: #e6f3ff;
         }
         
+        .day-number {
+            flex-shrink: 0;
+            margin-bottom: 5px;
+        }
+        
+        .events-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        
         .event {
-            font-size: 11px;
+            font-size: 10px;
             background: #007cba;
             color: white;
             padding: 1px 3px;
-            margin: 1px 0;
             border-radius: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            flex-shrink: 0;
+            cursor: pointer;
         }
         
-                .loading {
+        .events-more {
+            font-size: 9px;
+            color: #666;
+            text-align: center;
+            padding: 1px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        .loading {
             text-align: center;
             padding: 20px;
             color: #666;
@@ -229,6 +258,41 @@
         
         .quick-actions button:hover {
             background: #138496;
+        }
+        
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .day {
+                max-height: 100px;
+                padding: 5px;
+            }
+            
+            .event {
+                font-size: 9px;
+                padding: 1px 2px;
+            }
+            
+            .day-number {
+                margin-bottom: 3px;
+            }
+        }
+        
+        /* Custom scrollbar for events container */
+        .events-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .events-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .events-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 2px;
+        }
+        
+        .events-container::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
         }
 </style>
 </head>
@@ -501,7 +565,6 @@
         function createDayElement(day, monthClass, year, month) {
             const dayElement = document.createElement('div');
             dayElement.className = `day ${monthClass}`;
-            dayElement.textContent = day;
             
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const today = new Date().toISOString().split('T')[0];
@@ -510,9 +573,20 @@
                 dayElement.classList.add('today');
             }
             
+            // Create day number element
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            dayElement.appendChild(dayNumber);
+            
+            // Create events container
+            const eventsContainer = document.createElement('div');
+            eventsContainer.className = 'events-container';
+            dayElement.appendChild(eventsContainer);
+            
             // Add click handler for day selection
             dayElement.addEventListener('click', (e) => {
-                if (e.target === dayElement) {
+                if (e.target === dayElement || e.target === dayNumber || e.target === eventsContainer) {
                     selectDay(dateStr, dayElement);
                 }
             });
@@ -520,9 +594,15 @@
             // Add events for this day
             const allEvents = getAllDisplayEvents();
             const dayEvents = allEvents.filter(event => event.date === dateStr);
+            
             if (dayEvents.length > 0) {
                 dayElement.classList.add('has-event');
-                dayEvents.forEach(event => {
+                
+                const maxVisibleEvents = 4; // Limit visible events to prevent overflow
+                const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
+                const hiddenEventsCount = dayEvents.length - maxVisibleEvents;
+                
+                visibleEvents.forEach(event => {
                     const eventElement = document.createElement('div');
                     eventElement.className = 'event';
                     
@@ -551,11 +631,45 @@
                         selectEvent(event, eventElement);
                     });
                     
-                    dayElement.appendChild(eventElement);
+                    eventsContainer.appendChild(eventElement);
                 });
+                
+                // Add "more events" indicator if there are hidden events
+                if (hiddenEventsCount > 0) {
+                    const moreElement = document.createElement('div');
+                    moreElement.className = 'events-more';
+                    moreElement.textContent = `+${hiddenEventsCount} more`;
+                    moreElement.title = `${hiddenEventsCount} more events on this day`;
+                    
+                    // Click handler to show all events for this day
+                    moreElement.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        showAllEventsForDay(dateStr, dayEvents);
+                    });
+                    
+                    eventsContainer.appendChild(moreElement);
+                }
             }
             
             return dayElement;
+        }
+        
+        // Function to show all events for a specific day
+        function showAllEventsForDay(dateStr, dayEvents) {
+            const eventsList = dayEvents.map(event => {
+                let description = event.title;
+                if (event.description) {
+                    description += '\n' + event.description;
+                }
+                if (event.type === 'recurring') {
+                    description += '\n(Recurring)';
+                } else if (event.type === 'multi') {
+                    description += '\n(Multi-day)';
+                }
+                return description;
+            }).join('\n\n');
+            
+            alert(`Events for ${dateStr}:\n\n${eventsList}`);
         }
         
         function previousMonth() {
