@@ -38,6 +38,8 @@ max_client_conn = 100
 enabled = true
 # Bind realtime via either IPv4 or IPv6. (default: IPv6)
 # ip_version = "IPv6"
+# The maximum length in bytes of HTTP request headers. (default: 4096)
+# max_header_length = 4096
 
 [studio]
 enabled = true
@@ -45,6 +47,8 @@ enabled = true
 port = 54323
 # External URL of the API server that frontend connects to.
 api_url = "http://127.0.0.1:54321"
+# OpenAI API Key to use for Supabase AI.
+openai_api_key = "env(OPENAI_API_KEY)"
 
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
@@ -77,41 +81,59 @@ enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
 enable_signup = true
+# Allow/disallow anonymous sign-ins to your project.
+enable_anonymous_sign_ins = false
+# Allow/disallow testing manual linking of accounts
+enable_manual_linking = false
 
 [auth.email]
-# Allow/disallow new user signups via email to your project.
-enable_signup = true
-# If enabled, a user will be required to confirm any email change on both the old, and new email addresses.
-# If disabled, only the new email is required to confirm.
+enabled = true
 double_confirm_changes = true
-# If enabled, users need to confirm their email address before signing in.
 enable_confirmations = false
-
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
-
-[auth.sms]
-# Allow/disallow new user signups via SMS to your project.
-enable_signup = true
-# If enabled, users need to confirm their phone number before signing in.
-enable_confirmations = false
-# Template for sending a confirmation SMS
-# [auth.sms.template.invite]
-# content = "Your code is {{ .Code }} ."
-
-# Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
-
-# Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-# [auth.sms.twilio]
+# Uncomment to enable custom SMTP server
+# [auth.email.smtp]
 # enabled = false
-# account_sid = ""
-# message_service_sid = ""
-# # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
-# auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+# host = ""
+# port = 587
+# user = ""
+# pass = ""
+# admin_email = ""
+# sender_name = ""
+
+# Use an external OAuth provider. The full list of providers are:
+# `apple`, `azure`, `bitbucket`, `discord`, `facebook`, `github`, `gitlab`,
+# `google`, `keycloak`, `linkedin`, `notion`, `twitch`, `twitter`, `slack`, `spotify`, `workos`, `zoom`.
+[auth.external.apple]
+enabled = false
+client_id = ""
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+# Overrides the default auth redirectUrl.
+redirect_uri = ""
+# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+# or any other third-party OIDC providers.
+url = ""
+# If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
+skip_nonce_check = false
+
+# Use SMS authentication
+[auth.sms]
+enabled = false
+test_otp = "123456"
+max_frequency = 300 # maximum frequency of SMS messages per phone number
+
+# Configure logged in session timeouts.
+# [auth.sessions]
+# timebox = "24h"
+# inactivity_timeout = "8h"
+
+# Use an external SMS provider. The full list of providers are:
+# `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+[auth.sms.twilio]
+enabled = false
+account_sid = ""
+message_service_sid = ""
+# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
 [edge_runtime]
 enabled = true
@@ -119,3 +141,6 @@ enabled = true
 # Use `oneshot` for hot reload, or `per_worker` for load testing.
 policy = "oneshot"
 inspector_port = 8083
+
+[functions.calendar-proxy]
+verify_jwt = false
