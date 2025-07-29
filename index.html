@@ -3,822 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW Calendar - Enhanced</title>
+    <title>Plain Calendar</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
         }
-
-        .calendar-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            max-width: 900px;
-            width: 100%;
+        
+        .calendar {
+            background: white;
+            border: 1px solid #ddd;
+            max-width: 800px;
+            margin: 0 auto;
         }
-
-        .calendar-header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            padding: 30px;
+        
+        .header {
             text-align: center;
+            padding: 20px;
+            background: #333;
+            color: white;
         }
-
-        .calendar-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .calendar-nav {
+        
+        .nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
+            margin-top: 10px;
         }
-
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
+        
+        .nav button {
+            background: #555;
             color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
+            border: none;
+            padding: 5px 15px;
             cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
         }
-
-        .nav-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .current-month {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .calendar-grid {
-            padding: 30px;
-        }
-
-        .weekdays {
+        
+        .grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
         }
-
+        
         .weekday {
+            padding: 10px;
             text-align: center;
-            font-weight: 600;
-            color: #666;
-            padding: 15px 10px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            background: #eee;
+            font-weight: bold;
+            border: 1px solid #ddd;
         }
-
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-        }
-
+        
         .day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+            min-height: 60px;
             position: relative;
-            font-weight: 500;
         }
-
-        .day:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
+        
         .day.other-month {
             color: #ccc;
-            background: #f8f9fa;
+            background: #fafafa;
         }
-
-        .day.current-month {
-            color: #333;
-            background: white;
-            border: 2px solid #e9ecef;
-        }
-
+        
         .day.today {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            color: white;
-            font-weight: bold;
+            background: #ffffcc;
         }
-
-        .day.selected {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-
+        
         .day.has-event {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            background: #e6f3ff;
         }
-
-        .day.has-volleyball {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        
+        .event {
+            font-size: 11px;
+            background: #007cba;
+            color: white;
+            padding: 1px 3px;
+            margin: 1px 0;
+            border-radius: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-
-        .event-indicator {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            width: 8px;
-            height: 8px;
-            background: #ff6b6b;
-            border-radius: 50%;
-        }
-
-        .volleyball-indicator {
-            position: absolute;
-            bottom: 5px;
-            left: 5px;
-            width: 8px;
-            height: 8px;
-            background: #fdcb6e;
-            border-radius: 50%;
-        }
-
-        .event-panel {
-            padding: 30px;
-            border-top: 1px solid #e9ecef;
-            background: #f8f9fa;
-        }
-
-        .event-panel h3 {
-            margin-bottom: 20px;
-            color: #333;
-            font-size: 1.3rem;
-        }
-
-        .import-section {
-            margin-bottom: 30px;
+        
+        .loading {
+            text-align: center;
             padding: 20px;
-            background: white;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-        }
-
-        .import-section h4 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 1.1rem;
-        }
-
-        .predefined-calendars {
-            margin-bottom: 20px;
-        }
-
-        .predefined-calendars h5 {
-            margin-bottom: 10px;
             color: #666;
-            font-size: 0.95rem;
-        }
-
-        .calendar-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .calendar-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-
-        .calendar-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
-        }
-
-        .import-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .ical-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            min-width: 300px;
-        }
-
-        .ical-input:focus {
-            outline: none;
-            border-color: #4facfe;
-        }
-
-        .import-btn {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .import-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-        }
-
-        .import-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .import-status {
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            display: none;
-        }
-
-        .import-status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .import-status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .import-status.loading {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        .calendar-sources {
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .event-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .event-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1rem;
-            min-width: 200px;
-        }
-
-        .event-input:focus {
-            outline: none;
-            border-color: #4facfe;
-        }
-
-        .add-event-btn {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .add-event-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
-        }
-
-        .advanced-event-form {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 2px solid #e9ecef;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .form-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #4facfe;
-        }
-
-        .event-type-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .event-type-btn {
-            padding: 8px 16px;
-            border: 2px solid #e9ecef;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .event-type-btn.active {
-            background: #4facfe;
-            color: white;
-            border-color: #4facfe;
-        }
-
-        .events-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .event-item {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            border-left: 4px solid #4facfe;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .event-item.imported {
-            border-left-color: #28a745;
-        }
-
-        .event-item.volleyball {
-            border-left-color: #fdcb6e;
-        }
-
-        .event-item.recurring {
-            border-left-color: #e17055;
-        }
-
-        .event-text {
-            flex: 1;
-        }
-
-        .event-date {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .event-source {
-            font-size: 0.8rem;
-            color: #28a745;
-            margin-top: 2px;
-            font-style: italic;
-        }
-
-        .event-type-badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            background: #e9ecef;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .delete-event {
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .delete-event:hover {
-            background: #ee5a24;
-        }
-
-        @media (max-width: 768px) {
-            .calendar-container {
-                margin: 10px;
-            }
-
-            .calendar-header h1 {
-                font-size: 2rem;
-            }
-
-            .calendar-nav {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .current-month {
-                order: -1;
-            }
-
-            .event-form, .form-row {
-                flex-direction: column;
-            }
-
-            .event-input, .form-group {
-                min-width: auto;
-            }
-
-            .calendar-buttons {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="calendar-container">
-        <div class="calendar-header">
-            <h1>KSCW Calendar - Enhanced</h1>
-            <div class="calendar-nav">
-                <button class="nav-btn" onclick="previousMonth()">&larr; Previous</button>
-                <div class="current-month" id="currentMonth"></div>
-                <button class="nav-btn" onclick="nextMonth()">Next &rarr;</button>
+    <div class="calendar">
+        <div class="header">
+            <h1>Calendar</h1>
+            <div class="nav">
+                <button onclick="previousMonth()">← Previous</button>
+                <span id="monthYear"></span>
+                <button onclick="nextMonth()">Next →</button>
             </div>
         </div>
-
-        <div class="calendar-grid">
-            <div class="weekdays">
-                <div class="weekday">Sun</div>
-                <div class="weekday">Mon</div>
-                <div class="weekday">Tue</div>
-                <div class="weekday">Wed</div>
-                <div class="weekday">Thu</div>
-                <div class="weekday">Fri</div>
-                <div class="weekday">Sat</div>
-            </div>
-            <div class="days-grid" id="daysGrid"></div>
-        </div>
-
-        <div class="event-panel">
-            <h3>Import Calendar Events</h3>
-            <div class="import-section">
-                <h4>Quick Import - Your Calendars</h4>
-                <div class="predefined-calendars">
-                    <h5>Select a calendar to import:</h5>
-                    <div class="calendar-buttons">
-                        <button class="calendar-btn" onclick="importPredefinedCalendar('calendar1')">📅 Calendar 1</button>
-                        <button class="calendar-btn" onclick="importPredefinedCalendar('calendar2')">📅 Calendar 2</button>
-                        <button class="calendar-btn" onclick="importVolleyballCalendar()">🏐 Volleyball (KSC Wiedikon)</button>
-                        <button class="calendar-btn" onclick="importAllCalendars()">📅 Import All</button>
-                    </div>
-                </div>
-                
-                <h4>Custom iCal URL</h4>
-                <div class="import-form">
-                    <input type="url" class="ical-input" id="icalUrl" placeholder="Enter iCal URL (e.g., https://calendar.google.com/calendar/ical/...)">
-                    <button class="import-btn" id="importBtn" onclick="importFromIcal()">Import Events</button>
-                </div>
-                <div class="import-status" id="importStatus"></div>
-                <div class="calendar-sources" id="calendarSources"></div>
-            </div>
-            
-            <h3>Add Event - Advanced</h3>
-            <div class="advanced-event-form">
-                <div class="event-type-selector">
-                    <button class="event-type-btn active" onclick="setEventType('single')" id="singleBtn">Single Event</button>
-                    <button class="event-type-btn" onclick="setEventType('multiday')" id="multidayBtn">Multi-day Event</button>
-                    <button class="event-type-btn" onclick="setEventType('recurring')" id="recurringBtn">Recurring Event</button>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventTitle">Event Title</label>
-                        <input type="text" id="eventTitle" placeholder="Enter event title">
-                    </div>
-                    <div class="form-group">
-                        <label for="eventCategory">Category</label>
-                        <select id="eventCategory">
-                            <option value="personal">Personal</option>
-                            <option value="work">Work</option>
-                            <option value="volleyball">Volleyball</option>
-                            <option value="meeting">Meeting</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row" id="singleEventForm">
-                    <div class="form-group">
-                        <label for="eventStartDate">Date</label>
-                        <input type="date" id="eventStartDate">
-                    </div>
-                    <div class="form-group">
-                        <label for="eventTime">Time (optional)</label>
-                        <input type="time" id="eventTime">
-                    </div>
-                </div>
-
-                <div class="form-row" id="multidayEventForm" style="display: none;">
-                    <div class="form-group">
-                        <label for="eventStartDateMulti">Start Date</label>
-                        <input type="date" id="eventStartDateMulti">
-                    </div>
-                    <div class="form-group">
-                        <label for="eventEndDate">End Date</label>
-                        <input type="date" id="eventEndDate">
-                    </div>
-                </div>
-
-                <div class="form-row" id="recurringEventForm" style="display: none;">
-                    <div class="form-group">
-                        <label for="eventStartDateRecur">Start Date</label>
-                        <input type="date" id="eventStartDateRecur">
-                    </div>
-                    <div class="form-group">
-                        <label for="recurringType">Repeat</label>
-                        <select id="recurringType">
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="monthly">Monthly</option>
-                            <option value="yearly">Yearly</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="recurringCount">Times to repeat</label>
-                        <input type="number" id="recurringCount" min="1" max="365" value="1">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventDescription">Description (optional)</label>
-                        <input type="text" id="eventDescription" placeholder="Event description">
-                    </div>
-                </div>
-
-                <button class="add-event-btn" onclick="addAdvancedEvent()">Add Event</button>
-            </div>
-            
-            <div class="events-list" id="eventsList"></div>
+        
+        <div class="loading" id="loading">Loading events...</div>
+        
+        <div class="grid" id="calendar" style="display: none;">
+            <div class="weekday">Sun</div>
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+            <div class="weekday">Sat</div>
+            <div id="days"></div>
         </div>
     </div>
 
     <script>
         let currentDate = new Date();
-        let selectedDate = null;
-        let events = JSON.parse(localStorage.getItem('calendarEvents')) || [];
-        let importedSources = JSON.parse(localStorage.getItem('calendarSources')) || {};
-        let currentEventType = 'single';
-
-        // Predefined calendar URLs with volleyball calendar
-        const predefinedCalendars = {
-            calendar1: {
-                name: 'Calendar 1',
-                url: 'https://calendar.google.com/calendar/ical/145bqacb4v5qfkr97u2fdchi5o%40group.calendar.google.com/public/basic.ics'
-            },
-            calendar2: {
-                name: 'Calendar 2', 
-                url: 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics'
-            }
-        };
-
-        // Event type management
-        function setEventType(type) {
-            currentEventType = type;
-            
-            // Update button states
-            document.querySelectorAll('.event-type-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(type + 'Btn').classList.add('active');
-            
-            // Show/hide appropriate forms
-            document.getElementById('singleEventForm').style.display = type === 'single' ? 'flex' : 'none';
-            document.getElementById('multidayEventForm').style.display = type === 'multiday' ? 'flex' : 'none';
-            document.getElementById('recurringEventForm').style.display = 'recurring' === type ? 'flex' : 'none';
-        }
-
-        // Enhanced iCal Import Functions
-        async function importPredefinedCalendar(calendarId) {
-            const calendar = predefinedCalendars[calendarId];
-            if (!calendar) return;
-            
-            document.getElementById('icalUrl').value = calendar.url;
-            await importFromIcal(calendar.name);
-        }
-
-        async function importVolleyballCalendar() {
-            // Import both calendars and filter for volleyball events
-            showImportStatus('Importing volleyball events (KSC Wiedikon home games)...', 'loading');
-            let totalImported = 0;
-            
-            for (const [calendarId, calendar] of Object.entries(predefinedCalendars)) {
-                try {
-                    const importedCount = await importFromIcalSilent(calendar.url, calendar.name, true);
-                    totalImported += importedCount;
-                } catch (error) {
-                    console.error(`Failed to import ${calendar.name}:`, error);
-                }
-            }
-            
-            updateCalendar();
-            showImportStatus(`Successfully imported ${totalImported} volleyball home games`, 'success');
-            updateCalendarSources();
-        }
-
-        async function importAllCalendars() {
-            showImportStatus('Importing all calendars...', 'loading');
-            let totalImported = 0;
-            
-            for (const [calendarId, calendar] of Object.entries(predefinedCalendars)) {
-                try {
-                    const importedCount = await importFromIcalSilent(calendar.url, calendar.name);
-                    totalImported += importedCount;
-                } catch (error) {
-                    console.error(`Failed to import ${calendar.name}:`, error);
-                }
-            }
-            
-            updateCalendar();
-            showImportStatus(`Successfully imported ${totalImported} events from all calendars`, 'success');
-            updateCalendarSources();
-        }
-
-        async function importFromIcal(sourceName = null) {
-            const icalUrl = document.getElementById('icalUrl').value.trim();
-            const importBtn = document.getElementById('importBtn');
-            const importStatus = document.getElementById('importStatus');
-
-            if (!icalUrl) {
-                showImportStatus('Please enter an iCal URL', 'error');
-                return;
-            }
-
-            // Validate URL format
+        let events = [];
+        
+        // Google Calendar iCal URL
+        const calendarUrl = 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics';
+        
+        async function fetchEvents() {
             try {
-                new URL(icalUrl);
-            } catch (e) {
-                showImportStatus('Please enter a valid URL', 'error');
-                return;
-            }
-
-            importBtn.disabled = true;
-            showImportStatus('Importing events...', 'loading');
-
-            try {
-                const importedCount = await importFromIcalSilent(icalUrl, sourceName);
-                updateCalendar();
-                showImportStatus(`Successfully imported ${importedCount} new events`, 'success');
-                document.getElementById('icalUrl').value = '';
-                updateCalendarSources();
-            } catch (error) {
-                console.error('Import error:', error);
-                showImportStatus(`Import failed: ${error.message}`, 'error');
-            } finally {
-                importBtn.disabled = false;
-            }
-        }
-
-        async function importFromIcalSilent(icalUrl, sourceName = null, volleyballOnly = false) {
-            // Use a CORS proxy for external iCal URLs
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icalUrl)}`;
-            const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const icalData = data.contents;
-
-            const importedEvents = parseIcalData(icalData);
-            
-            if (importedEvents.length === 0) {
-                throw new Error('No events found in the iCal file');
-            }
-
-            // Filter for volleyball events if requested
-            let filteredEvents = importedEvents;
-            if (volleyballOnly) {
-                filteredEvents = importedEvents.filter(event => 
-                    event.text.toLowerCase().includes('ksc wiedikon') && 
-                    (event.text.toLowerCase().includes('home') || event.text.toLowerCase().includes('heim'))
-                );
-            }
-
-            // Add imported events to existing events
-            let addedCount = 0;
-            const source = sourceName || new URL(icalUrl).hostname;
-            
-            filteredEvents.forEach(event => {
-                // Check if event already exists (by date and text)
-                const exists = events.some(existing => 
-                    existing.date === event.date && 
-                    existing.text.toLowerCase() === event.text.toLowerCase()
-                );
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(calendarUrl)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+                const icalData = data.contents;
                 
-                if (!exists) {
-                    events.push({
-                        id: Date.now() + Math.random(),
-                        text: event.text,
-                        date: event.date,
-                        source: source,
-                        imported: true,
-                        type: volleyballOnly ? 'volleyball' : 'imported',
-                        category: volleyballOnly ? 'volleyball' : 'imported'
-                    });
-                    addedCount++;
-                }
-            });
-
-            // Track import source
-            importedSources[source] = {
-                url: icalUrl,
-                lastImported: new Date().toISOString(),
-                eventCount: addedCount,
-                volleyballOnly: volleyballOnly
-            };
-
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-            localStorage.setItem('calendarSources', JSON.stringify(importedSources));
-
-            return addedCount;
+                events = parseIcalData(icalData);
+                console.log(`Loaded ${events.length} events`);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('calendar').style.display = 'grid';
+                
+                renderCalendar();
+            } catch (error) {
+                console.error('Failed to fetch events:', error);
+                document.getElementById('loading').textContent = 'Failed to load events';
+            }
         }
-
+        
         function parseIcalData(icalData) {
             const events = [];
             const lines = icalData.split('\n');
             let currentEvent = null;
 
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
+            for (let line of lines) {
+                line = line.trim();
 
                 if (line === 'BEGIN:VEVENT') {
                     currentEvent = {};
                 } else if (line === 'END:VEVENT' && currentEvent) {
                     if (currentEvent.summary && currentEvent.dtstart) {
                         events.push({
-                            text: currentEvent.summary,
+                            title: currentEvent.summary,
                             date: formatIcalDate(currentEvent.dtstart)
                         });
                     }
@@ -827,22 +167,18 @@
                     if (line.startsWith('SUMMARY:')) {
                         currentEvent.summary = line.substring(8);
                     } else if (line.startsWith('DTSTART')) {
-                        // Handle both DTSTART:20231225 and DTSTART;VALUE=DATE:20231225
                         const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
                         if (dateMatch) {
                             currentEvent.dtstart = dateMatch[1];
                         }
-                    } else if (line.startsWith('DESCRIPTION:')) {
-                        currentEvent.description = line.substring(12);
                     }
                 }
             }
 
             return events;
         }
-
+        
         function formatIcalDate(icalDate) {
-            // Convert YYYYMMDD to YYYY-MM-DD
             if (icalDate && icalDate.length >= 8) {
                 const year = icalDate.substring(0, 4);
                 const month = icalDate.substring(4, 6);
@@ -851,341 +187,87 @@
             }
             return null;
         }
-
-        function showImportStatus(message, type) {
-            const importStatus = document.getElementById('importStatus');
-            importStatus.textContent = message;
-            importStatus.className = `import-status ${type}`;
-            importStatus.style.display = 'block';
-
-            if (type === 'success') {
-                setTimeout(() => {
-                    importStatus.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        function updateCalendarSources() {
-            const sourcesElement = document.getElementById('calendarSources');
-            const sourceNames = Object.keys(importedSources);
-            
-            if (sourceNames.length > 0) {
-                sourcesElement.innerHTML = `<strong>Imported sources:</strong> ${sourceNames.join(', ')}`;
-            } else {
-                sourcesElement.innerHTML = '';
-            }
-        }
-
-        // Advanced Event Management
-        function addAdvancedEvent() {
-            const title = document.getElementById('eventTitle').value.trim();
-            const category = document.getElementById('eventCategory').value;
-            const description = document.getElementById('eventDescription').value.trim();
-
-            if (!title) {
-                alert('Please enter an event title');
-                return;
-            }
-
-            switch (currentEventType) {
-                case 'single':
-                    addSingleEvent(title, category, description);
-                    break;
-                case 'multiday':
-                    addMultidayEvent(title, category, description);
-                    break;
-                case 'recurring':
-                    addRecurringEvent(title, category, description);
-                    break;
-            }
-
-            // Clear form
-            document.getElementById('eventTitle').value = '';
-            document.getElementById('eventDescription').value = '';
-        }
-
-        function addSingleEvent(title, category, description) {
-            const date = document.getElementById('eventStartDate').value;
-            const time = document.getElementById('eventTime').value;
-
-            if (!date) {
-                alert('Please select a date');
-                return;
-            }
-
-            const newEvent = {
-                id: Date.now(),
-                text: title,
-                date: date,
-                time: time,
-                category: category,
-                description: description,
-                type: 'single',
-                imported: false
-            };
-
-            events.push(newEvent);
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-            updateCalendar();
-        }
-
-        function addMultidayEvent(title, category, description) {
-            const startDate = document.getElementById('eventStartDateMulti').value;
-            const endDate = document.getElementById('eventEndDate').value;
-
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return;
-            }
-
-            if (new Date(startDate) > new Date(endDate)) {
-                alert('End date must be after start date');
-                return;
-            }
-
-            // Create events for each day
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                const dateStr = d.toISOString().split('T')[0];
-                events.push({
-                    id: Date.now() + Math.random(),
-                    text: title,
-                    date: dateStr,
-                    category: category,
-                    description: description,
-                    type: 'multiday',
-                    imported: false
-                });
-            }
-
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-            updateCalendar();
-        }
-
-        function addRecurringEvent(title, category, description) {
-            const startDate = document.getElementById('eventStartDateRecur').value;
-            const recurringType = document.getElementById('recurringType').value;
-            const count = parseInt(document.getElementById('recurringCount').value);
-
-            if (!startDate) {
-                alert('Please select a start date');
-                return;
-            }
-
-            const start = new Date(startDate);
-            
-            for (let i = 0; i < count; i++) {
-                const eventDate = new Date(start);
-                
-                switch (recurringType) {
-                    case 'daily':
-                        eventDate.setDate(start.getDate() + i);
-                        break;
-                    case 'weekly':
-                        eventDate.setDate(start.getDate() + (i * 7));
-                        break;
-                    case 'monthly':
-                        eventDate.setMonth(start.getMonth() + i);
-                        break;
-                    case 'yearly':
-                        eventDate.setFullYear(start.getFullYear() + i);
-                        break;
-                }
-
-                const dateStr = eventDate.toISOString().split('T')[0];
-                events.push({
-                    id: Date.now() + Math.random(),
-                    text: title,
-                    date: dateStr,
-                    category: category,
-                    description: description,
-                    type: 'recurring',
-                    recurringType: recurringType,
-                    imported: false
-                });
-            }
-
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-            updateCalendar();
-        }
-
-        // Existing Calendar Functions (Enhanced)
-        function updateCalendar() {
+        
+        function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
             
-            // Update month display
-            const monthNames = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
-
-            // Clear previous days
-            const daysGrid = document.getElementById('daysGrid');
-            daysGrid.innerHTML = '';
-
-            // Get first day of month and number of days
+            // Update header
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
+            
+            // Clear days
+            const daysContainer = document.getElementById('days');
+            daysContainer.innerHTML = '';
+            
+            // Calculate calendar layout
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-            // Add previous month's trailing days
+            
+            // Previous month days
             for (let i = firstDay - 1; i >= 0; i--) {
                 const day = daysInPrevMonth - i;
                 const dayElement = createDayElement(day, 'other-month', year, month - 1);
-                daysGrid.appendChild(dayElement);
+                daysContainer.appendChild(dayElement);
             }
-
-            // Add current month's days
+            
+            // Current month days
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayElement = createDayElement(day, 'current-month', year, month);
-                daysGrid.appendChild(dayElement);
+                daysContainer.appendChild(dayElement);
             }
-
-            // Add next month's leading days
-            const totalCells = daysGrid.children.length;
-            const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+            
+            // Next month days
+            const totalCells = daysContainer.children.length;
+            const remainingCells = 42 - totalCells;
             for (let day = 1; day <= remainingCells; day++) {
                 const dayElement = createDayElement(day, 'other-month', year, month + 1);
-                daysGrid.appendChild(dayElement);
+                daysContainer.appendChild(dayElement);
             }
-
-            updateEventsList();
         }
-
+        
         function createDayElement(day, monthClass, year, month) {
             const dayElement = document.createElement('div');
             dayElement.className = `day ${monthClass}`;
             dayElement.textContent = day;
-
+            
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const today = new Date().toISOString().split('T')[0];
-
+            
             if (dateStr === today && monthClass === 'current-month') {
                 dayElement.classList.add('today');
             }
-
-            const dayEvents = getEventsForDate(dateStr);
+            
+            // Add events for this day
+            const dayEvents = events.filter(event => event.date === dateStr);
             if (dayEvents.length > 0) {
                 dayElement.classList.add('has-event');
-                
-                // Check for volleyball events
-                const hasVolleyball = dayEvents.some(event => event.type === 'volleyball' || event.category === 'volleyball');
-                if (hasVolleyball) {
-                    dayElement.classList.add('has-volleyball');
-                    const volleyballIndicator = document.createElement('div');
-                    volleyballIndicator.className = 'volleyball-indicator';
-                    dayElement.appendChild(volleyballIndicator);
-                }
-                
-                // Add general event indicator
-                const indicator = document.createElement('div');
-                indicator.className = 'event-indicator';
-                dayElement.appendChild(indicator);
+                dayEvents.forEach(event => {
+                    const eventElement = document.createElement('div');
+                    eventElement.className = 'event';
+                    eventElement.textContent = event.title;
+                    eventElement.title = event.title; // Tooltip
+                    dayElement.appendChild(eventElement);
+                });
             }
-
-            dayElement.addEventListener('click', () => selectDate(dateStr, dayElement));
-
+            
             return dayElement;
         }
-
-        function getEventsForDate(dateStr) {
-            return events.filter(event => event.date === dateStr);
-        }
-
-        function selectDate(dateStr, element) {
-            // Remove previous selection
-            document.querySelectorAll('.day.selected').forEach(day => {
-                day.classList.remove('selected');
-            });
-
-            // Add selection to clicked day
-            element.classList.add('selected');
-            selectedDate = dateStr;
-            document.getElementById('eventStartDate').value = dateStr;
-            document.getElementById('eventStartDateMulti').value = dateStr;
-            document.getElementById('eventStartDateRecur').value = dateStr;
-        }
-
-        function hasEvent(dateStr) {
-            return events.some(event => event.date === dateStr);
-        }
-
+        
         function previousMonth() {
             currentDate.setMonth(currentDate.getMonth() - 1);
-            updateCalendar();
+            renderCalendar();
         }
-
+        
         function nextMonth() {
             currentDate.setMonth(currentDate.getMonth() + 1);
-            updateCalendar();
+            renderCalendar();
         }
-
-        function deleteEvent(eventId) {
-            events = events.filter(event => event.id !== eventId);
-            localStorage.setItem('calendarEvents', JSON.stringify(events));
-            updateCalendar();
-        }
-
-        function updateEventsList() {
-            const eventsList = document.getElementById('eventsList');
-            eventsList.innerHTML = '';
-
-            if (events.length === 0) {
-                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No events scheduled</p>';
-                return;
-            }
-
-            // Sort events by date
-            const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            sortedEvents.forEach(event => {
-                const eventElement = document.createElement('div');
-                let eventClass = 'event-item';
-                if (event.imported) eventClass += ' imported';
-                if (event.type === 'volleyball' || event.category === 'volleyball') eventClass += ' volleyball';
-                if (event.type === 'recurring') eventClass += ' recurring';
-                
-                eventElement.className = eventClass;
-                
-                const typeText = event.type === 'recurring' ? `${event.type} (${event.recurringType})` : event.type || 'single';
-                
-                eventElement.innerHTML = `
-                    <div class="event-text">
-                        <div>${event.text}</div>
-                        <div class="event-date">${formatDate(event.date)}${event.time ? ` at ${event.time}` : ''}</div>
-                        ${event.source ? `<div class="event-source">Source: ${event.source}</div>` : ''}
-                        ${event.description ? `<div class="event-source">Description: ${event.description}</div>` : ''}
-                        <div class="event-type-badge">${typeText} | ${event.category || 'general'}</div>
-                    </div>
-                    <button class="delete-event" onclick="deleteEvent(${event.id})">Delete</button>
-                `;
-                eventsList.appendChild(eventElement);
-            });
-        }
-
-        function formatDate(dateStr) {
-            const date = new Date(dateStr + 'T00:00:00');
-            return date.toLocaleDateString('en-US', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        // Initialize calendar
-        updateCalendar();
-        updateCalendarSources();
-
-        // Set today's date as default
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('eventStartDate').value = today;
-        document.getElementById('eventStartDateMulti').value = today;
-        document.getElementById('eventStartDateRecur').value = today;
+        
+        // Initialize
+        fetchEvents();
     </script>
 </body>
 </html>
