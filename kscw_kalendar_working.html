@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSCW Calendar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .calendar-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .calendar-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .calendar-grid {
+            padding: 30px;
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: #666;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .day.other-month {
+            color: #ccc;
+            background: #f8f9fa;
+        }
+
+        .day.current-month {
+            color: #333;
+            background: white;
+            border: 2px solid #e9ecef;
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .day.selected {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .day.has-event {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
+
+        .event-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 8px;
+            height: 8px;
+            background: #ff6b6b;
+            border-radius: 50%;
+        }
+
+        .event-panel {
+            padding: 30px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .event-panel h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .event-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .event-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+
+        .event-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .add-event-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .add-event-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .events-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #4facfe;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-item.imported {
+            border-left-color: #28a745;
+        }
+
+        .event-text {
+            flex: 1;
+        }
+
+        .event-date {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .event-source {
+            font-size: 0.8rem;
+            color: #28a745;
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .delete-event {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .delete-event:hover {
+            background: #ee5a24;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-container {
+                margin: 10px;
+            }
+
+            .calendar-header h1 {
+                font-size: 2rem;
+            }
+
+            .calendar-nav {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .current-month {
+                order: -1;
+            }
+
+            .event-form {
+                flex-direction: column;
+            }
+
+            .event-input {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h1>KSCW Calendar</h1>
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="previousMonth()">&larr; Previous</button>
+                <div class="current-month" id="currentMonth"></div>
+                <button class="nav-btn" onclick="nextMonth()">Next &rarr;</button>
+            </div>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="weekdays">
+                <div class="weekday">Sun</div>
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+            </div>
+            <div class="days-grid" id="daysGrid"></div>
+        </div>
+
+        <div class="event-panel">
+            <h3>Add Event</h3>
+            <div class="event-form">
+                <input type="text" class="event-input" id="eventText" placeholder="Enter event description">
+                <input type="date" class="event-input" id="eventDate">
+                <button class="add-event-btn" onclick="addEvent()">Add Event</button>
+            </div>
+            <div class="events-list" id="eventsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let events = JSON.parse(localStorage.getItem('calendarEvents')) || [];
+
+        // Calendar URLs to automatically fetch from
+        const calendarUrls = [
+            {
+                name: 'KSCW Calendar 1',
+                url: 'https://calendar.google.com/calendar/ical/145bqacb4v5qfkr97u2fdchi5o%40group.calendar.google.com/public/basic.ics'
+            },
+            {
+                name: 'KSCW Calendar 2', 
+                url: 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics'
+            }
+        ];
+
+        // Auto-fetch events from calendar URLs
+        async function fetchAllCalendarEvents() {
+            console.log('Fetching events from calendar URLs...');
+            let totalFetched = 0;
+            
+            for (const calendar of calendarUrls) {
+                try {
+                    const fetchedCount = await fetchEventsFromUrl(calendar.url, calendar.name);
+                    totalFetched += fetchedCount;
+                    console.log(`Fetched ${fetchedCount} events from ${calendar.name}`);
+                } catch (error) {
+                    console.error(`Failed to fetch from ${calendar.name}:`, error);
+                }
+            }
+            
+            if (totalFetched > 0) {
+                updateCalendar();
+                console.log(`Total events fetched: ${totalFetched}`);
+            }
+            
+            return totalFetched;
+        }
+
+        async function fetchEventsFromUrl(icalUrl, sourceName) {
+            try {
+                // Use a CORS proxy for external iCal URLs
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(icalUrl)}`;
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const icalData = data.contents;
+
+                const fetchedEvents = parseIcalData(icalData);
+                
+                if (fetchedEvents.length === 0) {
+                    return 0;
+                }
+
+                // Add fetched events to existing events
+                let addedCount = 0;
+                
+                fetchedEvents.forEach(event => {
+                    // Check if event already exists (by date and text)
+                    const exists = events.some(existing => 
+                        existing.date === event.date && 
+                        existing.text.toLowerCase() === event.text.toLowerCase()
+                    );
+                    
+                    if (!exists) {
+                        events.push({
+                            id: Date.now() + Math.random(),
+                            text: event.text,
+                            date: event.date,
+                            source: sourceName,
+                            imported: true
+                        });
+                        addedCount++;
+                    }
+                });
+
+                localStorage.setItem('calendarEvents', JSON.stringify(events));
+                return addedCount;
+            } catch (error) {
+                console.error(`Error fetching from ${sourceName}:`, error);
+                return 0;
+            }
+        }
+
+        function parseIcalData(icalData) {
+            const events = [];
+            const lines = icalData.split('\n');
+            let currentEvent = null;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+
+                if (line === 'BEGIN:VEVENT') {
+                    currentEvent = {};
+                } else if (line === 'END:VEVENT' && currentEvent) {
+                    if (currentEvent.summary && currentEvent.dtstart) {
+                        events.push({
+                            text: currentEvent.summary,
+                            date: formatIcalDate(currentEvent.dtstart)
+                        });
+                    }
+                    currentEvent = null;
+                } else if (currentEvent) {
+                    if (line.startsWith('SUMMARY:')) {
+                        currentEvent.summary = line.substring(8);
+                    } else if (line.startsWith('DTSTART')) {
+                        // Handle both DTSTART:20231225 and DTSTART;VALUE=DATE:20231225
+                        const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
+                        if (dateMatch) {
+                            currentEvent.dtstart = dateMatch[1];
+                        }
+                    } else if (line.startsWith('DESCRIPTION:')) {
+                        currentEvent.description = line.substring(12);
+                    }
+                }
+            }
+
+            return events;
+        }
+
+        function formatIcalDate(icalDate) {
+            // Convert YYYYMMDD to YYYY-MM-DD
+            if (icalDate && icalDate.length >= 8) {
+                const year = icalDate.substring(0, 4);
+                const month = icalDate.substring(4, 6);
+                const day = icalDate.substring(6, 8);
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+
+        // Existing Calendar Functions
+        function updateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Update month display
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Clear previous days
+            const daysGrid = document.getElementById('daysGrid');
+            daysGrid.innerHTML = '';
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // Add previous month's trailing days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = daysInPrevMonth - i;
+                const dayElement = createDayElement(day, 'other-month', year, month - 1);
+                daysGrid.appendChild(dayElement);
+            }
+
+            // Add current month's days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = createDayElement(day, 'current-month', year, month);
+                daysGrid.appendChild(dayElement);
+            }
+
+            // Add next month's leading days
+            const totalCells = daysGrid.children.length;
+            const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayElement = createDayElement(day, 'other-month', year, month + 1);
+                daysGrid.appendChild(dayElement);
+            }
+
+            updateEventsList();
+        }
+
+        function createDayElement(day, monthClass, year, month) {
+            const dayElement = document.createElement('div');
+            dayElement.className = `day ${monthClass}`;
+            dayElement.textContent = day;
+
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const today = new Date().toISOString().split('T')[0];
+
+            if (dateStr === today && monthClass === 'current-month') {
+                dayElement.classList.add('today');
+            }
+
+            if (hasEvent(dateStr)) {
+                dayElement.classList.add('has-event');
+                const indicator = document.createElement('div');
+                indicator.className = 'event-indicator';
+                dayElement.appendChild(indicator);
+            }
+
+            dayElement.addEventListener('click', () => selectDate(dateStr, dayElement));
+
+            return dayElement;
+        }
+
+        function selectDate(dateStr, element) {
+            // Remove previous selection
+            document.querySelectorAll('.day.selected').forEach(day => {
+                day.classList.remove('selected');
+            });
+
+            // Add selection to clicked day
+            element.classList.add('selected');
+            selectedDate = dateStr;
+            document.getElementById('eventDate').value = dateStr;
+        }
+
+        function hasEvent(dateStr) {
+            return events.some(event => event.date === dateStr);
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            updateCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            updateCalendar();
+        }
+
+        function addEvent() {
+            const eventText = document.getElementById('eventText').value.trim();
+            const eventDate = document.getElementById('eventDate').value;
+
+            if (!eventText || !eventDate) {
+                alert('Please enter both event description and date');
+                return;
+            }
+
+            const newEvent = {
+                id: Date.now(),
+                text: eventText,
+                date: eventDate,
+                imported: false
+            };
+
+            events.push(newEvent);
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+
+            document.getElementById('eventText').value = '';
+            document.getElementById('eventDate').value = '';
+
+            updateCalendar();
+        }
+
+        function deleteEvent(eventId) {
+            events = events.filter(event => event.id !== eventId);
+            localStorage.setItem('calendarEvents', JSON.stringify(events));
+            updateCalendar();
+        }
+
+        function updateEventsList() {
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '';
+
+            if (events.length === 0) {
+                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No events scheduled</p>';
+                return;
+            }
+
+            // Sort events by date
+            const sortedEvents = [...events].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            sortedEvents.forEach(event => {
+                const eventElement = document.createElement('div');
+                eventElement.className = `event-item ${event.imported ? 'imported' : ''}`;
+                eventElement.innerHTML = `
+                    <div class="event-text">
+                        <div>${event.text}</div>
+                        <div class="event-date">${formatDate(event.date)}</div>
+                        ${event.source ? `<div class="event-source">Source: ${event.source}</div>` : ''}
+                    </div>
+                    <button class="delete-event" onclick="deleteEvent(${event.id})">Delete</button>
+                `;
+                eventsList.appendChild(eventElement);
+            });
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Initialize calendar and auto-fetch events
+        async function initializeCalendar() {
+            updateCalendar();
+            
+            // Auto-fetch events from calendar URLs on page load
+            await fetchAllCalendarEvents();
+            
+            // Set today's date as default
+            document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Initialize calendar when page loads
+        initializeCalendar();
+    </script>
+</body>
+</html>
