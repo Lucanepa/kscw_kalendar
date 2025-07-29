@@ -43,6 +43,9 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
         }
         
         .weekday {
@@ -54,15 +57,18 @@
         }
         
         .day {
-            padding: 10px;
+            padding: 5px;
             text-align: center;
             border: 1px solid #ddd;
             min-height: 60px;
             max-height: 120px;
+            max-width: 100%;
+            width: 100%;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
         }
         
         .day.other-month {
@@ -93,16 +99,19 @@
         }
         
         .event {
-            font-size: 10px;
+            font-size: 9px;
             background: #007cba;
             color: white;
-            padding: 1px 3px;
+            padding: 1px 2px;
             border-radius: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             flex-shrink: 0;
             cursor: pointer;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .events-more {
@@ -307,7 +316,7 @@
             </div>
             </div>
 
-        <div class="controls">
+                <div class="controls">
             <div class="control-section">
                 <h3>📁 Upload ICS File</h3>
                 <div class="file-upload">
@@ -317,9 +326,16 @@
                 <div class="quick-actions">
                     <button onclick="exportCalendar()">📤 Export Calendar</button>
                     <button onclick="clearUserEvents()">🗑️ Clear User Events</button>
+                    <button onclick="showStorageInfo()">💾 Storage Info</button>
+                </div>
+                <div style="margin-top: 10px;">
+                    <label>
+                        <input type="checkbox" id="homeGamesOnly" onchange="toggleHomeGamesFilter()" />
+                        Show only KSC Wiedikon HOME games
+                    </label>
                 </div>
             </div>
-            
+
             <div class="control-section">
                 <h3>📅 Event Management</h3>
                 <div class="quick-actions">
@@ -401,9 +417,56 @@
         let selectedEvent = null;
         let selectedDay = null;
         let editingEventId = null;
+        let showHomeGamesOnly = false;
         
         // Google Calendar iCal URL
         const calendarUrl = 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics';
+        
+        // Function to check if an event is a KSC Wiedikon home game
+        function isKSCHomeGame(event) {
+            const title = event.title.toLowerCase();
+            const kscTerms = ['kscw', 'ksc wiedikon', 'ksc w'];
+            
+            // Check if any KSC term appears in the title
+            const hasKSC = kscTerms.some(term => title.includes(term));
+            
+            // Additional checks for home games (common patterns)
+            const homeIndicators = [
+                'training', // training sessions are usually at home
+                'halle', // hall/venue mentioned
+                'bb', // likely refers to home venue codes
+                'vs ', // "vs" might indicate opponent coming to us
+            ];
+            
+            // If it contains KSC terms, check for home indicators
+            if (hasKSC) {
+                // If it's training or has venue info, it's likely home
+                if (homeIndicators.some(indicator => title.includes(indicator))) {
+                    return true;
+                }
+                
+                // If it has "vs opponent" format and KSC is mentioned first, it's likely home
+                if (title.includes(' vs ') || title.includes(' - ')) {
+                    const parts = title.split(/\s+vs\s+|\s+-\s+/);
+                    if (parts.length > 1) {
+                        const firstPart = parts[0].toLowerCase();
+                        return kscTerms.some(term => firstPart.includes(term));
+                    }
+                }
+                
+                return true; // Default to showing if KSC is mentioned
+            }
+            
+            return false;
+        }
+        
+        // Filter events based on home games setting
+        function getFilteredEvents() {
+            if (!showHomeGamesOnly) {
+                return events;
+            }
+            return events.filter(isKSCHomeGame);
+        }
         
         // Load user events from localStorage on startup
         function loadUserEvents() {
@@ -721,7 +784,7 @@
         
         // Export Calendar as ICS
         function exportCalendar() {
-            const allEvents = [...events, ...userEvents];
+            const allEvents = [...getFilteredEvents(), ...userEvents];
             let icsContent = [
                 'BEGIN:VCALENDAR',
                 'VERSION:2.0',
@@ -960,7 +1023,7 @@
         
         // Get all events for display (including recurring)
         function getAllDisplayEvents() {
-            let allEvents = [...events];
+            let allEvents = [...getFilteredEvents()]; // Use filtered events instead of all events
             
             userEvents.forEach(event => {
                 if (event.type === 'recurring') {
@@ -985,6 +1048,48 @@
             });
             
             return allEvents;
+        }
+        
+        // Toggle home games filter
+        function toggleHomeGamesFilter() {
+            showHomeGamesOnly = document.getElementById('homeGamesOnly').checked;
+            console.log(`Home games filter: ${showHomeGamesOnly ? 'ON' : 'OFF'}`);
+            renderCalendar(); // Re-render calendar with new filter
+        }
+        
+        // Show storage information
+        function showStorageInfo() {
+            const userEventCount = userEvents.length;
+            const storageUsed = localStorage.getItem('calendarUserEvents');
+            const storageSize = storageUsed ? (storageUsed.length / 1024).toFixed(2) : '0';
+            
+            const message = `📊 CALENDAR STORAGE INFO
+
+💾 WHERE YOUR DATA IS SAVED:
+• User events & imported ICS files: Browser Local Storage
+• Google Calendar events: Fetched from cloud each time
+
+📈 CURRENT USAGE:
+• User-created events: ${userEventCount}
+• Storage used: ${storageSize} KB
+• Max storage: ~10 MB (browser dependent)
+
+⚠️ IMPORTANT NOTES:
+• Local Storage can be cleared by:
+  - Browser "Clear Data" / "Reset"
+  - Incognito/Private browsing mode
+  - Browser updates or crashes
+  - Manually clearing browser data
+
+💡 TO BACKUP YOUR EVENTS:
+• Use "📤 Export Calendar" to save .ics file
+• Re-import your .ics file if data is lost
+
+🔄 GOOGLE CALENDAR:
+• Always loads fresh from Google (never lost)
+• No storage needed - fetched each visit`;
+
+            alert(message);
         }
         
         // Initialize
