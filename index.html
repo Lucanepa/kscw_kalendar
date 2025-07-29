@@ -127,10 +127,44 @@
         
         async function fetchEvents() {
             try {
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(calendarUrl)}`;
-                const response = await fetch(proxyUrl);
-                const data = await response.json();
-                const icalData = data.contents;
+                // Try multiple CORS proxy services for reliability
+                const proxies = [
+                    `https://corsproxy.io/?${encodeURIComponent(calendarUrl)}`,
+                    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(calendarUrl)}`,
+                    `https://api.allorigins.win/get?url=${encodeURIComponent(calendarUrl)}`
+                ];
+                
+                let icalData = null;
+                let lastError = null;
+                
+                for (const proxyUrl of proxies) {
+                    try {
+                        console.log(`Trying proxy: ${proxyUrl}`);
+                        const response = await fetch(proxyUrl);
+                        
+                        if (response.ok) {
+                            if (proxyUrl.includes('allorigins')) {
+                                const data = await response.json();
+                                icalData = data.contents;
+                            } else {
+                                icalData = await response.text();
+                            }
+                            
+                            if (icalData && icalData.includes('BEGIN:VCALENDAR')) {
+                                console.log('Successfully fetched calendar data');
+                                break;
+                            }
+                        }
+                    } catch (error) {
+                        lastError = error;
+                        console.log(`Proxy failed: ${error.message}`);
+                        continue;
+                    }
+                }
+                
+                if (!icalData || !icalData.includes('BEGIN:VCALENDAR')) {
+                    throw new Error('Failed to fetch valid calendar data from all proxies');
+                }
                 
                 events = parseIcalData(icalData);
                 console.log(`Loaded ${events.length} events`);
@@ -141,7 +175,13 @@
                 renderCalendar();
             } catch (error) {
                 console.error('Failed to fetch events:', error);
-                document.getElementById('loading').textContent = 'Failed to load events';
+                document.getElementById('loading').innerHTML = `
+                    <p>Failed to load events: ${error.message}</p>
+                    <p style="font-size: 12px; color: #999;">
+                        This may be due to CORS restrictions. 
+                        <a href="#" onclick="location.reload()">Try refreshing the page</a>
+                    </p>
+                `;
             }
         }
         
