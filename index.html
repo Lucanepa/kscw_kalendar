@@ -134,11 +134,7 @@
                 const edgeFunctionUrl = `${supabaseUrl}/functions/v1/calendar-proxy`;
                 
                 const response = await fetch(edgeFunctionUrl, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE'
-                    }
+                    method: 'GET'
                 });
                 
                 if (!response.ok) {

@@ -12,6 +12,14 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Only allow GET requests for this public calendar proxy
+  if (req.method !== 'GET') {
+    return new Response('Method not allowed', { 
+      status: 405, 
+      headers: corsHeaders 
+    })
+  }
+
   try {
     console.log('Fetching calendar data...')
     
