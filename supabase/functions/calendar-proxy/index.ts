@@ -7,6 +7,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  const version = 'v2.0-public'
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -21,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Fetching calendar data...')
+    console.log(`Calendar Proxy ${version} - Fetching calendar data...`)
     
     // Your Google Calendar iCal URL
     const calendarUrl = 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics'
@@ -51,22 +53,25 @@ serve(async (req) => {
         ...corsHeaders,
         'Content-Type': 'text/calendar; charset=utf-8',
         'Cache-Control': 'public, max-age=300', // Cache for 5 minutes
+        'X-Function-Version': version,
       },
     })
     
   } catch (error) {
-    console.error('Error fetching calendar:', error.message)
+    console.error(`Calendar Proxy ${version} - Error fetching calendar:`, error.message)
     
     return new Response(
       JSON.stringify({ 
         error: 'Failed to fetch calendar data',
-        details: error.message 
+        details: error.message,
+        version: version
       }),
       {
         status: 500,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
+          'X-Function-Version': version,
         },
       }
     )

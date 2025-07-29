@@ -141,6 +141,12 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
+                // Log function version for debugging
+                const functionVersion = response.headers.get('X-Function-Version');
+                if (functionVersion) {
+                    console.log(`Connected to Edge Function version: ${functionVersion}`);
+                }
+                
                 const icalData = await response.text();
                 
                 if (!icalData.includes('BEGIN:VCALENDAR')) {
