@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plain Calendar</title>
-    <style>
+<style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -24,7 +24,7 @@
             background: #333;
             color: white;
         }
-        
+
         .nav {
             display: flex;
             justify-content: space-between;
@@ -139,7 +139,7 @@
         .control-section {
             margin-bottom: 20px;
         }
-        
+
         .control-section h3 {
             margin: 0 0 10px 0;
             color: #333;
@@ -178,7 +178,7 @@
             margin-top: 10px;
             border-radius: 5px;
         }
-        
+
         .form-row {
             display: flex;
             gap: 15px;
@@ -239,6 +239,11 @@
             background: #28a745;
         }
         
+        .event.multi-day {
+            background: #fd7e14;
+            border-left: 3px solid #e76500;
+        }
+        
         .event.selected {
             background: #ffc107;
             color: #212529;
@@ -248,7 +253,7 @@
             background: #fff3cd;
             border: 2px solid #ffc107;
         }
-        
+
         .quick-actions {
             display: flex;
             gap: 10px;
@@ -342,19 +347,19 @@
                     <button onclick="showAddEventForm()">➕ Add Event</button>
                     <button onclick="editSelectedEvent()" id="editEventBtn" disabled>✏️ Edit Selected</button>
                     <button onclick="deleteSelectedEvent()" id="deleteEventBtn" disabled>🗑️ Delete Selected</button>
-                </div>
-                
+    </div>
+
                 <div class="event-form" id="eventForm">
                     <div class="form-row">
                         <label>Title:</label>
                         <input type="text" id="eventTitle" placeholder="Event title" required />
-                    </div>
-                    
+            </div>
+
                     <div class="form-row">
                         <label>Description:</label>
                         <textarea id="eventDescription" placeholder="Optional description"></textarea>
-                    </div>
-                    
+                </div>
+
                     <div class="form-row">
                         <label>Type:</label>
                         <select id="eventType" onchange="handleEventTypeChange()">
@@ -362,18 +367,18 @@
                             <option value="multi">Multi-Day</option>
                             <option value="recurring">Recurring</option>
                         </select>
-                    </div>
-                    
+                </div>
+
                     <div class="form-row">
                         <label>Start Date:</label>
                         <input type="date" id="eventStartDate" required />
-                    </div>
-                    
+                </div>
+
                     <div class="form-row" id="endDateRow" style="display: none;">
                         <label>End Date:</label>
                         <input type="date" id="eventEndDate" />
-                    </div>
-                    
+            </div>
+
                     <div class="form-row" id="recurringRow" style="display: none;">
                         <label>Repeat:</label>
                         <select id="eventRecurrence">
@@ -382,31 +387,31 @@
                             <option value="monthly">Monthly</option>
                             <option value="yearly">Yearly</option>
                         </select>
-                    </div>
-                    
+    </div>
+
                     <div class="form-row" id="recurringEndRow" style="display: none;">
                         <label>Until:</label>
                         <input type="date" id="eventRecurrenceEnd" />
-                    </div>
-                    
+    </div>
+
                     <div class="form-buttons">
                         <button type="button" class="btn-secondary" onclick="hideEventForm()">Cancel</button>
                         <button type="button" class="btn-primary" onclick="saveEvent()">Save Event</button>
-                    </div>
-                </div>
+            </div>
             </div>
         </div>
+    </div>
 
         <div class="loading" id="loading">Loading events...</div>
         
         <div class="grid" id="calendar" style="display: none;">
-            <div class="weekday">Sun</div>
             <div class="weekday">Mon</div>
             <div class="weekday">Tue</div>
             <div class="weekday">Wed</div>
             <div class="weekday">Thu</div>
             <div class="weekday">Fri</div>
             <div class="weekday">Sat</div>
+            <div class="weekday">Sun</div>
         </div>
     </div>
 
@@ -598,8 +603,9 @@
             // Re-add weekday headers
             weekdayElements.forEach(weekday => calendarContainer.appendChild(weekday));
             
-            // Calculate calendar layout
-            const firstDay = new Date(year, month, 1).getDay();
+            // Calculate calendar layout (Monday = 0, Sunday = 6)
+            const firstDayRaw = new Date(year, month, 1).getDay();
+            const firstDay = (firstDayRaw + 6) % 7; // Convert so Monday = 0, Sunday = 6
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
             
@@ -669,9 +675,12 @@
                     const eventElement = document.createElement('div');
                     eventElement.className = 'event';
                     
-                    // Different styling for user events
+                    // Different styling for user events and multi-day events
                     if (event.isUserEvent) {
                         eventElement.classList.add('user-event');
+                    }
+                    if (event.isMultiDay) {
+                        eventElement.classList.add('multi-day');
                     }
                     
                     eventElement.textContent = event.title;
@@ -683,6 +692,8 @@
                     }
                     if (event.type === 'recurring') {
                         tooltip += '\n(Recurring)';
+                    } else if (event.isMultiDay && event.originalStartDate && event.originalEndDate) {
+                        tooltip += `\n(Multi-day: ${event.originalStartDate} to ${event.originalEndDate})`;
                     } else if (event.type === 'multi') {
                         tooltip += '\n(Multi-day)';
                     }
@@ -884,9 +895,15 @@
                 return;
             }
             
-            if (type === 'multi' && endDate && new Date(endDate) < new Date(startDate)) {
-                alert('End date must be after start date.');
-                return;
+            if (type === 'multi') {
+                if (!endDate) {
+                    alert('End date is required for multi-day events.');
+                    return;
+                }
+                if (new Date(endDate) < new Date(startDate)) {
+                    alert('End date must be after or equal to start date.');
+                    return;
+                }
             }
             
             if (editingEventId) {
@@ -1028,19 +1045,29 @@
             userEvents.forEach(event => {
                 if (event.type === 'recurring') {
                     allEvents.push(...generateRecurringEvents(event));
-                } else if (event.type === 'multi') {
+                } else if (event.type === 'multi' && event.endDate) {
                     // Generate events for each day in the range
-                    const startDate = new Date(event.date);
-                    const endDate = new Date(event.endDate);
-                    let currentDate = new Date(startDate);
+                    const startDate = new Date(event.date + 'T00:00:00');
+                    const endDate = new Date(event.endDate + 'T00:00:00');
                     
-                    while (currentDate <= endDate) {
-                        allEvents.push({
-                            ...event,
-                            date: currentDate.toISOString().split('T')[0],
-                            isMultiDay: true
-                        });
-                        currentDate.setDate(currentDate.getDate() + 1);
+                    if (endDate >= startDate) {
+                        let currentDate = new Date(startDate);
+                        let dayCount = 0;
+                        const maxDays = 365; // Safety limit to prevent infinite loops
+                        
+                        while (currentDate <= endDate && dayCount < maxDays) {
+                            allEvents.push({
+                                ...event,
+                                date: currentDate.toISOString().split('T')[0],
+                                isMultiDay: true,
+                                originalStartDate: event.date,
+                                originalEndDate: event.endDate
+                            });
+                            currentDate.setDate(currentDate.getDate() + 1);
+                            dayCount++;
+                        }
+                        
+                        console.log(`Generated ${dayCount} days for multi-day event: ${event.title} (${event.date} to ${event.endDate})`);
                     }
                 } else {
                     allEvents.push(event);
