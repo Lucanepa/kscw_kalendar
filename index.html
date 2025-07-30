@@ -1108,39 +1108,6 @@
         function showStorageInfo() {
             const userEventCount = userEvents.length;
             const browserId = getBrowserId();
-            
-            const message = `📊 CALENDAR STORAGE INFO
-
-💾 WHERE YOUR DATA IS SAVED:
-• User events: Supabase Database ONLY ☁️
-• KSC Wiedikon home games: Fetched from volleymanager
-• Browser ID: ${browserId}
-
-📈 CURRENT USAGE:
-• User-created events: ${userEventCount}
-• Storage: Supabase Database (PostgreSQL)
-• Filter: KSC Wiedikon HOME games only
-
-✅ SUPABASE BENEFITS:
-• ✅ Persistent across devices & browsers
-• ✅ Never lost when clearing browser data
-• ✅ Professional cloud database storage
-• ✅ Access from any device with same browser ID
-• ✅ No local storage dependencies
-
-🔄 HOW IT WORKS:
-• Your browser gets a unique ID (stored locally for identification)
-• Events saved ONLY to Supabase table "calendar_user_events"
-• Events tied to your browser ID
-• Only KSC Wiedikon home games are displayed
-
-💡 FEATURES:
-• Click any day to view all events
-• Click user events in popup to edit them
-• Multi-day events shown as single blocks
-• All data secured in Supabase cloud database!`;
-
-            alert(message);
         }
         
         // Initialize
