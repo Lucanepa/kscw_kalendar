@@ -1524,7 +1524,9 @@
                         showAdminContent();
                         loadEvents();
                     } else {
-                        messageDiv.innerHTML = '<div class="error-message">❌ You do not have permission to access the admin panel.</div>';
+                        const userRole = currentUser.user_metadata?.role || 'user';
+                        const displayName = currentUser.user_metadata?.display_name || currentUser.email;
+                        messageDiv.innerHTML = `<div class="error-message">❌ Keine Berechtigung für Admin Panel<br><br>Benutzer: ${displayName}<br>Rolle: ${userRole}<br><br>Sie benötigen die Berechtigung "admin_access" um auf das Admin Panel zuzugreifen. Bitte kontaktieren Sie einen Administrator.</div>`;
                         await logout();
                     }
                 }
