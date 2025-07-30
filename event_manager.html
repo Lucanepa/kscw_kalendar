@@ -1661,8 +1661,33 @@
             document.getElementById('eventModal').style.display = 'block';
         }
         
+        // Delete specific event from database
+        async function deleteEventFromDatabase(eventId) {
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?id=eq.${eventId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to delete event from database:', response.status, response.statusText);
+                    return false;
+                }
+                
+                console.log('Event deleted from database successfully');
+                return true;
+            } catch (error) {
+                console.error('Error deleting event from database:', error);
+                return false;
+            }
+        }
+        
         // Delete event
-        function deleteEvent() {
+        async function deleteEvent() {
             if (!editingEventId) return;
             
             if (confirm(t('confirmDelete'))) {
@@ -1673,10 +1698,17 @@
                     // Log the deletion before removing the event
                     logEventChange('delete', deletedEvent);
                     
-                    userEvents.splice(eventIndex, 1);
-                    saveUserEvents();
-                    renderEventsList();
-                    hideEventForm();
+                    // Delete from database
+                    const deleteSuccess = await deleteEventFromDatabase(editingEventId);
+                    
+                    if (deleteSuccess) {
+                        // Remove from local array
+                        userEvents.splice(eventIndex, 1);
+                        renderEventsList();
+                        hideEventForm();
+                    } else {
+                        alert('Failed to delete event from database. Please try again.');
+                    }
                 }
             }
         }
