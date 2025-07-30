@@ -320,8 +320,7 @@
                 <p>Please sign in to access event management.</p>
                 
                 <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="showLoginForm()">Sign In</button>
-                    <button class="auth-tab" onclick="showSignUpForm()">Sign Up</button>
+                    <button class="auth-tab active">Sign In</button>
                 </div>
                 
                 <!-- Login Form -->
@@ -339,25 +338,7 @@
                     <button class="btn" onclick="signIn()">Sign In</button>
                 </div>
                 
-                <!-- Sign Up Form -->
-                <div class="auth-form" id="signUpForm">
-                    <div class="form-group">
-                        <label for="signUpEmail">Email:</label>
-                        <input type="email" id="signUpEmail" placeholder="Enter your email" />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signUpPassword">Password:</label>
-                        <input type="password" id="signUpPassword" placeholder="Enter your password (min 6 characters)" />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signUpConfirmPassword">Confirm Password:</label>
-                        <input type="password" id="signUpConfirmPassword" placeholder="Confirm your password" />
-                    </div>
-                    
-                    <button class="btn" onclick="signUp()">Sign Up</button>
-                </div>
+
                 
                 <div id="authMessage"></div>
             </div>
@@ -365,6 +346,12 @@
         
         <!-- Admin Content -->
         <div class="admin-content" id="adminContent">
+            <div style="margin-bottom: 20px;">
+                <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Zurück zum Kalender
+                </a>
+            </div>
+            
             <div class="stats-grid">
                 <div class="stat-card">
                     <h3>Total Events</h3>
@@ -483,48 +470,7 @@
             }
         }
         
-        // Sign up function
-        async function signUp() {
-            const email = document.getElementById('signUpEmail').value;
-            const password = document.getElementById('signUpPassword').value;
-            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
-            const messageDiv = document.getElementById('authMessage');
-            
-            if (!email || !password || !confirmPassword) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Passwords do not match.</div>';
-                return;
-            }
-            
-            if (password.length < 6) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Password must be at least 6 characters.</div>';
-                return;
-            }
-            
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
-                } else {
-                    messageDiv.innerHTML = '<div class="success-message">✅ Account created! Please check your email for verification.</div>';
-                    // Clear form
-                    document.getElementById('signUpEmail').value = '';
-                    document.getElementById('signUpPassword').value = '';
-                    document.getElementById('signUpConfirmPassword').value = '';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign up.</div>';
-                console.error('Sign up error:', error);
-            }
-        }
+
         
         // Logout function
         async function logout() {
@@ -564,29 +510,10 @@
         function clearAuthForms() {
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginPassword').value = '';
-            document.getElementById('signUpEmail').value = '';
-            document.getElementById('signUpPassword').value = '';
-            document.getElementById('signUpConfirmPassword').value = '';
             document.getElementById('authMessage').innerHTML = '';
         }
         
-        // Show login form
-        function showLoginForm() {
-            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            
-            document.querySelector('.auth-tab').classList.add('active');
-            document.getElementById('loginForm').classList.add('active');
-        }
-        
-        // Show sign up form
-        function showSignUpForm() {
-            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            
-            document.querySelectorAll('.auth-tab')[1].classList.add('active');
-            document.getElementById('signUpForm').classList.add('active');
-        }
+
         
         // Load events from Supabase
         async function loadEvents() {
