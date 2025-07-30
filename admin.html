@@ -1414,7 +1414,9 @@
         function editUser(user) {
             document.getElementById('modalTitle').textContent = 'Edit User';
             document.getElementById('userEmail').value = user.email;
-            document.getElementById('userEmail').disabled = true; // Don't allow email editing
+            document.getElementById('userEmail').disabled = false; // Allow email editing
+            document.getElementById('userEmail').placeholder = 'Leave blank to keep current email';
+            document.getElementById('userEmail').required = false; // Make email optional
             document.getElementById('userPassword').value = '';
             document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
             document.getElementById('userPassword').required = false;
@@ -1439,7 +1441,7 @@
         async function updateUser(e, userId) {
             e.preventDefault();
             
-            const email = document.getElementById('userEmail').value;
+            const email = document.getElementById('userEmail').value.trim();
             const password = document.getElementById('userPassword').value;
             const displayName = document.getElementById('userDisplayName').value;
             const role = document.getElementById('userRole').value;
@@ -1459,6 +1461,18 @@
                     permissions: permissions
                 };
                 
+                // Prepare update data - only include email if provided
+                const updateData = {
+                    userId: userId,
+                    userMetadata: userMetadata,
+                    password: password || null
+                };
+                
+                // Only include email if it's not empty
+                if (email) {
+                    updateData.email = email;
+                }
+                
                 // Call the Edge Function to update user metadata
                 const response = await fetch('https://wilrrlwqgvzjdhmnwmte.supabase.co/functions/v1/update-user-metadata', {
                     method: 'POST',
@@ -1466,11 +1480,7 @@
                         'Content-Type': 'application/json',
                         'apikey': `${supabaseKey}`
                     },
-                    body: JSON.stringify({
-                        userId: userId,
-                        userMetadata: userMetadata,
-                        password: password || null
-                    })
+                    body: JSON.stringify(updateData)
                 });
                 
                 const result = await response.json();
