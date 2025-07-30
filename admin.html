@@ -1114,7 +1114,8 @@
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${supabaseKey}`
+                            'Authorization': `Bearer ${supabaseKey}`,
+                            'apikey': `${supabaseKey}`
                         }
                     });
                     
@@ -1338,7 +1339,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${supabaseKey}`
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'apikey': `${supabaseKey}`
                     },
                     body: JSON.stringify({
                         userId: userId,
