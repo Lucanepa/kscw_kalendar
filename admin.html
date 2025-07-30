@@ -1109,18 +1109,86 @@
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
                 
                 // Call the Edge Function to get users
-                const response = await fetch('https://wilrrlwqgvzjdhmnwmte.supabase.co/functions/v1/list-users', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${supabaseKey}`
+                try {
+                    const response = await fetch('https://wilrrlwqgvzjdhmnwmte.supabase.co/functions/v1/list-users', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${supabaseKey}`
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        console.log(`Edge Function failed with status ${response.status}, showing manual setup instructions`);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
-                });
-                
-                const result = await response.json();
-                
-                if (!response.ok) {
-                    console.log('Edge Function failed, showing manual setup instructions');
+                    
+                    const result = await response.json();
+                    const users = result.users || [];
+                    
+                    if (!users || users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
+                        return;
+                    }
+                    
+                    // Display users in table
+                    tbody.innerHTML = '';
+                    users.forEach(user => {
+                        const row = document.createElement('tr');
+                        
+                        // Email
+                        const emailCell = document.createElement('td');
+                        emailCell.textContent = user.email;
+                        row.appendChild(emailCell);
+                        
+                        // Display Name
+                        const displayNameCell = document.createElement('td');
+                        displayNameCell.textContent = user.user_metadata?.display_name || '-';
+                        row.appendChild(displayNameCell);
+                        
+                        // Role
+                        const roleCell = document.createElement('td');
+                        const role = user.user_metadata?.role || 'user';
+                        const roleBadge = document.createElement('span');
+                        roleBadge.className = `role-badge role-${role}`;
+                        roleBadge.textContent = role;
+                        roleCell.appendChild(roleBadge);
+                        row.appendChild(roleCell);
+                        
+                        // Permissions
+                        const permissionsCell = document.createElement('td');
+                        const permissions = user.user_metadata?.permissions || [];
+                        if (permissions.length > 0) {
+                            permissions.forEach(permission => {
+                                const chip = document.createElement('span');
+                                chip.className = 'permission-chip';
+                                chip.textContent = permission;
+                                permissionsCell.appendChild(chip);
+                            });
+                        } else {
+                            permissionsCell.textContent = '-';
+                        }
+                        row.appendChild(permissionsCell);
+                        
+                        // Created
+                        const createdCell = document.createElement('td');
+                        createdCell.textContent = new Date(user.created_at).toLocaleDateString();
+                        row.appendChild(createdCell);
+                        
+                        // Actions
+                        const actionsCell = document.createElement('td');
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn btn-small btn-warning';
+                        editBtn.textContent = 'Edit';
+                        editBtn.onclick = () => editUser(user);
+                        actionsCell.appendChild(editBtn);
+                        row.appendChild(actionsCell);
+                        
+                        tbody.appendChild(row);
+                    });
+                    
+                } catch (error) {
+                    console.log('Edge Function not available, showing manual setup instructions');
                     // Show manual setup instructions as fallback
                     tbody.innerHTML = `
                         <tr>
@@ -1157,70 +1225,6 @@
                     `;
                     return;
                 }
-                
-                const users = result.users || [];
-                
-                if (!users || users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
-                    return;
-                }
-                
-                tbody.innerHTML = '';
-                
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    // Email
-                    const emailCell = document.createElement('td');
-                    emailCell.textContent = user.email;
-                    row.appendChild(emailCell);
-                    
-                    // Display Name
-                    const displayNameCell = document.createElement('td');
-                    displayNameCell.textContent = user.user_metadata?.display_name || '-';
-                    row.appendChild(displayNameCell);
-                    
-                    // Role
-                    const roleCell = document.createElement('td');
-                    const role = user.user_metadata?.role || 'user';
-                    const roleBadge = document.createElement('span');
-                    roleBadge.className = `role-badge role-${role}`;
-                    roleBadge.textContent = role;
-                    roleCell.appendChild(roleBadge);
-                    row.appendChild(roleCell);
-                    
-                    // Permissions
-                    const permissionsCell = document.createElement('td');
-                    const permissions = user.user_metadata?.permissions || [];
-                    if (permissions.length > 0) {
-                        permissions.forEach(permission => {
-                            const chip = document.createElement('span');
-                            chip.className = 'permission-chip';
-                            chip.textContent = permission;
-                            permissionsCell.appendChild(chip);
-                        });
-                    } else {
-                        permissionsCell.textContent = '-';
-                    }
-                    row.appendChild(permissionsCell);
-                    
-                    // Created
-                    const createdCell = document.createElement('td');
-                    createdCell.textContent = new Date(user.created_at).toLocaleDateString();
-                    row.appendChild(createdCell);
-                    
-                    // Actions
-                    const actionsCell = document.createElement('td');
-                    const editBtn = document.createElement('button');
-                    editBtn.className = 'btn btn-small btn-warning';
-                    editBtn.textContent = 'Edit';
-                    editBtn.onclick = () => editUser(user);
-                    actionsCell.appendChild(editBtn);
-                    row.appendChild(actionsCell);
-                    
-                    tbody.appendChild(row);
-                });
-                
             } catch (error) {
                 console.error('Error loading users:', error);
                 const tbody = document.getElementById('usersTableBody');
