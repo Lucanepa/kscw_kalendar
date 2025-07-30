@@ -941,11 +941,29 @@
                 // Event details
                 date: 'Datum:',
                 time: 'Zeit:',
+                endDate: 'Enddatum:',
+                duration: 'Dauer in Tagen:',
                 location: 'Ort:',
+                home: 'Heim:',
+                away: 'Auswärts:',
+                score: 'Ergebnis:',
+                league: 'Liga:',
+                gameId: 'Spiel-ID:',
+                result: 'Ergebnis:',
+                leagueInfo: 'Liga-Info:',
+                venue: 'Spielort:',
+                address: 'Adresse:',
+                map: 'Karte:',
+                additionalInfo: 'Zusätzliche Info:',
+                type: 'Typ:',
                 description: 'Beschreibung:',
                 allDay: 'Ganztägig',
                 external: 'Externes Ereignis',
                 userEvent: 'Benutzer-Ereignis',
+                recurring: 'Wiederkehrendes Ereignis',
+                multiDay: 'Mehrtägiges Ereignis',
+                userCreated: 'Benutzer-erstelltes Ereignis',
+                openInMaps: 'In Google Maps öffnen',
                 close: 'Schließen'
             },
             en: {
@@ -988,11 +1006,29 @@
                 // Event details
                 date: 'Date:',
                 time: 'Time:',
+                endDate: 'End Date:',
+                duration: 'Duration in days:',
                 location: 'Location:',
+                home: 'Home:',
+                away: 'Away:',
+                score: 'Score:',
+                league: 'League:',
+                gameId: 'Game ID:',
+                result: 'Result:',
+                leagueInfo: 'League Info:',
+                venue: 'Venue:',
+                address: 'Address:',
+                map: 'Map:',
+                additionalInfo: 'Additional Info:',
+                type: 'Type:',
                 description: 'Description:',
                 allDay: 'All day',
                 external: 'External Event',
                 userEvent: 'User Event',
+                recurring: 'Recurring Event',
+                multiDay: 'Multi-day Event',
+                userCreated: 'User Created Event',
+                openInMaps: 'Open in Google Maps',
                 close: 'Close'
             }
         };
@@ -1749,7 +1785,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📆</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Date:</span> ${formatDate(event.date)}
+                            <span class="event-detail-label">${t('date')}</span> ${formatDate(event.date)}
                         </div>
                     </div>`;
             }
@@ -1764,7 +1800,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🕐</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Time:</span> ${timeText}
+                            <span class="event-detail-label">${t('time')}</span> ${timeText}
                         </div>
                     </div>`;
             } else {
@@ -1772,7 +1808,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🕐</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Time:</span> All day
+                            <span class="event-detail-label">${t('time')}</span> ${t('allDay')}
                         </div>
                     </div>`;
             }
@@ -1783,13 +1819,13 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📅</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">End Date:</span> ${formatDate(event.endDate)}
+                            <span class="event-detail-label">${t('endDate')}</span> ${formatDate(event.endDate)}
                         </div>
                     </div>
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📊</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Duration in days:</span> ${event.totalDays || 'Multiple days'}
+                            <span class="event-detail-label">${t('duration')}</span> ${event.totalDays || (currentLanguage === 'de' ? 'Mehrere Tage' : 'Multiple days')}
                         </div>
                     </div>`;
             }
@@ -1800,7 +1836,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📍</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Location:</span> ${event.location}
+                            <span class="event-detail-label">${t('location')}</span> ${event.location}
                         </div>
                     </div>`;
             }
@@ -1809,18 +1845,18 @@
             if (event.homeTeam) {
                 detailsHTML += `
                     <div class="event-detail-row">
-                        <span class="event-detail-icon">🏠</span>
+                        <span class="event-detail-icon"><img src="https://www.kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=" width="20" height="20"alt="home icon">></span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Home:</span> ${event.homeTeam}
+                            <span class="event-detail-label">${t('home')}</span> ${event.homeTeam}
                         </div>
                     </div>`;
             }
             if (event.awayTeam) {
                 detailsHTML += `
                     <div class="event-detail-row">
-                        <span class="event-detail-icon">✈️</span>
+                        <span class="event-detail-icon">⚔️</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Away:</span> ${event.awayTeam}
+                            <span class="event-detail-label">${t('away')}</span> ${event.awayTeam}
                         </div>
                     </div>`;
             }
@@ -1831,7 +1867,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏆</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Score:</span> ${event.homeTeam || 'Home'} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || 'Away'}
+                            <span class="event-detail-label">${t('score')}</span> ${event.homeTeam || (currentLanguage === 'de' ? 'Heim' : 'Home')} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || (currentLanguage === 'de' ? 'Auswärts' : 'Away')}
                         </div>
                     </div>`;
             }
@@ -1842,7 +1878,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏆</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">League:</span> ${event.league}
+                            <span class="event-detail-label">${t('league')}</span> ${event.league}
                         </div>
                     </div>`;
             }
@@ -1853,7 +1889,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🆔</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Game ID:</span> #${event.gameId}
+                            <span class="event-detail-label">${t('gameId')}</span> #${event.gameId}
                         </div>
                     </div>`;
             }
@@ -1864,7 +1900,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📊</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Result:</span> ${event.result}
+                            <span class="event-detail-label">${t('result')}</span> ${event.result}
                         </div>
                     </div>`;
             }
@@ -1875,7 +1911,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏅</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">League Info:</span> ${event.leagueInfo}
+                            <span class="event-detail-label">${t('leagueInfo')}</span> ${event.leagueInfo}
                         </div>
                     </div>`;
             }
@@ -1886,7 +1922,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏟️</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Venue:</span> ${event.venue}
+                            <span class="event-detail-label">${t('venue')}</span> ${event.venue}
                         </div>
                     </div>`;
             }
@@ -1897,7 +1933,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📍</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Address:</span> ${event.address}
+                            <span class="event-detail-label">${t('address')}</span> ${event.address}
                         </div>
                     </div>`;
             }
@@ -1908,18 +1944,25 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🗺️</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Map:</span> <a href="${event.mapUrl}" target="_blank" style="color: #007bff; text-decoration: underline;">Open in Google Maps</a>
+                            <span class="event-detail-label">${t('map')}</span> <a href="${event.mapUrl}" target="_blank" style="color: #007bff; text-decoration: underline;">${t('openInMaps')}</a>
                         </div>
                     </div>`;
             }
             
             // Description (for user events or additional info)
             if (event.description && !event.isUserEvent) {
+                // Clean up the description text - replace \n with actual line breaks and remove extra whitespace
+                let cleanDescription = event.description
+                    .replace(/\\n/g, '\n')  // Replace literal \n with actual line breaks
+                    .replace(/\n\n+/g, '\n')  // Replace multiple line breaks with single
+                    .trim();  // Remove leading/trailing whitespace
+                
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📝</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Additional Info:</span> ${event.description}
+                            <span class="event-detail-label">${t('additionalInfo')}</span> 
+                            <div style="white-space: pre-line; margin-top: 4px;">${cleanDescription}</div>
                         </div>
                     </div>`;
             }
@@ -1927,20 +1970,20 @@
             // Event type
             let eventType = '';
             if (event.type === 'recurring') {
-                eventType = '🔄 Recurring Event';
+                eventType = `🔄 ${t('recurring')}`;
             } else if (event.type === 'multi') {
-                eventType = '📅 Multi-day Event';
+                eventType = `📅 ${t('multiDay')}`;
             } else if (event.isUserEvent) {
-                eventType = '👤 User Created Event';
+                eventType = `👤 ${t('userCreated')}`;
             } else {
-                eventType = '🌐 External Event';
+                eventType = `🌐 ${t('external')}`;
             }
             
             detailsHTML += `
                 <div class="event-detail-row">
                     <span class="event-detail-icon">ℹ️</span>
                     <div class="event-detail-text">
-                        <span class="event-detail-label">Type:</span> ${eventType}
+                        <span class="event-detail-label">${t('type')}</span> ${eventType}
                     </div>
                 </div>`;
             
