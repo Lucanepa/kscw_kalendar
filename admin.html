@@ -592,12 +592,18 @@
                 <form id="userForm">
                     <div class="form-group">
                         <label for="userEmail">Email:</label>
-                        <input type="email" id="userEmail" required />
+                        <input type="email" id="userEmail" placeholder="Enter email address" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userUsername">Username (Optional):</label>
+                        <input type="text" id="userUsername" placeholder="Enter username (optional)" />
+                        <small style="color: #666;">If provided, a dummy email will be generated for Supabase auth</small>
                     </div>
                     
                     <div class="form-group">
                         <label for="userPassword">Password:</label>
-                        <input type="password" id="userPassword" required />
+                        <input type="password" id="userPassword" placeholder="Enter password" required />
                     </div>
                     
                     <div class="form-row">
@@ -1245,6 +1251,7 @@
                 e.preventDefault();
                 
                 const email = document.getElementById('userEmail').value;
+                const username = document.getElementById('userUsername').value;
                 const password = document.getElementById('userPassword').value;
                 const displayName = document.getElementById('userDisplayName').value;
                 const role = document.getElementById('userRole').value;
@@ -1255,13 +1262,21 @@
                     permissions.push(cb.value);
                 });
                 
+                // Generate dummy email if username is provided
+                let finalEmail = email;
+                if (username && username.trim()) {
+                    // Create a dummy email using the username
+                    finalEmail = `${username.toLowerCase().replace(/[^a-z0-9]/g, '')}@kscw.local`;
+                }
+                
                 try {
-                    // Create user with metadata
+                    // Create user with metadata including username
                     const { data, error } = await supabase.auth.admin.createUser({
-                        email: email,
+                        email: finalEmail,
                         password: password,
                         user_metadata: {
                             display_name: displayName,
+                            username: username || null,
                             role: role,
                             permissions: permissions
                         }
@@ -1270,7 +1285,10 @@
                     if (error) {
                         alert(`Error creating user: ${error.message}`);
                     } else {
-                        alert(`User created successfully! Email: ${email}`);
+                        const successMessage = username ? 
+                            `User created successfully!\nUsername: ${username}\nEmail: ${finalEmail}` :
+                            `User created successfully!\nEmail: ${finalEmail}`;
+                        alert(successMessage);
                         closeUserModal();
                         loadUsers();
                     }
@@ -1338,6 +1356,7 @@
             document.getElementById('modalTitle').textContent = 'Edit User';
             document.getElementById('userEmail').value = user.email;
             document.getElementById('userEmail').disabled = true; // Don't allow email editing
+            document.getElementById('userUsername').value = user.user_metadata?.username || '';
             document.getElementById('userPassword').value = '';
             document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
             document.getElementById('userPassword').required = false;
@@ -1362,6 +1381,7 @@
             e.preventDefault();
             
             const email = document.getElementById('userEmail').value;
+            const username = document.getElementById('userUsername').value;
             const password = document.getElementById('userPassword').value;
             const displayName = document.getElementById('userDisplayName').value;
             const role = document.getElementById('userRole').value;
@@ -1376,6 +1396,7 @@
                 const updateData = {
                     user_metadata: {
                         display_name: displayName,
+                        username: username || null,
                         role: role,
                         permissions: permissions
                     }
