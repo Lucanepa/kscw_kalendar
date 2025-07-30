@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar Admin - Event Management</title>
+    <!-- Add Supabase JavaScript client -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -264,32 +266,98 @@
             margin-top: 10px;
             text-align: center;
         }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+        }
+        
+        .auth-tab.active {
+            color: #007cba;
+            border-bottom: 2px solid #007cba;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📅 Calendar Admin Panel</h1>
-            <button class="logout-btn" onclick="logout()" id="logoutBtn" style="display: none;">Logout</button>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userEmail"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
         
         <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
             <div class="login-form">
                 <h2>🔐 Admin Authentication</h2>
-                <p>Please enter your admin credentials to access event management.</p>
+                <p>Please sign in to access event management.</p>
                 
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" placeholder="Enter username" />
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="showLoginForm()">Sign In</button>
+                    <button class="auth-tab" onclick="showSignUpForm()">Sign Up</button>
                 </div>
                 
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" placeholder="Enter password" />
+                <!-- Login Form -->
+                <div class="auth-form active" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" />
+                    </div>
+                    
+                    <button class="btn" onclick="signIn()">Sign In</button>
                 </div>
                 
-                <button class="btn" onclick="login()">Login</button>
+                <!-- Sign Up Form -->
+                <div class="auth-form" id="signUpForm">
+                    <div class="form-group">
+                        <label for="signUpEmail">Email:</label>
+                        <input type="email" id="signUpEmail" placeholder="Enter your email" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signUpPassword">Password:</label>
+                        <input type="password" id="signUpPassword" placeholder="Enter your password (min 6 characters)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signUpConfirmPassword">Confirm Password:</label>
+                        <input type="password" id="signUpConfirmPassword" placeholder="Confirm your password" />
+                    </div>
+                    
+                    <button class="btn" onclick="signUp()">Sign Up</button>
+                </div>
                 
                 <div id="authMessage"></div>
             </div>
@@ -353,49 +421,123 @@
     </div>
 
     <script>
-        // Admin credentials (in production, this should be server-side)
-        const ADMIN_CREDENTIALS = {
-            username: 'admin',
-            password: 'kscw2024'
-        };
+        // Supabase configuration
+        const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
+        const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
         let allEvents = [];
         let filteredEvents = [];
         let currentPage = 1;
         const eventsPerPage = 20;
-        let isAuthenticated = false;
+        let currentUser = null;
         
-        // Check if already authenticated
-        function checkAuth() {
-            const authToken = localStorage.getItem('adminAuthToken');
-            if (authToken) {
-                isAuthenticated = true;
-                showAdminContent();
-                loadEvents();
+        // Check if user is already authenticated
+        async function checkAuth() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (user && !error) {
+                    currentUser = user;
+                    showAdminContent();
+                    loadEvents();
+                } else {
+                    showAuthSection();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showAuthSection();
             }
         }
         
-        // Login function
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        // Sign in function
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             const messageDiv = document.getElementById('authMessage');
             
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                isAuthenticated = true;
-                localStorage.setItem('adminAuthToken', 'authenticated');
-                showAdminContent();
-                loadEvents();
-                messageDiv.innerHTML = '<div class="success-message">✅ Login successful!</div>';
-            } else {
-                messageDiv.innerHTML = '<div class="error-message">❌ Invalid credentials. Please try again.</div>';
+            if (!email || !password) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                } else {
+                    currentUser = data.user;
+                    messageDiv.innerHTML = '<div class="success-message">✅ Login successful!</div>';
+                    showAdminContent();
+                    loadEvents();
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign in.</div>';
+                console.error('Sign in error:', error);
+            }
+        }
+        
+        // Sign up function
+        async function signUp() {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
+            const messageDiv = document.getElementById('authMessage');
+            
+            if (!email || !password || !confirmPassword) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Passwords do not match.</div>';
+                return;
+            }
+            
+            if (password.length < 6) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Password must be at least 6 characters.</div>';
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                } else {
+                    messageDiv.innerHTML = '<div class="success-message">✅ Account created! Please check your email for verification.</div>';
+                    // Clear form
+                    document.getElementById('signUpEmail').value = '';
+                    document.getElementById('signUpPassword').value = '';
+                    document.getElementById('signUpConfirmPassword').value = '';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign up.</div>';
+                console.error('Sign up error:', error);
             }
         }
         
         // Logout function
-        function logout() {
-            isAuthenticated = false;
-            localStorage.removeItem('adminAuthToken');
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Logout error:', error);
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            currentUser = null;
             showAuthSection();
         }
         
@@ -403,25 +545,52 @@
         function showAdminContent() {
             document.getElementById('authSection').style.display = 'none';
             document.getElementById('adminContent').style.display = 'block';
-            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'flex';
+            
+            if (currentUser) {
+                document.getElementById('userEmail').textContent = currentUser.email;
+            }
         }
         
         // Show auth section
         function showAuthSection() {
             document.getElementById('authSection').style.display = 'block';
             document.getElementById('adminContent').style.display = 'none';
-            document.getElementById('logoutBtn').style.display = 'none';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
+            document.getElementById('userInfo').style.display = 'none';
+            clearAuthForms();
+        }
+        
+        // Clear auth forms
+        function clearAuthForms() {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('signUpEmail').value = '';
+            document.getElementById('signUpPassword').value = '';
+            document.getElementById('signUpConfirmPassword').value = '';
             document.getElementById('authMessage').innerHTML = '';
+        }
+        
+        // Show login form
+        function showLoginForm() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector('.auth-tab').classList.add('active');
+            document.getElementById('loginForm').classList.add('active');
+        }
+        
+        // Show sign up form
+        function showSignUpForm() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            document.getElementById('signUpForm').classList.add('active');
         }
         
         // Load events from Supabase
         async function loadEvents() {
             try {
-                const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
-                const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
-                
                 // Load user events
                 const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?select=*`, {
                     method: 'GET',
