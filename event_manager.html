@@ -655,7 +655,7 @@
                 <p>Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.</p>
                 
                 <div class="auth-tabs">
-                    <button class="auth-tab active">Anmelden</button>
+                    <button class="auth-tab active">Sign in</button>
                 </div>
                 
                 <!-- Login Form -->
@@ -1257,7 +1257,7 @@
                         const userRole = currentUser.user_metadata?.role || 'user';
                         const displayName = currentUser.user_metadata?.display_name || currentUser.email;
                         messageDiv.innerHTML = `<div class="error-message">❌ Keine Berechtigung für Event Manager<br><br>Benutzer: ${displayName}<br>Rolle: ${userRole}<br><br>Sie benötigen die Berechtigung "manage_events" um auf den Event Manager zuzugreifen. Bitte kontaktieren Sie einen Administrator.</div>`;
-                        await logout();
+                        // Don't logout automatically - let user see the error message
                     }
                 }
             } catch (error) {
