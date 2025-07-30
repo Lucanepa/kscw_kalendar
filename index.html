@@ -595,23 +595,27 @@
             }
             
             .header {
-                padding: 15px;
+                padding: 10px 15px;
             }
             
             .nav {
-                flex-direction: column;
+                flex-direction: row;
                 gap: 10px;
                 align-items: center;
+                justify-content: space-between;
             }
             
             .nav button {
-                padding: 8px 12px;
-                font-size: 14px;
+                padding: 6px 10px;
+                font-size: 12px;
+                flex-shrink: 0;
             }
             
             .nav span {
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: bold;
+                flex: 1;
+                text-align: center;
             }
             
             .header a {
@@ -694,16 +698,16 @@
             }
             
             .header {
-                padding: 10px;
+                padding: 8px 10px;
             }
             
             .nav button {
-                padding: 6px 10px;
-                font-size: 12px;
+                padding: 4px 8px;
+                font-size: 11px;
             }
             
             .nav span {
-                font-size: 14px;
+                font-size: 13px;
             }
             
             .grid {
@@ -760,10 +764,10 @@
                 <span id="monthYear"></span>
                 <button onclick="nextMonth()">Next →</button>
             </div>
-            <div style="margin-top: 10px;">
-                <a href="admin.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">🔧 Admin Panel</a>
-                <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">📝 Event Manager</a>
-                <button onclick="refreshCalendar()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">🔄 Refresh</button>
+            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                <a href="admin.html" style="color: white; text-decoration: none; font-size: 11px; opacity: 0.8;">🔧 Admin</a>
+                <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 11px; opacity: 0.8;">📝 Events</a>
+                <button onclick="refreshCalendar()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer;">🔄</button>
             </div>
         </div>
 
@@ -1063,6 +1067,9 @@
                     throw new Error('Invalid calendar data received');
                 }
                 
+                // Debug: Log a sample of the iCal data to see available fields
+                console.log('Sample iCal data:', icalData.substring(0, 1000));
+                
                 events = parseIcalData(icalData);
                 console.log(`Successfully loaded ${events.length} external calendar events`);
                 
@@ -1098,20 +1105,75 @@
                     currentEvent = {};
                 } else if (line === 'END:VEVENT' && currentEvent) {
                     if (currentEvent.summary && currentEvent.dtstart) {
-                        events.push({
+                        const event = {
                             title: currentEvent.summary,
-                            date: formatIcalDate(currentEvent.dtstart)
-                        });
+                            date: formatIcalDate(currentEvent.dtstart),
+                            startTime: formatIcalTime(currentEvent.dtstart),
+                            endTime: formatIcalTime(currentEvent.dtend),
+                            description: currentEvent.description,
+                            location: currentEvent.location,
+                            uid: currentEvent.uid,
+                            categories: currentEvent.categories,
+                            status: currentEvent.status,
+                            isUserEvent: false
+                        };
+                        
+                        // Parse team information from title (for volleyball games)
+                        const teamInfo = parseTeamInfo(currentEvent.summary);
+                        if (teamInfo) {
+                            event.homeTeam = teamInfo.homeTeam;
+                            event.awayTeam = teamInfo.awayTeam;
+                            event.league = teamInfo.league;
+                        }
+                        
+                        // Parse additional game details from description
+                        const gameDetails = parseGameDetails(currentEvent.description);
+                        if (gameDetails) {
+                            event.gameId = gameDetails.gameId;
+                            event.result = gameDetails.result;
+                            event.leagueInfo = gameDetails.leagueInfo;
+                            event.venue = gameDetails.venue;
+                            event.address = gameDetails.address;
+                            event.mapUrl = gameDetails.mapUrl;
+                        }
+                        
+                        // Debug: Log the parsed event data
+                        console.log('Parsed external event:', event);
+                        
+                        events.push(event);
                     }
                     currentEvent = null;
                 } else if (currentEvent) {
                     if (line.startsWith('SUMMARY:')) {
                         currentEvent.summary = line.substring(8);
                     } else if (line.startsWith('DTSTART')) {
+                        // Handle both date-only and datetime formats
+                        const dateTimeMatch = line.match(/DTSTART[^:]*:(\d{8}T\d{6})/);
                         const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
-                        if (dateMatch) {
+                        if (dateTimeMatch) {
+                            currentEvent.dtstart = dateTimeMatch[1];
+                        } else if (dateMatch) {
                             currentEvent.dtstart = dateMatch[1];
                         }
+                    } else if (line.startsWith('DTEND')) {
+                        // Handle both date-only and datetime formats
+                        const dateTimeMatch = line.match(/DTEND[^:]*:(\d{8}T\d{6})/);
+                        const dateMatch = line.match(/DTEND[^:]*:(\d{8})/);
+                        if (dateTimeMatch) {
+                            currentEvent.dtend = dateTimeMatch[1];
+                        } else if (dateMatch) {
+                            currentEvent.dtend = dateMatch[1];
+                        }
+                    } else if (line.startsWith('DESCRIPTION:')) {
+                        currentEvent.description = line.substring(12);
+                    } else if (line.startsWith('LOCATION:')) {
+                        currentEvent.location = line.substring(9);
+                    } else if (line.startsWith('UID:')) {
+                        currentEvent.uid = line.substring(4);
+                    } else if (line.startsWith('CATEGORIES:')) {
+                        currentEvent.categories = line.substring(11);
+                    } else if (line.startsWith('STATUS:')) {
+                        currentEvent.status = line.substring(7);
                     }
                 }
             }
@@ -1127,6 +1189,143 @@
                 return `${year}-${month}-${day}`;
             }
             return null;
+        }
+        
+        function formatIcalTime(icalDateTime) {
+            if (!icalDateTime) return null;
+            
+            // Check if it's a datetime format (YYYYMMDDTHHMMSS)
+            if (icalDateTime.includes('T') && icalDateTime.length >= 15) {
+                const timePart = icalDateTime.substring(9, 15); // HHMMSS
+                const hours = timePart.substring(0, 2);
+                const minutes = timePart.substring(2, 4);
+                return `${hours}:${minutes}`;
+            }
+            
+            // Check for timezone format (YYYYMMDDTHHMMSSZ)
+            if (icalDateTime.includes('T') && icalDateTime.endsWith('Z') && icalDateTime.length >= 16) {
+                const timePart = icalDateTime.substring(9, 15); // HHMMSS
+                const hours = timePart.substring(0, 2);
+                const minutes = timePart.substring(2, 4);
+                return `${hours}:${minutes}`;
+            }
+            
+            return null; // No time component
+        }
+        
+        function parseTeamInfo(title) {
+            // Enhanced patterns for volleyball game titles from iCal data
+            const patterns = [
+                // Pattern: "Team1 - Team2 (League)"
+                /^(.+?)\s+-\s+(.+?)\s+\((.+?)\)$/,
+                // Pattern: "Team1 vs Team2"
+                /^(.+?)\s+vs\s+(.+?)$/,
+                // Pattern: "Team1 — Team2 (League)" (with em dash)
+                /^(.+?)\s+—\s+(.+?)\s+\((.+?)\)$/,
+                // Pattern: "KSCW vs Team Name"
+                /KSCW\s+vs\s+(.+)/i,
+                // Pattern: "Team Name vs KSCW"
+                /(.+)\s+vs\s+KSCW/i,
+                // Pattern: "KSCW - Team Name"
+                /KSCW\s+-\s+(.+)/i,
+                // Pattern: "Team Name - KSCW"
+                /(.+)\s+-\s+KSCW/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = title.match(pattern);
+                if (match) {
+                    if (match.length === 4) {
+                        // Pattern with league info
+                        return {
+                            homeTeam: match[1].trim(),
+                            awayTeam: match[2].trim(),
+                            league: match[3].trim()
+                        };
+                    } else if (match.length === 3) {
+                        // Pattern without league info
+                        const otherTeam = match[2].trim();
+                        const isHome = match[1].toLowerCase().includes('ksc') || match[1].toLowerCase().includes('wiedikon');
+                        
+                        return {
+                            homeTeam: isHome ? match[1].trim() : otherTeam,
+                            awayTeam: isHome ? otherTeam : match[1].trim(),
+                            league: 'Volleyball' // Default league
+                        };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        function parseGameDetails(description) {
+            if (!description) return null;
+            
+            const details = {};
+            
+            // Extract game ID (#123456)
+            const gameIdMatch = description.match(/#(\d+)/);
+            if (gameIdMatch) {
+                details.gameId = gameIdMatch[1];
+            }
+            
+            // Extract result (Risultato: X-Y or Risultato: -)
+            const resultMatch = description.match(/Risultato:\s*([^\n]+)/);
+            if (resultMatch) {
+                details.result = resultMatch[1].trim();
+            }
+            
+            // Extract league info (Lega: #1234 | 2L | ♂)
+            const leagueMatch = description.match(/Lega:\s*([^\n]+)/);
+            if (leagueMatch) {
+                details.leagueInfo = leagueMatch[1].trim();
+            }
+            
+            // Extract venue (Palestra: Venue Name)
+            const venueMatch = description.match(/Palestra:\s*([^\n]+)/);
+            if (venueMatch) {
+                details.venue = venueMatch[1].trim();
+            }
+            
+            // Extract address (Indirizzo: Address)
+            const addressMatch = description.match(/Indirizzo:\s*([^\n]+)/);
+            if (addressMatch) {
+                details.address = addressMatch[1].trim();
+            }
+            
+            // Extract map URL (https://maps.google.com/...)
+            const mapUrlMatch = description.match(/(https:\/\/maps\.google\.com\/[^\s]+)/);
+            if (mapUrlMatch) {
+                details.mapUrl = mapUrlMatch[1];
+            }
+            
+            return Object.keys(details).length > 0 ? details : null;
+        }
+        
+        // Get event color based on sport and type
+        function getEventColor(event) {
+            const sport = event.sport;
+            const eventType = event.eventType;
+            
+            // Color coding logic
+            if (!sport || sport === 'other') {
+                return '#ff8c00'; // Orange
+            } else if (sport === 'volleyball') {
+                if (eventType === 'game') {
+                    return '#0066cc'; // Blue
+                } else {
+                    return '#28a745'; // Green
+                }
+            } else if (sport === 'basketball') {
+                if (eventType === 'game') {
+                    return '#800080'; // Purple
+                } else {
+                    return '#dc3545'; // Red
+                }
+            }
+            
+            return null; // No color (use default)
         }
         
         function renderCalendar() {
@@ -1164,12 +1363,17 @@
                 calendarContainer.appendChild(dayElement);
             }
             
-            // Next month days
+            // Only add next month days if needed to complete the last week
             const totalDayCells = calendarContainer.children.length - 7; // Subtract weekday headers
-            const remainingCells = 42 - totalDayCells; // Need exactly 42 day cells (6 rows × 7 days)
-            for (let day = 1; day <= remainingCells; day++) {
-                const dayElement = createDayElement(day, 'other-month', year, month + 1);
-                calendarContainer.appendChild(dayElement);
+            const daysInWeek = 7;
+            const remainingCellsInWeek = daysInWeek - (totalDayCells % daysInWeek);
+            
+            // Only add next month days if we don't have a complete week
+            if (remainingCellsInWeek < daysInWeek) {
+                for (let day = 1; day <= remainingCellsInWeek; day++) {
+                    const dayElement = createDayElement(day, 'other-month', year, month + 1);
+                    calendarContainer.appendChild(dayElement);
+                }
             }
         }
         
@@ -1223,6 +1427,13 @@
                         eventElement.classList.add('user-event');
                     } else {
                         eventElement.classList.add('external-event');
+                    }
+                    
+                    // Apply color coding based on sport and type
+                    const eventColor = getEventColor(event);
+                    if (eventColor) {
+                        eventElement.style.backgroundColor = eventColor;
+                        eventElement.style.color = '#ffffff';
                     }
                     
                     if (event.type === 'multi') {
@@ -1352,7 +1563,7 @@
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📊</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Duration:</span> ${event.totalDays || 'Multiple days'}
+                            <span class="event-detail-label">Duration in days:</span> ${event.totalDays || 'Multiple days'}
                         </div>
                     </div>`;
             }
@@ -1410,13 +1621,79 @@
                     </div>`;
             }
             
-            // Description
-            if (event.description) {
+            // Game ID (for external games)
+            if (event.gameId) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🆔</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Game ID:</span> #${event.gameId}
+                        </div>
+                    </div>`;
+            }
+            
+            // Result (for completed games)
+            if (event.result) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📊</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Result:</span> ${event.result}
+                        </div>
+                    </div>`;
+            }
+            
+            // League Info (detailed league information)
+            if (event.leagueInfo) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🏅</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">League Info:</span> ${event.leagueInfo}
+                        </div>
+                    </div>`;
+            }
+            
+            // Venue (for games)
+            if (event.venue) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🏟️</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Venue:</span> ${event.venue}
+                        </div>
+                    </div>`;
+            }
+            
+            // Address (for games)
+            if (event.address) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📍</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Address:</span> ${event.address}
+                        </div>
+                    </div>`;
+            }
+            
+            // Map URL (for games)
+            if (event.mapUrl) {
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🗺️</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Map:</span> <a href="${event.mapUrl}" target="_blank" style="color: #007bff; text-decoration: underline;">Open in Google Maps</a>
+                        </div>
+                    </div>`;
+            }
+            
+            // Description (for user events or additional info)
+            if (event.description && !event.isUserEvent) {
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📝</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">Description:</span> ${event.description}
+                            <span class="event-detail-label">Additional Info:</span> ${event.description}
                         </div>
                     </div>`;
             }
