@@ -1357,7 +1357,17 @@
                 const eventMeta = document.createElement('div');
                 eventMeta.className = 'event-meta';
                 
-                let metaText = `${t('date')} ${event.date}`;
+                // Format date from yyyy-mm-dd to dd/mm/yyyy
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                };
+                
+                let metaText = `${t('date')} ${formatDate(event.date)}`;
                 
                 // Check if it's an all-day event (no start time)
                 if (!event.startTime && !event.endTime) {
@@ -1367,7 +1377,7 @@
                 }
                 
                 if (event.endDate && event.type === 'multi') {
-                    metaText += ` | ${t('end')} ${event.endDate}`;
+                    metaText += ` | ${t('end')} ${formatDate(event.endDate)}`;
                 }
                 if (event.type === 'recurring') {
                     metaText += ` | ${t('recurringDisplay')} ${event.recurrence}`;
