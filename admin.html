@@ -378,6 +378,14 @@
             background: #6c757d;
         }
         
+        .role-scorer {
+            background: #17a2b8;
+        }
+        
+        .role-super_admin {
+            background: #dc3545;
+        }
+        
         .permission-chip {
             display: inline-block;
             padding: 2px 6px;
@@ -600,22 +608,26 @@
                         
                         <div class="form-group">
                             <label for="userRole">Role:</label>
-                            <select id="userRole" onchange="updatePermissions()">
-                                <option value="user">User</option>
-                                <option value="hauswart">Hauswart</option>
-                                <option value="coach">Coach Volleyball</option>
-                                <option value="admin">Admin</option>
-                            </select>
+                                                         <select id="userRole" onchange="updatePermissions()">
+                                 <option value="user">User</option>
+                                 <option value="hauswart">Hauswart</option>
+                                 <option value="coach">Coach Volleyball</option>
+                                 <option value="scorer">Scorer (Scorer Tables Only)</option>
+                                 <option value="admin">Admin</option>
+                                 <option value="super_admin">Super Admin (Full Access)</option>
+                             </select>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label>Permissions:</label>
-                        <div id="permissionsContainer">
-                            <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
-                            <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
-                            <label><input type="checkbox" value="admin_access"> Admin Access</label>
-                        </div>
+                                                 <div id="permissionsContainer">
+                             <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
+                             <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
+                             <label><input type="checkbox" value="admin_access"> Admin Access</label><br>
+                             <label><input type="checkbox" value="scorer_access"> Scorer Tables Access</label><br>
+                             <label><input type="checkbox" value="super_admin"> Super Admin (Full Access)</label>
+                         </div>
                     </div>
                     
                     <button type="submit" class="btn">Create User</button>
@@ -1095,35 +1107,83 @@
         // Load all users
         async function loadUsers() {
             try {
-                // Note: This requires admin privileges and should be done server-side
-                // For now, we'll show a message about using the Supabase dashboard
                 const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
-                            <h3>👥 User Management</h3>
-                            <p>To manage users and their roles, please use the Supabase Dashboard:</p>
-                            <ol style="text-align: left; max-width: 500px; margin: 20px auto;">
-                                <li>Go to your Supabase project dashboard</li>
-                                <li>Navigate to Authentication → Users</li>
-                                <li>Click on a user to edit their metadata</li>
-                                <li>Add the following JSON to their user_metadata:</li>
-                            </ol>
-                            <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
-                                <strong>Example for Hauswart:</strong><br>
-                                <code>{
-  "display_name": "John Doe",
-  "role": "hauswart",
-  "permissions": ["create_events", "manage_calendar"]
-}</code>
-                            </div>
-                            <p><strong>Available roles:</strong> user, hauswart, coach, admin</p>
-                            <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access</p>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
+                
+                // Get all users from Supabase
+                const { data: users, error } = await supabase.auth.admin.listUsers();
+                
+                if (error) {
+                    console.error('Error loading users:', error);
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">Error loading users. Please check console for details.</td></tr>';
+                    return;
+                }
+                
+                if (!users || users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    // Email
+                    const emailCell = document.createElement('td');
+                    emailCell.textContent = user.email;
+                    row.appendChild(emailCell);
+                    
+                    // Display Name
+                    const displayNameCell = document.createElement('td');
+                    displayNameCell.textContent = user.user_metadata?.display_name || '-';
+                    row.appendChild(displayNameCell);
+                    
+                    // Role
+                    const roleCell = document.createElement('td');
+                    const role = user.user_metadata?.role || 'user';
+                    const roleBadge = document.createElement('span');
+                    roleBadge.className = `role-badge role-${role}`;
+                    roleBadge.textContent = role;
+                    roleCell.appendChild(roleBadge);
+                    row.appendChild(roleCell);
+                    
+                    // Permissions
+                    const permissionsCell = document.createElement('td');
+                    const permissions = user.user_metadata?.permissions || [];
+                    if (permissions.length > 0) {
+                        permissions.forEach(permission => {
+                            const chip = document.createElement('span');
+                            chip.className = 'permission-chip';
+                            chip.textContent = permission;
+                            permissionsCell.appendChild(chip);
+                        });
+                    } else {
+                        permissionsCell.textContent = '-';
+                    }
+                    row.appendChild(permissionsCell);
+                    
+                    // Created
+                    const createdCell = document.createElement('td');
+                    createdCell.textContent = new Date(user.created_at).toLocaleDateString();
+                    row.appendChild(createdCell);
+                    
+                    // Actions
+                    const actionsCell = document.createElement('td');
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn btn-small btn-warning';
+                    editBtn.textContent = 'Edit';
+                    editBtn.onclick = () => editUser(user);
+                    actionsCell.appendChild(editBtn);
+                    row.appendChild(actionsCell);
+                    
+                    tbody.appendChild(row);
+                });
+                
             } catch (error) {
                 console.error('Error loading users:', error);
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">Error loading users. Please check console for details.</td></tr>';
             }
         }
         
@@ -1131,8 +1191,54 @@
         function showCreateUserModal() {
             document.getElementById('modalTitle').textContent = 'Create New User';
             document.getElementById('userForm').reset();
+            document.getElementById('userEmail').disabled = false;
+            document.getElementById('userEmail').required = true;
+            document.getElementById('userPassword').required = true;
+            document.getElementById('userPassword').placeholder = 'Enter password';
             document.getElementById('userModal').style.display = 'block';
             updatePermissions();
+            
+            // Reset form submission to create user
+            const form = document.getElementById('userForm');
+            form.onsubmit = null; // Remove any previous handlers
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('userEmail').value;
+                const password = document.getElementById('userPassword').value;
+                const displayName = document.getElementById('userDisplayName').value;
+                const role = document.getElementById('userRole').value;
+                
+                // Get selected permissions
+                const permissions = [];
+                document.querySelectorAll('#permissionsContainer input[type="checkbox"]:checked').forEach(cb => {
+                    permissions.push(cb.value);
+                });
+                
+                try {
+                    // Create user with metadata
+                    const { data, error } = await supabase.auth.admin.createUser({
+                        email: email,
+                        password: password,
+                        user_metadata: {
+                            display_name: displayName,
+                            role: role,
+                            permissions: permissions
+                        }
+                    });
+                    
+                    if (error) {
+                        alert(`Error creating user: ${error.message}`);
+                    } else {
+                        alert(`User created successfully! Email: ${email}`);
+                        closeUserModal();
+                        loadUsers();
+                    }
+                } catch (error) {
+                    alert(`Error creating user: ${error.message}`);
+                    console.error('Create user error:', error);
+                }
+            });
         }
         
         // Close user modal
@@ -1153,8 +1259,13 @@
             
             // Set permissions based on role
             switch (role) {
-                case 'admin':
+                case 'super_admin':
                     checkboxes.forEach(cb => cb.checked = true);
+                    break;
+                case 'admin':
+                    checkboxes[0].checked = true; // create_events
+                    checkboxes[1].checked = true; // manage_calendar
+                    checkboxes[2].checked = true; // admin_access
                     break;
                 case 'hauswart':
                     checkboxes[0].checked = true; // create_events
@@ -1163,14 +1274,51 @@
                 case 'coach':
                     checkboxes[0].checked = true; // create_events
                     break;
+                case 'scorer':
+                    checkboxes[3].checked = true; // scorer_access
+                    break;
                 case 'user':
                     checkboxes[0].checked = true; // create_events
                     break;
             }
         }
         
-        // Handle user form submission
-        document.getElementById('userForm').addEventListener('submit', async function(e) {
+        // Note: Form submission is now handled in showCreateUserModal() and editUser() functions
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('userModal');
+            if (event.target === modal) {
+                closeUserModal();
+            }
+        }
+        
+        // Edit user function
+        function editUser(user) {
+            document.getElementById('modalTitle').textContent = 'Edit User';
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userEmail').disabled = true; // Don't allow email editing
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
+            document.getElementById('userPassword').required = false;
+            document.getElementById('userDisplayName').value = user.user_metadata?.display_name || '';
+            document.getElementById('userRole').value = user.user_metadata?.role || 'user';
+            
+            // Set permissions
+            const permissions = user.user_metadata?.permissions || [];
+            document.querySelectorAll('#permissionsContainer input[type="checkbox"]').forEach(cb => {
+                cb.checked = permissions.includes(cb.value);
+            });
+            
+            document.getElementById('userModal').style.display = 'block';
+            
+            // Update form submission for editing
+            const form = document.getElementById('userForm');
+            form.onsubmit = (e) => updateUser(e, user.id);
+        }
+        
+        // Update user function
+        async function updateUser(e, userId) {
             e.preventDefault();
             
             const email = document.getElementById('userEmail').value;
@@ -1185,35 +1333,31 @@
             });
             
             try {
-                // Create user with metadata
-                const { data, error } = await supabase.auth.admin.createUser({
-                    email: email,
-                    password: password,
+                const updateData = {
                     user_metadata: {
                         display_name: displayName,
                         role: role,
                         permissions: permissions
                     }
-                });
+                };
+                
+                // Only update password if provided
+                if (password) {
+                    updateData.password = password;
+                }
+                
+                const { data, error } = await supabase.auth.admin.updateUserById(userId, updateData);
                 
                 if (error) {
-                    alert(`Error creating user: ${error.message}`);
+                    alert(`Error updating user: ${error.message}`);
                 } else {
-                    alert(`User created successfully! Email: ${email}`);
+                    alert(`User updated successfully!`);
                     closeUserModal();
                     loadUsers();
                 }
             } catch (error) {
-                alert(`Error creating user: ${error.message}`);
-                console.error('Create user error:', error);
-            }
-        });
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('userModal');
-            if (event.target === modal) {
-                closeUserModal();
+                alert(`Error updating user: ${error.message}`);
+                console.error('Update user error:', error);
             }
         }
         
