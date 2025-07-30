@@ -1198,7 +1198,20 @@
                 
                 // Date
                 const dateCell = document.createElement('td');
-                dateCell.textContent = event.date;
+                // Format date as dd/mm/yyyy
+                if (event.date) {
+                    const dateParts = event.date.split('-');
+                    if (dateParts.length === 3) {
+                        const day = dateParts[2];
+                        const month = dateParts[1];
+                        const year = dateParts[0];
+                        dateCell.textContent = `${day}/${month}/${year}`;
+                    } else {
+                        dateCell.textContent = event.date;
+                    }
+                } else {
+                    dateCell.textContent = '-';
+                }
                 row.appendChild(dateCell);
                 
                 // Time
@@ -1302,7 +1315,18 @@
         
         // View event (placeholder)
         function viewEvent(event) {
-            alert(`View details for: ${event.title}\n\nDate: ${event.date}\nTime: ${event.startTime || 'N/A'}\nDescription: ${event.description || 'N/A'}`);
+                            // Format date as dd/mm/yyyy for display
+                let formattedDate = event.date;
+                if (event.date) {
+                    const dateParts = event.date.split('-');
+                    if (dateParts.length === 3) {
+                        const day = dateParts[2];
+                        const month = dateParts[1];
+                        const year = dateParts[0];
+                        formattedDate = `${day}/${month}/${year}`;
+                    }
+                }
+                alert(`View details for: ${event.title}\n\nDate: ${formattedDate}\nTime: ${event.startTime || 'N/A'}\nDescription: ${event.description || 'N/A'}`);
         }
         
         // Export events
