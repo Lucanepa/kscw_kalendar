@@ -561,7 +561,7 @@
             <!-- Users Section -->
             <div class="admin-section" id="usersSection">
                 <div style="margin-bottom: 20px;">
-                    <button class="btn" onclick="showCreateUserModal()">➕ Create New User</button>
+                                            <button class="btn" onclick="showCreateUserModal()">📋 Create User Instructions</button>
                     <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh Users</button>
                 </div>
                 
@@ -1108,20 +1108,20 @@
                 const tbody = document.getElementById('usersTableBody');
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
                 
-                // Try to get users using the admin API
-                let users = [];
-                let error = null;
-                
-                try {
-                    const { data, error: adminError } = await supabase.auth.admin.listUsers();
-                    if (adminError) {
-                        console.warn('Admin API failed, trying alternative method:', adminError);
-                        throw adminError;
+                // Call the Edge Function to get users
+                const response = await fetch('/functions/v1/list-users', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabaseKey}`
                     }
-                    users = data || [];
-                } catch (adminError) {
-                    console.log('Admin API not available, showing manual setup instructions');
-                    // Show manual setup instructions instead
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    console.log('Edge Function failed, showing manual setup instructions');
+                    // Show manual setup instructions as fallback
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
@@ -1157,6 +1157,8 @@
                     `;
                     return;
                 }
+                
+                const users = result.users || [];
                 
                 if (!users || users.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
@@ -1228,56 +1230,8 @@
         
         // Show create user modal
         function showCreateUserModal() {
-            document.getElementById('modalTitle').textContent = 'Create New User';
-            document.getElementById('userForm').reset();
-            document.getElementById('userEmail').disabled = false;
-            document.getElementById('userEmail').required = true;
-            document.getElementById('userPassword').required = true;
-            document.getElementById('userPassword').placeholder = 'Enter password';
-            document.getElementById('userModal').style.display = 'block';
-            updatePermissions();
-            
-            // Reset form submission to create user
-            const form = document.getElementById('userForm');
-            form.onsubmit = null; // Remove any previous handlers
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('userEmail').value;
-                const password = document.getElementById('userPassword').value;
-                const displayName = document.getElementById('userDisplayName').value;
-                const role = document.getElementById('userRole').value;
-                
-                // Get selected permissions
-                const permissions = [];
-                document.querySelectorAll('#permissionsContainer input[type="checkbox"]:checked').forEach(cb => {
-                    permissions.push(cb.value);
-                });
-                
-                try {
-                    // Create user with metadata
-                    const { data, error } = await supabase.auth.admin.createUser({
-                        email: email,
-                        password: password,
-                        user_metadata: {
-                            display_name: displayName,
-                            role: role,
-                            permissions: permissions
-                        }
-                    });
-                    
-                    if (error) {
-                        alert(`Error creating user: ${error.message}`);
-                    } else {
-                        alert(`User created successfully! Email: ${email}`);
-                        closeUserModal();
-                        loadUsers();
-                    }
-                } catch (error) {
-                    alert(`Error creating user: ${error.message}`);
-                    console.error('Create user error:', error);
-                }
-            });
+            alert('User creation is disabled. Please create users in the Supabase Dashboard first, then edit their roles here.\n\nSteps:\n1. Go to Supabase Dashboard → Authentication → Users\n2. Click "Add User"\n3. Enter email and password\n4. Come back here to edit their role and permissions');
+            return;
         }
         
         // Close user modal
