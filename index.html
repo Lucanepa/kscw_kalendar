@@ -394,6 +394,29 @@
             .event:active {
                 background-color: rgba(255, 255, 255, 0.3);
             }
+            
+            /* Mobile popup styling */
+            .event-details-content {
+                max-width: 95%;
+                padding: 15px;
+            }
+            
+            .event-details-title {
+                font-size: 16px;
+            }
+            
+            .event-detail-row {
+                margin-bottom: 6px;
+            }
+            
+            .event-detail-icon {
+                font-size: 14px;
+                min-width: 18px;
+            }
+            
+            .event-detail-text {
+                font-size: 14px;
+            }
         }
         
         .event-content {
@@ -1427,6 +1450,16 @@
         function closeEventDetails() {
             document.getElementById('eventDetailsPopup').style.display = 'none';
         }
+        
+        // Close popup when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            const popup = document.getElementById('eventDetailsPopup');
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    closeEventDetails();
+                }
+            });
+        });
         
         // Function to show all events for a specific day
         function showAllEventsForDay(dateStr, dayEvents) {
