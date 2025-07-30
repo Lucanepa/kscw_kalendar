@@ -126,27 +126,231 @@
             color: #007cba;
         }
         
-        .events-table {
-            width: 100%;
-            border-collapse: collapse;
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
             margin-top: 20px;
         }
         
-        .events-table th,
-        .events-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        .event-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
         }
         
-        .events-table th {
-            background: #f8f9fa;
+        .event-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .event-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .event-title {
             font-weight: bold;
+            font-size: 16px;
             color: #333;
+            margin: 0;
+            flex: 1;
         }
         
-        .events-table tr:hover {
-            background: #f5f5f5;
+        .event-type-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .event-details {
+            margin-bottom: 10px;
+        }
+        
+        .event-detail {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .event-detail-label {
+            font-weight: bold;
+            color: #666;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .event-detail-value {
+            color: #333;
+            flex: 1;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        /* User management styles */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .user-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+        }
+        
+        .user-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .user-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .user-email {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .user-details {
+            margin-bottom: 10px;
+        }
+        
+        .user-detail {
+            display: flex;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .user-detail-label {
+            font-weight: bold;
+            color: #666;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .user-detail-value {
+            color: #333;
+            flex: 1;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        /* Mobile responsive design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .admin-content {
+                padding: 15px;
+            }
+            
+            .events-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .event-card {
+                padding: 12px;
+            }
+            
+            .event-title {
+                font-size: 14px;
+            }
+            
+            .event-detail {
+                font-size: 12px;
+            }
+            
+            .event-detail-label {
+                min-width: 60px;
+            }
+            
+            .search-filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .search-filters input,
+            .search-filters select {
+                width: 100%;
+                min-width: auto;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            
+            .btn-small {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .users-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .user-card {
+                padding: 12px;
+            }
+            
+            .user-name {
+                font-size: 14px;
+            }
+            
+            .user-detail {
+                font-size: 12px;
+            }
+            
+            .user-detail-label {
+                min-width: 60px;
+            }
         }
         
         .event-actions {
@@ -770,21 +974,9 @@
                 <button class="btn btn-secondary" onclick="refreshDataWithCacheClear()">🔄 Refresh</button>
                 </div>
                 
-                <table class="events-table" id="eventsTable">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Description</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="eventsTableBody">
-                        <!-- Events will be populated here -->
-                    </tbody>
-                </table>
+                <div class="events-grid" id="eventsGrid">
+                    <!-- Events will be populated here as cards -->
+                </div>
                 
                 <div class="pagination" id="pagination">
                     <!-- Pagination will be generated here -->
@@ -797,22 +989,9 @@
                     <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh Users</button>
                 </div>
                 
-                <table class="user-table" id="usersTable">
-                                            <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Display Name</th>
-                                <th>Role</th>
-                                <th>Project</th>
-                                <th>Permissions</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                    <tbody id="usersTableBody">
-                        <!-- Users will be populated here -->
-                    </tbody>
-                </table>
+                <div class="users-grid" id="usersGrid">
+                    <!-- Users will be populated here as cards -->
+                </div>
             </div>
         </div>
         </div>
@@ -1294,25 +1473,28 @@
             renderEventsTable();
         }
         
-        // Render events table
+        // Render events as cards
         function renderEventsTable() {
-            const tbody = document.getElementById('eventsTableBody');
-            tbody.innerHTML = '';
+            const grid = document.getElementById('eventsGrid');
+            grid.innerHTML = '';
             
             const startIndex = (currentPage - 1) * eventsPerPage;
             const endIndex = startIndex + eventsPerPage;
             const pageEvents = filteredEvents.slice(startIndex, endIndex);
             
             pageEvents.forEach(event => {
-                const row = document.createElement('tr');
+                const card = document.createElement('div');
+                card.className = 'event-card';
                 
-                // Title
-                const titleCell = document.createElement('td');
-                titleCell.textContent = event.title;
-                row.appendChild(titleCell);
+                // Card header with title and type badge
+                const header = document.createElement('div');
+                header.className = 'event-card-header';
                 
-                // Type badge
-                const typeCell = document.createElement('td');
+                const title = document.createElement('h3');
+                title.className = 'event-title';
+                title.textContent = event.title;
+                header.appendChild(title);
+                
                 const badge = document.createElement('span');
                 badge.className = 'event-type-badge';
                 
@@ -1332,66 +1514,100 @@
                     badge.textContent += ' Recurring';
                 }
                 
-                typeCell.appendChild(badge);
-                row.appendChild(typeCell);
+                header.appendChild(badge);
+                card.appendChild(header);
+                
+                // Event details
+                const details = document.createElement('div');
+                details.className = 'event-details';
                 
                 // Date
-                const dateCell = document.createElement('td');
-                // Format date as dd/mm/yyyy
+                const dateDetail = document.createElement('div');
+                dateDetail.className = 'event-detail';
+                const dateLabel = document.createElement('span');
+                dateLabel.className = 'event-detail-label';
+                dateLabel.textContent = 'Date:';
+                const dateValue = document.createElement('span');
+                dateValue.className = 'event-detail-value';
+                
                 if (event.date) {
                     const dateParts = event.date.split('-');
                     if (dateParts.length === 3) {
                         const day = dateParts[2];
                         const month = dateParts[1];
                         const year = dateParts[0];
-                        dateCell.textContent = `${day}/${month}/${year}`;
+                        dateValue.textContent = `${day}/${month}/${year}`;
                     } else {
-                        dateCell.textContent = event.date;
+                        dateValue.textContent = event.date;
                     }
                 } else {
-                    dateCell.textContent = '-';
+                    dateValue.textContent = '-';
                 }
-                row.appendChild(dateCell);
+                
+                dateDetail.appendChild(dateLabel);
+                dateDetail.appendChild(dateValue);
+                details.appendChild(dateDetail);
                 
                 // Time
-                const timeCell = document.createElement('td');
-                timeCell.textContent = event.startTime || '-';
-                row.appendChild(timeCell);
+                if (event.startTime) {
+                    const timeDetail = document.createElement('div');
+                    timeDetail.className = 'event-detail';
+                    const timeLabel = document.createElement('span');
+                    timeLabel.className = 'event-detail-label';
+                    timeLabel.textContent = 'Time:';
+                    const timeValue = document.createElement('span');
+                    timeValue.className = 'event-detail-value';
+                    timeValue.textContent = event.startTime;
+                    
+                    timeDetail.appendChild(timeLabel);
+                    timeDetail.appendChild(timeValue);
+                    details.appendChild(timeDetail);
+                }
                 
                 // Description
-                const descCell = document.createElement('td');
-                descCell.textContent = event.description || '-';
-                row.appendChild(descCell);
+                if (event.description) {
+                    const descDetail = document.createElement('div');
+                    descDetail.className = 'event-detail';
+                    const descLabel = document.createElement('span');
+                    descLabel.className = 'event-detail-label';
+                    descLabel.textContent = 'Description:';
+                    const descValue = document.createElement('span');
+                    descValue.className = 'event-detail-value';
+                    descValue.textContent = event.description;
+                    
+                    descDetail.appendChild(descLabel);
+                    descDetail.appendChild(descValue);
+                    details.appendChild(descDetail);
+                }
+                
+                card.appendChild(details);
                 
                 // Actions
-                const actionsCell = document.createElement('td');
-                const actionsDiv = document.createElement('div');
-                actionsDiv.className = 'event-actions';
+                const actions = document.createElement('div');
+                actions.className = 'event-actions';
                 
                 if (event.isUserEvent) {
                     const editBtn = document.createElement('button');
                     editBtn.className = 'btn btn-small btn-warning';
                     editBtn.textContent = 'Edit';
                     editBtn.onclick = () => editEvent(event);
-                    actionsDiv.appendChild(editBtn);
+                    actions.appendChild(editBtn);
                     
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'btn btn-small btn-danger';
                     deleteBtn.textContent = 'Delete';
                     deleteBtn.onclick = () => deleteEvent(event);
-                    actionsDiv.appendChild(deleteBtn);
+                    actions.appendChild(deleteBtn);
                 } else {
                     const viewBtn = document.createElement('button');
                     viewBtn.className = 'btn btn-small';
                     viewBtn.textContent = 'View';
                     viewBtn.onclick = () => viewEvent(event);
-                    actionsDiv.appendChild(viewBtn);
+                    actions.appendChild(viewBtn);
                 }
                 
-                actionsCell.appendChild(actionsDiv);
-                row.appendChild(actionsCell);
-                
-                tbody.appendChild(row);
+                card.appendChild(actions);
+                grid.appendChild(card);
             });
             
             renderPagination();
@@ -1917,8 +2133,8 @@
         // Load all users
         async function loadUsers() {
             try {
-                const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
+                const grid = document.getElementById('usersGrid');
+                grid.innerHTML = '<div style="text-align: center; padding: 20px; grid-column: 1 / -1;">Loading users...</div>';
                 
                 // Call the Edge Function to get users
                 try {
@@ -1958,89 +2174,120 @@
                     const users = result.users || [];
                     
                     if (!users || users.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
+                        grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #666; grid-column: 1 / -1;">No users found.</div>';
                         return;
                     }
                     
-                    // Display users in table
-                    tbody.innerHTML = '';
+                    // Display users as cards
+                    grid.innerHTML = '';
                     users.forEach(user => {
                         // Filter out scorer users - only show calendar_ users
                         if (user.user_metadata?.project === 'scorer_') {
                             return; // Skip this user
                         }
-                        const row = document.createElement('tr');
                         
-                        // Email
-                        const emailCell = document.createElement('td');
-                        emailCell.textContent = user.email;
-                        row.appendChild(emailCell);
+                        const card = document.createElement('div');
+                        card.className = 'user-card';
                         
-                        // Display Name
-                        const displayNameCell = document.createElement('td');
-                        displayNameCell.textContent = user.user_metadata?.display_name || '-';
-                        row.appendChild(displayNameCell);
+                        // Card header with name and role
+                        const header = document.createElement('div');
+                        header.className = 'user-card-header';
                         
-                        // Role
-                        const roleCell = document.createElement('td');
+                        const name = document.createElement('h3');
+                        name.className = 'user-name';
+                        name.textContent = user.user_metadata?.display_name || user.email;
+                        header.appendChild(name);
+                        
                         const role = user.user_metadata?.role || 'user';
                         const roleBadge = document.createElement('span');
                         roleBadge.className = `role-badge role-${role}`;
                         roleBadge.textContent = role;
-                        roleCell.appendChild(roleBadge);
-                        row.appendChild(roleCell);
+                        header.appendChild(roleBadge);
+                        
+                        card.appendChild(header);
+                        
+                        // User email
+                        const email = document.createElement('div');
+                        email.className = 'user-email';
+                        email.textContent = user.email;
+                        card.appendChild(email);
+                        
+                        // User details
+                        const details = document.createElement('div');
+                        details.className = 'user-details';
                         
                         // Project
-                        const projectCell = document.createElement('td');
                         const project = user.user_metadata?.project || 'calendar_';
-                        const projectBadge = document.createElement('span');
-                        projectBadge.className = `project-badge project-${project}`;
-                        projectBadge.textContent = project;
-                        projectCell.appendChild(projectBadge);
-                        row.appendChild(projectCell);
+                        const projectDetail = document.createElement('div');
+                        projectDetail.className = 'user-detail';
+                        const projectLabel = document.createElement('span');
+                        projectLabel.className = 'user-detail-label';
+                        projectLabel.textContent = 'Project:';
+                        const projectValue = document.createElement('span');
+                        projectValue.className = 'user-detail-value';
+                        projectValue.textContent = project;
+                        
+                        projectDetail.appendChild(projectLabel);
+                        projectDetail.appendChild(projectValue);
+                        details.appendChild(projectDetail);
                         
                         // Permissions
-                        const permissionsCell = document.createElement('td');
                         const permissions = user.user_metadata?.permissions || [];
                         if (permissions.length > 0) {
-                            permissions.forEach(permission => {
-                                const chip = document.createElement('span');
-                                chip.className = 'permission-chip';
-                                chip.textContent = permission;
-                                permissionsCell.appendChild(chip);
-                            });
-                        } else {
-                            permissionsCell.textContent = '-';
+                            const permissionsDetail = document.createElement('div');
+                            permissionsDetail.className = 'user-detail';
+                            const permissionsLabel = document.createElement('span');
+                            permissionsLabel.className = 'user-detail-label';
+                            permissionsLabel.textContent = 'Permissions:';
+                            const permissionsValue = document.createElement('span');
+                            permissionsValue.className = 'user-detail-value';
+                            permissionsValue.textContent = permissions.join(', ');
+                            
+                            permissionsDetail.appendChild(permissionsLabel);
+                            permissionsDetail.appendChild(permissionsValue);
+                            details.appendChild(permissionsDetail);
                         }
-                        row.appendChild(permissionsCell);
                         
-                        // Created
-                        const createdCell = document.createElement('td');
+                        // Created date
+                        const createdDetail = document.createElement('div');
+                        createdDetail.className = 'user-detail';
+                        const createdLabel = document.createElement('span');
+                        createdLabel.className = 'user-detail-label';
+                        createdLabel.textContent = 'Created:';
+                        const createdValue = document.createElement('span');
+                        createdValue.className = 'user-detail-value';
+                        
                         const createdDate = new Date(user.created_at);
                         const day = createdDate.getDate().toString().padStart(2, '0');
                         const month = (createdDate.getMonth() + 1).toString().padStart(2, '0');
                         const year = createdDate.getFullYear();
-                        createdCell.textContent = `${day}/${month}/${year}`;
-                        row.appendChild(createdCell);
+                        createdValue.textContent = `${day}/${month}/${year}`;
+                        
+                        createdDetail.appendChild(createdLabel);
+                        createdDetail.appendChild(createdValue);
+                        details.appendChild(createdDetail);
+                        
+                        card.appendChild(details);
                         
                         // Actions
-                        const actionsCell = document.createElement('td');
+                        const actions = document.createElement('div');
+                        actions.className = 'user-actions';
+                        
                         const editBtn = document.createElement('button');
                         editBtn.className = 'btn btn-small btn-warning';
                         editBtn.textContent = 'Edit';
                         editBtn.onclick = () => editUser(user);
-                        actionsCell.appendChild(editBtn);
-                        row.appendChild(actionsCell);
+                        actions.appendChild(editBtn);
                         
-                        tbody.appendChild(row);
+                        card.appendChild(actions);
+                        grid.appendChild(card);
                     });
                     
                 } catch (error) {
                     console.log('Edge Function not available, showing manual setup instructions');
                     // Show manual setup instructions as fallback
-                    tbody.innerHTML = `
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                    grid.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #666; grid-column: 1 / -1;">
                                 <h3>👥 User Management</h3>
                                 <p>To manage users and their roles, please use the Supabase Dashboard:</p>
                                 <ol style="text-align: left; max-width: 500px; margin: 20px auto;">
@@ -2070,15 +2317,14 @@
                                 <p><strong>Available roles:</strong> hauswart, coach, coach_basketball, admin, super_admin</p>
                                 <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, super_admin</p>
                                 <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
-                            </td>
-                        </tr>
+                        </div>
                     `;
                     return;
                 }
             } catch (error) {
                 console.error('Error loading users:', error);
-                const tbody = document.getElementById('usersTableBody');
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">Error loading users. Please check console for details.</td></tr>';
+                const grid = document.getElementById('usersGrid');
+                grid.innerHTML = '<div style="text-align: center; padding: 20px; color: #dc3545; grid-column: 1 / -1;">Error loading users. Please check console for details.</div>';
             }
         }
         
