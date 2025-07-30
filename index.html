@@ -237,26 +237,43 @@
             flex-shrink: 0;
         }
         
+        /* Event interaction styling */
+        .event {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .event:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .event:active {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
         /* Mobile responsive design */
         @media (max-width: 768px) {
             .day {
-                min-height: 40px;
+                min-height: 35px;
                 padding: 2px;
             }
             
             .day-number {
-                font-size: 12px;
-                margin-bottom: 2px;
-            }
-            
-            .event {
-                font-size: 8px;
-                padding: 1px 2px;
+                font-size: 11px;
                 margin-bottom: 1px;
             }
             
+            .event {
+                font-size: 7px;
+                padding: 1px 2px;
+                margin-bottom: 1px;
+                min-height: 12px;
+                max-height: 16px;
+            }
+            
             .event-title {
-                font-size: 8px;
+                font-size: 7px;
+                line-height: 1.2;
             }
             
             .event-time {
@@ -264,17 +281,31 @@
             }
             
             .weekday {
-                padding: 5px 2px;
-                font-size: 10px;
+                padding: 4px 2px;
+                font-size: 9px;
             }
             
             .header {
-                padding: 5px;
+                padding: 4px;
             }
             
             .nav button {
-                padding: 3px 8px;
-                font-size: 12px;
+                padding: 2px 6px;
+                font-size: 11px;
+            }
+            
+            /* Mobile event details styling */
+            .event {
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            
+            .event:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+            
+            .event:active {
+                background-color: rgba(255, 255, 255, 0.3);
             }
         }
         
@@ -1122,7 +1153,7 @@
                     // Make the event clickable
                     eventElement.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        showDayPopup(dateStr);
+                        showEventDetails(event);
                     });
                     
                     eventsContainer.appendChild(eventElement);
@@ -1145,6 +1176,86 @@
             }
             
             return dayElement;
+        }
+        
+        // Function to show detailed event information
+        function showEventDetails(event) {
+            // Format date
+            const formatDate = (dateString) => {
+                if (!dateString) return '';
+                const date = new Date(dateString + 'T12:00:00');
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            };
+            
+            // Build detailed event information
+            let details = `📅 ${event.title}\n\n`;
+            
+            // Date information
+            if (event.date) {
+                details += `📆 Date: ${formatDate(event.date)}\n`;
+            }
+            
+            // Time information
+            if (event.startTime) {
+                details += `🕐 Time: ${event.startTime}`;
+                if (event.endTime) {
+                    details += ` - ${event.endTime}`;
+                }
+                details += '\n';
+            } else {
+                details += `🕐 Time: All day\n`;
+            }
+            
+            // Multi-day event information
+            if (event.type === 'multi' && event.endDate) {
+                details += `📅 End Date: ${formatDate(event.endDate)}\n`;
+                details += `📊 Duration: ${event.totalDays || 'Multiple days'}\n`;
+            }
+            
+            // Location information (for games)
+            if (event.location) {
+                details += `📍 Location: ${event.location}\n`;
+            }
+            
+            // Team information (for games)
+            if (event.homeTeam) {
+                details += `🏠 Home: ${event.homeTeam}\n`;
+            }
+            if (event.awayTeam) {
+                details += `✈️ Away: ${event.awayTeam}\n`;
+            }
+            
+            // Score information (for completed games)
+            if (event.homeScore !== undefined && event.awayScore !== undefined) {
+                details += `🏆 Score: ${event.homeTeam || 'Home'} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || 'Away'}\n`;
+            }
+            
+            // League/Competition information
+            if (event.league) {
+                details += `🏆 League: ${event.league}\n`;
+            }
+            
+            // Description
+            if (event.description) {
+                details += `📝 Description: ${event.description}\n`;
+            }
+            
+            // Event type
+            if (event.type === 'recurring') {
+                details += `🔄 Type: Recurring Event\n`;
+            } else if (event.type === 'multi') {
+                details += `📅 Type: Multi-day Event\n`;
+            } else if (event.isUserEvent) {
+                details += `👤 Type: User Created Event\n`;
+            } else {
+                details += `🌐 Type: External Event\n`;
+            }
+            
+            // Show the details in a mobile-friendly alert
+            alert(details);
         }
         
         // Function to show all events for a specific day
