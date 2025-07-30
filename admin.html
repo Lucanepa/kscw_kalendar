@@ -491,6 +491,7 @@
             <div class="admin-tabs">
                 <button class="admin-tab active" onclick="switchTab('events')">📅 Event Management</button>
                 <button class="admin-tab" onclick="switchTab('users')">👥 User Management</button>
+                <button class="admin-tab" id="userGuideBtn" onclick="openUserGuide()" style="display: none;">📖 User Management Guide</button>
             </div>
             
             <!-- Events Section -->
@@ -724,6 +725,15 @@
                 const userRole = currentUser.user_metadata?.role || 'user';
                 const displayName = currentUser.user_metadata?.display_name || currentUser.email;
                 document.getElementById('userEmail').textContent = `${displayName} (${userRole})`;
+                
+                // Show user guide button only for super-admin users
+                const permissions = currentUser.user_metadata?.permissions || [];
+                const userGuideBtn = document.getElementById('userGuideBtn');
+                if (permissions.includes('admin_access')) {
+                    userGuideBtn.style.display = 'inline-block';
+                } else {
+                    userGuideBtn.style.display = 'none';
+                }
             }
         }
         
@@ -1205,6 +1215,11 @@
             if (event.target === modal) {
                 closeUserModal();
             }
+        }
+        
+        // Open user management guide
+        function openUserGuide() {
+            window.open('user-management.html', '_blank');
         }
         
         // Initialize
