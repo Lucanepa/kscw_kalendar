@@ -655,6 +655,57 @@
         const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
         const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
         
+        // Log event changes to Supabase
+        async function logEventChange(action, event, oldValues = null) {
+            try {
+                const browserId = getBrowserId();
+                const userEmail = 'anonymous'; // Main calendar doesn't have user auth
+                
+                const logEntry = {
+                    user_email: userEmail,
+                    browser_id: browserId,
+                    action: action,
+                    event_id: event.id,
+                    event_title: event.title,
+                    event_date: event.date,
+                    old_values: oldValues,
+                    new_values: action === 'delete' ? null : {
+                        title: event.title,
+                        description: event.description,
+                        type: event.type,
+                        date: event.date,
+                        startTime: event.startTime,
+                        endDate: event.endDate,
+                        endTime: event.endTime,
+                        recurrence: event.recurrence,
+                        recurrenceEnd: event.recurrenceEnd,
+                        source: event.source
+                    },
+                    created_at: new Date().toISOString()
+                };
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_edit_logs`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(logEntry)
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to log event change:', response.status, response.statusText);
+                } else {
+                    console.log(`Logged ${action} event: ${event.title}`);
+                }
+            } catch (error) {
+                console.error('Error logging event change:', error);
+                // Don't throw error to avoid breaking the main functionality
+            }
+        }
+        
         // Simple browser ID for anonymous users (persistent across browser sessions)
         function getBrowserId() {
             let browserId = localStorage.getItem('calendarBrowserId');
@@ -671,7 +722,7 @@
                 console.log('Loading user events from Supabase database...');
                 const browserId = getBrowserId();
                 
-                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?select=*`, {
                     method: 'GET',
                     headers: {
                         'apikey': supabaseKey,
@@ -1216,6 +1267,11 @@
         // Clear all user events
         function clearUserEvents() {
             if (confirm('Are you sure you want to clear all user-created events?')) {
+                // Log deletion of all events before clearing
+                userEvents.forEach(event => {
+                    logEventChange('delete', event);
+                });
+                
                 userEvents = [];
                 
                 // Clear old localStorage backup if it exists
