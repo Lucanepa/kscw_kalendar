@@ -330,6 +330,12 @@
         
         <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
+            <div style="margin-bottom: 20px;">
+                <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Zurück zum Kalender
+                </a>
+            </div>
+            
             <div class="login-form">
                 <h2>🔐 Event Manager Authentifizierung</h2>
                 <p>Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.</p>
@@ -372,7 +378,6 @@
                     <div class="quick-actions">
                         <button class="btn" onclick="showAddEventForm()">➕ Ereignis hinzufügen</button>
                         <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Ereignisse aktualisieren</button>
-                        <button class="btn btn-danger" onclick="clearAllEvents()">🗑️ Alle Ereignisse löschen</button>
                     </div>
                     
                     <div class="event-form" id="eventForm">
@@ -495,9 +500,19 @@
                     messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
                 } else {
                     currentUser = data.user;
-                    messageDiv.innerHTML = '<div class="success-message">✅ Anmeldung erfolgreich!</div>';
-                    showEventManagerContent();
-                    loadUserEvents();
+                    
+                    // Check user role and permissions
+                    const userRole = currentUser.user_metadata?.role;
+                    const permissions = currentUser.user_metadata?.permissions || [];
+                    
+                    if (userRole && permissions.includes('create_events')) {
+                        messageDiv.innerHTML = `<div class="success-message">✅ Anmeldung erfolgreich! Willkommen, ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
+                        showEventManagerContent();
+                        loadUserEvents();
+                    } else {
+                        messageDiv.innerHTML = '<div class="error-message">❌ Sie haben keine Berechtigung für den Event Manager.</div>';
+                        await logout();
+                    }
                 }
             } catch (error) {
                 messageDiv.innerHTML = '<div class="error-message">❌ Bei der Anmeldung ist ein Fehler aufgetreten.</div>';
@@ -529,7 +544,10 @@
             document.getElementById('userInfo').style.display = 'flex';
             
             if (currentUser) {
-                document.getElementById('userEmail').textContent = currentUser.email;
+                // Display user info with role if available
+                const userRole = currentUser.user_metadata?.role || 'user';
+                const displayName = currentUser.user_metadata?.display_name || currentUser.email;
+                document.getElementById('userEmail').textContent = `${displayName} (${userRole})`;
             }
         }
         
@@ -742,13 +760,7 @@
                 editBtn.textContent = 'Bearbeiten';
                 editBtn.onclick = () => editEvent(event);
                 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'btn btn-small btn-danger';
-                deleteBtn.textContent = 'Löschen';
-                deleteBtn.onclick = () => deleteEvent(event);
-                
                 eventActions.appendChild(editBtn);
-                eventActions.appendChild(deleteBtn);
                 
                 eventItem.appendChild(eventInfo);
                 eventItem.appendChild(eventActions);
@@ -894,23 +906,7 @@
             document.getElementById('eventForm').style.display = 'block';
         }
         
-        // Delete event
-        function deleteEvent(event) {
-            if (confirm(`Sind Sie sicher, dass Sie "${event.title}" löschen möchten?`)) {
-                userEvents = userEvents.filter(e => e.id !== event.id);
-                saveUserEvents();
-                renderEventsList();
-            }
-        }
-        
-        // Clear all events
-        function clearAllEvents() {
-            if (confirm('Sind Sie sicher, dass Sie alle Ihre Ereignisse löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-                userEvents = [];
-                saveUserEvents();
-                renderEventsList();
-            }
-        }
+
         
         // Refresh events
         function refreshEvents() {
