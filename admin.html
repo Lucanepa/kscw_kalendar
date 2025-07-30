@@ -1242,6 +1242,10 @@
                     // Display users in table
                     tbody.innerHTML = '';
                     users.forEach(user => {
+                        // Filter out scorer users - only show calendar_ users
+                        if (user.user_metadata?.project === 'scorer_') {
+                            return; // Skip this user
+                        }
                         const row = document.createElement('tr');
                         
                         // Email
@@ -1413,9 +1417,9 @@
         // Edit user function
         function editUser(user) {
             document.getElementById('modalTitle').textContent = 'Edit User';
-            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userEmail').value = '';
             document.getElementById('userEmail').disabled = false; // Allow email editing
-            document.getElementById('userEmail').placeholder = 'Leave blank to keep current email';
+            document.getElementById('userEmail').placeholder = user.email; // Pre-fill with current email as placeholder
             document.getElementById('userEmail').required = false; // Make email optional
             document.getElementById('userPassword').value = '';
             document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
