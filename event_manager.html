@@ -1,1 +1,1001 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Manager - Create & Manage Events</title>
+    <!-- Add Supabase JavaScript client -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #333;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .auth-section {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #005a87;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .event-manager-content {
+            display: none;
+            padding: 20px;
+        }
+        
+        .controls {
+            padding: 20px;
+            background: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .event-form {
+            display: none;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .form-row label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+        
+        .form-row input, .form-row select, .form-row textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .form-row textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .events-list {
+            margin-top: 20px;
+        }
+        
+        .event-item {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .event-info {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .event-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .event-type-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-single {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-multi {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .badge-recurring {
+            background: #6f42c1;
+            color: white;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+        }
+        
+        .auth-tab.active {
+            color: #007cba;
+            border-bottom: 2px solid #007cba;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .nav-links {
+            margin-top: 10px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .nav-links a:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Event Manager</h1>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userEmail"></span>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Authentication Section -->
+        <div class="auth-section" id="authSection">
+            <div class="login-form">
+                <h2>🔐 Event Manager Authentication</h2>
+                <p>Please sign in to create and manage your events.</p>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" onclick="showLoginForm()">Sign In</button>
+                    <button class="auth-tab" onclick="showSignUpForm()">Sign Up</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div class="auth-form active" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" />
+                    </div>
+                    
+                    <button class="btn" onclick="signIn()">Sign In</button>
+                </div>
+                
+                <!-- Sign Up Form -->
+                <div class="auth-form" id="signUpForm">
+                    <div class="form-group">
+                        <label for="signUpEmail">Email:</label>
+                        <input type="email" id="signUpEmail" placeholder="Enter your email" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signUpPassword">Password:</label>
+                        <input type="password" id="signUpPassword" placeholder="Enter your password (min 6 characters)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signUpConfirmPassword">Confirm Password:</label>
+                        <input type="password" id="signUpConfirmPassword" placeholder="Confirm your password" />
+                    </div>
+                    
+                    <button class="btn" onclick="signUp()">Sign Up</button>
+                </div>
+                
+                <div id="authMessage"></div>
+            </div>
+        </div>
+        
+        <!-- Event Manager Content -->
+        <div class="event-manager-content" id="eventManagerContent">
+            <div class="nav-links">
+                <a href="index.html">📅 View Calendar</a>
+                <a href="admin.html">🔧 Admin Panel</a>
+            </div>
+            
+            <div class="controls">
+                <div class="control-section">
+                    <h3>📅 Event Management</h3>
+                    <div class="quick-actions">
+                        <button class="btn" onclick="showAddEventForm()">➕ Add Event</button>
+                        <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Refresh Events</button>
+                        <button class="btn btn-danger" onclick="clearAllEvents()">🗑️ Clear All Events</button>
+                    </div>
+                    
+                    <div class="event-form" id="eventForm">
+                        <div class="form-row">
+                            <label>Title:</label>
+                            <input type="text" id="eventTitle" placeholder="Event title" required />
+                        </div>
+                        
+                        <div class="form-row">
+                            <label>Description:</label>
+                            <textarea id="eventDescription" placeholder="Optional description"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <label>Type:</label>
+                            <select id="eventType" onchange="handleEventTypeChange()">
+                                <option value="single">Single Day</option>
+                                <option value="multi">Multi-Day</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-row">
+                            <label>Start Date:</label>
+                            <input type="date" id="eventStartDate" required />
+                        </div>
+                        
+                        <div class="form-row">
+                            <label>Start Time:</label>
+                            <input type="time" id="eventStartTime" />
+                        </div>
+                        
+                        <div class="form-row" id="endDateRow" style="display: none;">
+                            <label>End Date:</label>
+                            <input type="date" id="eventEndDate" />
+                        </div>
+                        
+                        <div class="form-row" id="endTimeRow" style="display: none;">
+                            <label>End Time:</label>
+                            <input type="time" id="eventEndTime" />
+                        </div>
+                        
+                        <div class="form-row" id="recurringRow" style="display: none;">
+                            <label>Repeat:</label>
+                            <select id="eventRecurrence">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-row" id="recurringEndRow" style="display: none;">
+                            <label>Until:</label>
+                            <input type="date" id="eventRecurrenceEnd" />
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="hideEventForm()">Cancel</button>
+                            <button type="button" class="btn" onclick="saveEvent()">Save Event</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="events-list" id="eventsList">
+                <!-- Events will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
+        const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
+        
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        let userEvents = [];
+        let editingEventId = null;
+        let currentUser = null;
+        
+        // Check if user is already authenticated
+        async function checkAuth() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (user && !error) {
+                    currentUser = user;
+                    showEventManagerContent();
+                    loadUserEvents();
+                } else {
+                    showAuthSection();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showAuthSection();
+            }
+        }
+        
+        // Sign in function
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('authMessage');
+            
+            if (!email || !password) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                } else {
+                    currentUser = data.user;
+                    messageDiv.innerHTML = '<div class="success-message">✅ Login successful!</div>';
+                    showEventManagerContent();
+                    loadUserEvents();
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign in.</div>';
+                console.error('Sign in error:', error);
+            }
+        }
+        
+        // Sign up function
+        async function signUp() {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
+            const messageDiv = document.getElementById('authMessage');
+            
+            if (!email || !password || !confirmPassword) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Passwords do not match.</div>';
+                return;
+            }
+            
+            if (password.length < 6) {
+                messageDiv.innerHTML = '<div class="error-message">❌ Password must be at least 6 characters.</div>';
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                } else {
+                    messageDiv.innerHTML = '<div class="success-message">✅ Account created! Please check your email for verification.</div>';
+                    // Clear form
+                    document.getElementById('signUpEmail').value = '';
+                    document.getElementById('signUpPassword').value = '';
+                    document.getElementById('signUpConfirmPassword').value = '';
+                }
+            } catch (error) {
+                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign up.</div>';
+                console.error('Sign up error:', error);
+            }
+        }
+        
+        // Logout function
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Logout error:', error);
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            currentUser = null;
+            showAuthSection();
+        }
+        
+        // Show event manager content
+        function showEventManagerContent() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('eventManagerContent').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'flex';
+            
+            if (currentUser) {
+                document.getElementById('userEmail').textContent = currentUser.email;
+            }
+        }
+        
+        // Show auth section
+        function showAuthSection() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('eventManagerContent').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            clearAuthForms();
+        }
+        
+        // Clear auth forms
+        function clearAuthForms() {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('signUpEmail').value = '';
+            document.getElementById('signUpPassword').value = '';
+            document.getElementById('signUpConfirmPassword').value = '';
+            document.getElementById('authMessage').innerHTML = '';
+        }
+        
+        // Show login form
+        function showLoginForm() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector('.auth-tab').classList.add('active');
+            document.getElementById('loginForm').classList.add('active');
+        }
+        
+        // Show sign up form
+        function showSignUpForm() {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            
+            document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            document.getElementById('signUpForm').classList.add('active');
+        }
+        
+        // Simple browser ID for anonymous users (persistent across browser sessions)
+        function getBrowserId() {
+            let browserId = localStorage.getItem('calendarBrowserId');
+            if (!browserId) {
+                browserId = 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('calendarBrowserId', browserId);
+            }
+            return browserId;
+        }
+        
+        // Load user events from Supabase database
+        async function loadUserEvents() {
+            try {
+                console.log('Loading user events from Supabase database...');
+                const browserId = getBrowserId();
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    userEvents = data.map(row => ({
+                        id: row.id,
+                        title: row.title,
+                        description: row.description,
+                        type: row.event_type,
+                        date: row.start_date,
+                        startTime: row.start_time,
+                        endDate: row.end_date,
+                        endTime: row.end_time,
+                        recurrence: row.recurrence,
+                        recurrenceEnd: row.recurrence_end,
+                        isUserEvent: true,
+                        source: row.source || 'manual'
+                    }));
+                    console.log(`Loaded ${userEvents.length} user events from Supabase`);
+                    renderEventsList();
+                } else if (response.status === 404) {
+                    // Table doesn't exist yet, that's ok
+                    console.log('User events table not found, will be created on first save');
+                    userEvents = [];
+                    renderEventsList();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Failed to load events from Supabase:', error);
+                userEvents = [];
+                renderEventsList();
+                alert('Failed to load your events from database. Please check your internet connection and refresh the page.');
+            }
+        }
+        
+        // Save user events to Supabase database
+        async function saveUserEvents() {
+            try {
+                console.log('Saving user events to Supabase database...');
+                const browserId = getBrowserId();
+                
+                // First, delete all existing events for this browser
+                await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // Then insert all current events
+                if (userEvents.length > 0) {
+                    const eventsToSave = userEvents.map(event => ({
+                        id: event.id,
+                        browser_id: browserId,
+                        title: event.title,
+                        description: event.description || null,
+                        event_type: event.type || 'single',
+                        start_date: event.date,
+                        start_time: event.startTime || null,
+                        end_date: event.endDate || null,
+                        end_time: event.endTime || null,
+                        recurrence: event.recurrence || null,
+                        recurrence_end: event.recurrenceEnd || null,
+                        source: event.source || 'manual',
+                        created_at: new Date().toISOString()
+                    }));
+                    
+                    const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
+                        method: 'POST',
+                        headers: {
+                            'apikey': supabaseKey,
+                            'Authorization': `Bearer ${supabaseKey}`,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'return=minimal'
+                        },
+                        body: JSON.stringify(eventsToSave)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                }
+                
+                console.log(`Saved ${userEvents.length} user events to Supabase`);
+                
+            } catch (error) {
+                console.error('Failed to save events to Supabase:', error);
+                alert('Failed to save your events to database. Please check your internet connection.');
+                throw error; // Re-throw to prevent silent failures
+            }
+        }
+        
+        // Generate unique ID for events
+        function generateEventId() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Render events list
+        function renderEventsList() {
+            const eventsList = document.getElementById('eventsList');
+            eventsList.innerHTML = '';
+            
+            if (userEvents.length === 0) {
+                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No events created yet. Click "Add Event" to create your first event!</p>';
+                return;
+            }
+            
+            userEvents.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'event-item';
+                
+                const eventInfo = document.createElement('div');
+                eventInfo.className = 'event-info';
+                
+                const eventTitle = document.createElement('div');
+                eventTitle.className = 'event-title';
+                eventTitle.textContent = event.title;
+                
+                const eventMeta = document.createElement('div');
+                eventMeta.className = 'event-meta';
+                
+                let metaText = `Date: ${event.date}`;
+                if (event.startTime) {
+                    metaText += ` | Time: ${event.startTime}`;
+                }
+                if (event.endDate && event.type === 'multi') {
+                    metaText += ` | End: ${event.endDate}`;
+                }
+                if (event.type === 'recurring') {
+                    metaText += ` | Recurring: ${event.recurrence}`;
+                }
+                if (event.description) {
+                    metaText += ` | ${event.description}`;
+                }
+                
+                eventMeta.textContent = metaText;
+                
+                const eventTypeBadge = document.createElement('span');
+                eventTypeBadge.className = 'event-type-badge';
+                
+                if (event.type === 'multi') {
+                    eventTypeBadge.classList.add('badge-multi');
+                    eventTypeBadge.textContent = 'Multi-day';
+                } else if (event.type === 'recurring') {
+                    eventTypeBadge.classList.add('badge-recurring');
+                    eventTypeBadge.textContent = 'Recurring';
+                } else {
+                    eventTypeBadge.classList.add('badge-single');
+                    eventTypeBadge.textContent = 'Single';
+                }
+                
+                eventInfo.appendChild(eventTitle);
+                eventInfo.appendChild(eventMeta);
+                eventInfo.appendChild(eventTypeBadge);
+                
+                const eventActions = document.createElement('div');
+                eventActions.className = 'event-actions';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-small btn-warning';
+                editBtn.textContent = 'Edit';
+                editBtn.onclick = () => editEvent(event);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-small btn-danger';
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.onclick = () => deleteEvent(event);
+                
+                eventActions.appendChild(editBtn);
+                eventActions.appendChild(deleteBtn);
+                
+                eventItem.appendChild(eventInfo);
+                eventItem.appendChild(eventActions);
+                
+                eventsList.appendChild(eventItem);
+            });
+        }
+        
+        // Event Form Management
+        function showAddEventForm() {
+            editingEventId = null;
+            document.getElementById('eventForm').style.display = 'block';
+            
+            // Set default date to today
+            const defaultDate = new Date().toISOString().split('T')[0];
+            document.getElementById('eventStartDate').value = defaultDate;
+            
+            // Clear form
+            clearEventForm();
+        }
+        
+        function hideEventForm() {
+            document.getElementById('eventForm').style.display = 'none';
+            clearEventForm();
+        }
+        
+        function clearEventForm() {
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('eventType').value = 'single';
+            document.getElementById('eventStartDate').value = '';
+            document.getElementById('eventStartTime').value = '';
+            document.getElementById('eventEndDate').value = '';
+            document.getElementById('eventEndTime').value = '';
+            document.getElementById('eventRecurrence').value = 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = '';
+            handleEventTypeChange();
+        }
+        
+        function handleEventTypeChange() {
+            const eventType = document.getElementById('eventType').value;
+            const endDateRow = document.getElementById('endDateRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            const recurringRow = document.getElementById('recurringRow');
+            const recurringEndRow = document.getElementById('recurringEndRow');
+            
+            endDateRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            recurringRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+            recurringEndRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+        }
+        
+        // Save Event
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+            const type = document.getElementById('eventType').value;
+            const startDate = document.getElementById('eventStartDate').value;
+            const startTime = document.getElementById('eventStartTime').value;
+            const endDate = document.getElementById('eventEndDate').value;
+            const endTime = document.getElementById('eventEndTime').value;
+            const recurrence = document.getElementById('eventRecurrence').value;
+            const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
+            
+            if (!title || !startDate) {
+                alert('Please fill in the title and start date.');
+                return;
+            }
+            
+            if (type === 'multi') {
+                if (!endDate) {
+                    alert('End date is required for multi-day events.');
+                    return;
+                }
+                if (new Date(endDate) < new Date(startDate)) {
+                    alert('End date must be after or equal to start date.');
+                    return;
+                }
+            }
+            
+            // Format time for display
+            const formattedStartTime = startTime ? startTime : null;
+            const formattedEndTime = endTime ? endTime : null;
+            
+            if (editingEventId) {
+                // Update existing event
+                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    userEvents[eventIndex] = {
+                        ...userEvents[eventIndex],
+                        title: title,
+                        description: description,
+                        type: type,
+                        date: startDate,
+                        startTime: formattedStartTime,
+                        endDate: endDate,
+                        endTime: formattedEndTime,
+                        recurrence: recurrence,
+                        recurrenceEnd: recurrenceEnd
+                    };
+                }
+            } else {
+                // Create new event
+                const newEvent = {
+                    id: generateEventId(),
+                    title: title,
+                    description: description,
+                    type: type,
+                    date: startDate,
+                    startTime: formattedStartTime,
+                    endDate: endDate,
+                    endTime: formattedEndTime,
+                    recurrence: recurrence,
+                    recurrenceEnd: recurrenceEnd,
+                    isUserEvent: true,
+                    source: 'manual'
+                };
+                
+                userEvents.push(newEvent);
+            }
+            
+            saveUserEvents();
+            renderEventsList();
+            hideEventForm();
+        }
+        
+        // Edit event
+        function editEvent(event) {
+            editingEventId = event.id;
+            
+            // Populate form with event data
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventType').value = event.type || 'single';
+            document.getElementById('eventStartDate').value = event.date;
+            document.getElementById('eventStartTime').value = event.startTime || '';
+            document.getElementById('eventEndDate').value = event.endDate || '';
+            document.getElementById('eventEndTime').value = event.endTime || '';
+            document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
+            
+            handleEventTypeChange();
+            document.getElementById('eventForm').style.display = 'block';
+        }
+        
+        // Delete event
+        function deleteEvent(event) {
+            if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
+                userEvents = userEvents.filter(e => e.id !== event.id);
+                saveUserEvents();
+                renderEventsList();
+            }
+        }
+        
+        // Clear all events
+        function clearAllEvents() {
+            if (confirm('Are you sure you want to clear all your events? This action cannot be undone.')) {
+                userEvents = [];
+                saveUserEvents();
+                renderEventsList();
+            }
+        }
+        
+        // Refresh events
+        function refreshEvents() {
+            loadUserEvents();
+        }
+        
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html> 
