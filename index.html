@@ -5,9 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KSCW Calendar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aptos:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Aptos', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             background: #f5f5f5;
@@ -185,6 +188,7 @@
             align-items: center;
             width: 100%;
             flex: 1;
+            gap: 4px;
         }
         
         .event-title {
@@ -192,6 +196,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            text-align: left;
         }
         
         .events-more {
@@ -232,9 +237,9 @@
         .event-time {
             font-size: 8px;
             color: rgba(255, 255, 255, 0.9);
-            margin-left: 4px;
             font-weight: bold;
             flex-shrink: 0;
+            min-width: 20px;
         }
         
         /* Event interaction styling */
@@ -261,6 +266,11 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
+        }
+        
+        /* Language switch button hover effect */
+        #languageSwitch:hover {
+            background: rgba(255,255,255,0.3) !important;
         }
         
         .event-details-content {
@@ -336,6 +346,33 @@
         .event-detail-label {
             font-weight: bold;
             color: #666;
+        }
+        
+        /* Desktop font size improvements */
+        @media (min-width: 769px) {
+            .event {
+                font-size: 10px;
+                padding: 2px 4px;
+                min-height: 18px;
+            }
+            
+            .event-title {
+                font-size: 10px;
+                line-height: 1.3;
+            }
+            
+            .event-time {
+                font-size: 9px;
+            }
+            
+            .day-number {
+                font-size: 14px;
+            }
+            
+            .weekday {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
         }
         
         /* Mobile responsive design */
@@ -768,6 +805,7 @@
                 <a href="admin.html" style="color: white; text-decoration: none; font-size: 11px; opacity: 0.8;">🔧 Admin</a>
                 <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 11px; opacity: 0.8;">📝 Events</a>
                 <button onclick="refreshCalendar()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer;">🔄</button>
+                <button onclick="toggleLanguage()" id="languageSwitch" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 3px 6px; border-radius: 3px; font-size: 11px; cursor: pointer;">🇺🇸 English</button>
             </div>
         </div>
 
@@ -857,6 +895,185 @@
         // Supabase configuration
         const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
         const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
+        
+        // Language management
+        let currentLanguage = 'de'; // Default to German
+        
+        // Translation object
+        const translations = {
+            de: {
+                // Navigation
+                previous: '← Vorheriger',
+                next: 'Nächster →',
+                admin: '🔧 Admin',
+                events: '📝 Events',
+                refresh: '🔄',
+                languageSwitch: '🇺🇸 English',
+                
+                // Calendar
+                loading: 'Lade Ereignisse...',
+                eventsFor: 'Ereignisse für',
+                more: 'mehr',
+                
+                // Weekdays
+                mon: 'Mo',
+                tue: 'Di',
+                wed: 'Mi',
+                thu: 'Do',
+                fri: 'Fr',
+                sat: 'Sa',
+                sun: 'So',
+                
+                // Months
+                january: 'Januar',
+                february: 'Februar',
+                march: 'März',
+                april: 'April',
+                may: 'Mai',
+                june: 'Juni',
+                july: 'Juli',
+                august: 'August',
+                september: 'September',
+                october: 'Oktober',
+                november: 'November',
+                december: 'Dezember',
+                
+                // Event details
+                date: 'Datum:',
+                time: 'Zeit:',
+                location: 'Ort:',
+                description: 'Beschreibung:',
+                allDay: 'Ganztägig',
+                external: 'Externes Ereignis',
+                userEvent: 'Benutzer-Ereignis',
+                close: 'Schließen'
+            },
+            en: {
+                // Navigation
+                previous: '← Previous',
+                next: 'Next →',
+                admin: '🔧 Admin',
+                events: '📝 Events',
+                refresh: '🔄',
+                languageSwitch: '🇩🇪 Deutsch',
+                
+                // Calendar
+                loading: 'Loading events...',
+                eventsFor: 'Events for',
+                more: 'more',
+                
+                // Weekdays
+                mon: 'Mon',
+                tue: 'Tue',
+                wed: 'Wed',
+                thu: 'Thu',
+                fri: 'Fri',
+                sat: 'Sat',
+                sun: 'Sun',
+                
+                // Months
+                january: 'January',
+                february: 'February',
+                march: 'March',
+                april: 'April',
+                may: 'May',
+                june: 'June',
+                july: 'July',
+                august: 'August',
+                september: 'September',
+                october: 'October',
+                november: 'November',
+                december: 'December',
+                
+                // Event details
+                date: 'Date:',
+                time: 'Time:',
+                location: 'Location:',
+                description: 'Description:',
+                allDay: 'All day',
+                external: 'External Event',
+                userEvent: 'User Event',
+                close: 'Close'
+            }
+        };
+        
+        // Translation function
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+        
+        // Function to toggle language
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+            updateLanguageUI();
+            updateAllText();
+        }
+        
+        // Function to update language UI
+        function updateLanguageUI() {
+            const languageSwitch = document.getElementById('languageSwitch');
+            if (currentLanguage === 'de') {
+                languageSwitch.textContent = '🇺🇸 English';
+            } else {
+                languageSwitch.textContent = '🇩🇪 Deutsch';
+            }
+        }
+        
+        // Function to update all text on the page
+        function updateAllText() {
+            // Update navigation buttons
+            const prevButton = document.querySelector('button[onclick="previousMonth()"]');
+            if (prevButton) prevButton.textContent = t('previous');
+            
+            const nextButton = document.querySelector('button[onclick="nextMonth()"]');
+            if (nextButton) nextButton.textContent = t('next');
+            
+            // Update loading text
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) loadingElement.textContent = t('loading');
+            
+            // Update weekday headers
+            const weekdays = document.querySelectorAll('.weekday');
+            const weekdayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            weekdays.forEach((weekday, index) => {
+                if (weekdayKeys[index]) {
+                    weekday.textContent = t(weekdayKeys[index]);
+                }
+            });
+            
+            // Update month/year display
+            renderCalendar();
+            
+            // Update popup text
+            updatePopupText();
+            
+            // Update "more" text in calendar
+            updateMoreText();
+        }
+        
+        // Function to update popup text
+        function updatePopupText() {
+            const popupTitle = document.getElementById('dayPopupTitle');
+            if (popupTitle) {
+                // This will be updated when popup is shown
+            }
+        }
+        
+        // Function to update "more" text dynamically
+        function updateMoreText() {
+            const moreElements = document.querySelectorAll('.events-more');
+            moreElements.forEach(element => {
+                const currentText = element.textContent;
+                const countMatch = currentText.match(/(\d+)/);
+                if (countMatch) {
+                    const count = countMatch[1];
+                    element.textContent = `+ ${count} ${t('more')}`;
+                    element.title = currentLanguage === 'de' 
+                        ? `Klicken Sie, um alle Ereignisse anzuzeigen`
+                        : `Click to view all events`;
+                }
+            });
+        }
         
         // Log event changes to Supabase
         async function logEventChange(action, event, oldValues = null) {
@@ -1333,8 +1550,10 @@
             const month = currentDate.getMonth();
             
             // Update header
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December'];
+            const monthNames = [
+                t('january'), t('february'), t('march'), t('april'), t('may'), t('june'),
+                t('july'), t('august'), t('september'), t('october'), t('november'), t('december')
+            ];
             document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
             
             // Clear existing day elements (keep weekday headers)
@@ -1427,13 +1646,18 @@
                         eventElement.classList.add('user-event');
                     } else {
                         eventElement.classList.add('external-event');
+                        // External events are always blue
+                        eventElement.style.backgroundColor = '#0066cc';
+                        eventElement.style.color = '#ffffff';
                     }
                     
-                    // Apply color coding based on sport and type
-                    const eventColor = getEventColor(event);
-                    if (eventColor) {
-                        eventElement.style.backgroundColor = eventColor;
-                        eventElement.style.color = '#ffffff';
+                    // Apply color coding based on sport and type (only for user events)
+                    if (event.isUserEvent) {
+                        const eventColor = getEventColor(event);
+                        if (eventColor) {
+                            eventElement.style.backgroundColor = eventColor;
+                            eventElement.style.color = '#ffffff';
+                        }
                     }
                     
                     if (event.type === 'multi') {
@@ -1451,23 +1675,23 @@
                         }
                     }
                     
-                    // Create event content with title on left and time on right
+                    // Create event content with time on left and title on right
                     const eventContent = document.createElement('div');
                     eventContent.className = 'event-content';
                     
-                    // Add event title (left-aligned)
-                    const titleElement = document.createElement('span');
-                    titleElement.className = 'event-title';
-                    titleElement.textContent = event.title;
-                    eventContent.appendChild(titleElement);
-                    
-                    // Add time on the right if available
+                    // Add time on the left if available
                     if (event.startTime) {
                         const timeElement = document.createElement('span');
                         timeElement.className = 'event-time';
                         timeElement.textContent = event.startTime;
                         eventContent.appendChild(timeElement);
                     }
+                    
+                    // Add event title (right-aligned)
+                    const titleElement = document.createElement('span');
+                    titleElement.className = 'event-title';
+                    titleElement.textContent = event.title;
+                    eventContent.appendChild(titleElement);
                     
                     eventElement.appendChild(eventContent);
                     
@@ -1484,8 +1708,10 @@
                 if (remainingCount > 0) {
                     const moreIndicator = document.createElement('div');
                     moreIndicator.className = 'events-more';
-                    moreIndicator.textContent = `+ ${remainingCount} more`;
-                    moreIndicator.title = `Click to view all ${dayEvents.length} events`;
+                    moreIndicator.textContent = `+ ${remainingCount} ${t('more')}`;
+                    moreIndicator.title = currentLanguage === 'de' 
+                        ? `Klicken Sie, um alle ${dayEvents.length} Ereignisse anzuzeigen`
+                        : `Click to view all ${dayEvents.length} events`;
                     
                     moreIndicator.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1770,13 +1996,13 @@
                 day: 'numeric' 
             });
             
-            document.getElementById('dayPopupTitle').textContent = `Events for ${formattedDate}`;
+            document.getElementById('dayPopupTitle').textContent = `${t('eventsFor')} ${formattedDate}`;
             
             const eventsList = document.getElementById('dayEventsList');
             eventsList.innerHTML = '';
             
             if (dayEvents.length === 0) {
-                eventsList.innerHTML = '<p style="color: #666; text-align: center;">No events on this day</p>';
+                eventsList.innerHTML = `<p style="color: #666; text-align: center;">${currentLanguage === 'de' ? 'Keine Ereignisse an diesem Tag' : 'No events on this day'}</p>`;
             } else {
                 dayEvents.forEach(event => {
                     const eventItem = document.createElement('div');
@@ -1809,7 +2035,7 @@
                     
                     let metaText = '';
                     if (event.type === 'recurring') {
-                        metaText = '♻️ Recurring event';
+                        metaText = currentLanguage === 'de' ? '♻️ Wiederkehrendes Ereignis' : '♻️ Recurring event';
                     } else if (event.type === 'multi' && event.originalStartDate && event.originalEndDate) {
                         // Format dates from yyyy-mm-dd to dd/mm/yyyy
                         const formatDate = (dateString) => {
@@ -1820,11 +2046,13 @@
                             const year = date.getFullYear();
                             return `${day}/${month}/${year}`;
                         };
-                        metaText = `📅 Multi-day: ${formatDate(event.originalStartDate)} to ${formatDate(event.originalEndDate)}`;
+                        const multiText = currentLanguage === 'de' ? 'Mehrtägig' : 'Multi-day';
+                        const toText = currentLanguage === 'de' ? 'bis' : 'to';
+                        metaText = `📅 ${multiText}: ${formatDate(event.originalStartDate)} ${toText} ${formatDate(event.originalEndDate)}`;
                     } else if (event.isUserEvent) {
-                        metaText = '✏️ User event';
+                        metaText = currentLanguage === 'de' ? '✏️ Benutzer-Ereignis' : '✏️ User event';
                     } else {
-                        metaText = '📅 External event';
+                        metaText = currentLanguage === 'de' ? '📅 Externes Ereignis' : '📅 External event';
                     }
                     
                     // Add end time if available
