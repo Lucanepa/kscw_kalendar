@@ -1,657 +1,782 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KSCW Calendar</title>
+    <title>Event Manager - Ereignisse erstellen & verwalten</title>
+    <!-- Add Supabase JavaScript client -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 20px;
             background: #f5f5f5;
         }
         
-        .calendar {
-            background: white;
-            border: 1px solid #ddd;
-            max-width: 800px;
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
         
         .header {
-            text-align: center;
-            padding: 10px;
             background: #333;
             color: white;
-        }
-        
-        .nav {
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 5px;
         }
         
-        .nav button {
-            background: #555;
-            color: white;
-            border: none;
-            padding: 5px 15px;
-            cursor: pointer;
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
         }
         
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-        }
-        
-        .weekday {
-            padding: 10px;
-            text-align: center;
-            background: #eee;
-            font-weight: bold;
-            border: 1px solid #ddd;
-        }
-        
-        .day {
-            padding: 5px;
-            text-align: center;
-            border: 1px solid #ddd;
-            min-height: 80px;
-            max-height: 200px;
-            max-width: 100%;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-        }
-        
-        .day.other-month {
-            color: #ccc;
-            background: #fafafa;
-        }
-        
-        .day.today {
-            background: #ffffcc;
-        }
-        
-        .day.has-event {
-            background: #e6f3ff;
-        }
-        
-        .day-number {
-            flex-shrink: 0;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .events-container {
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .event {
-            font-size: 10px;
-            padding: 3px 4px;
-            border-radius: 3px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            flex-shrink: 0;
-            cursor: pointer;
-            max-width: 100%;
-            width: 100%;
-            box-sizing: border-box;
+        .user-info {
             display: flex;
             align-items: center;
-            min-height: 20px;
-        }
-        
-        .event.user-event {
-            background: #fd7e14;
+            gap: 10px;
             color: white;
-            border-left: 3px solid #e76500;
+            font-size: 14px;
         }
         
-        .event.external-event {
-            background: #007cba;
-            color: white;
-            border-left: 3px solid #005a87;
+        .auth-section {
+            padding: 40px;
+            text-align: center;
         }
         
-        .event.multi-day {
-            background: #fd7e14;
-            border-left: 3px solid #e76500;
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
         }
         
-        .event.multi-day.first-day {
-            border-radius: 4px 0 0 4px;
-            border-left: 3px solid #e76500;
-        }
-        
-        .event.multi-day.middle-day {
-            border-radius: 0;
-            border-left: 1px solid #e76500;
-        }
-        
-        .event.multi-day.last-day {
-            border-radius: 0 4px 4px 0;
-            border-left: 1px solid #e76500;
-        }
-        
-        .event.multi-day.single-day {
-            border-radius: 4px;
-            border-left: 3px solid #e76500;
-        }
-        
-        .event.selected {
-            background: #ffc107;
-            color: #212529;
-        }
-        
-        .day.selected {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-        }
-        
-        /* Event time display */
-        .event-time {
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-right: 6px;
-            font-weight: bold;
-            min-width: 35px;
+        .form-group {
+            margin-bottom: 20px;
             text-align: left;
         }
         
-        .event-content {
-            display: flex;
-            align-items: center;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
         
-        .event-title {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
         }
         
-        .events-more {
-            font-size: 9px;
-            color: #666;
-            text-align: center;
-            padding: 2px;
-            background: #f0f0f0;
-            border-radius: 2px;
+        .btn {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
             cursor: pointer;
-            margin-top: 2px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
+            font-size: 16px;
         }
         
-
-        
-        .event.user-event {
-            background: #fd7e14;
-            border-left: 3px solid #e76500;
+        .btn:hover {
+            background: #005a87;
         }
         
-        .event.selected {
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
             background: #ffc107;
             color: #212529;
         }
         
-        .day.selected {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+        .btn-warning:hover {
+            background: #e0a800;
         }
         
-        /* Event time display */
-        .event-time {
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-right: 4px;
-            font-weight: bold;
-        }
-        
-        .event-content {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        
-        /* Day popup modal styles */
-        .day-popup {
+        .event-manager-content {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-        
-        .day-popup-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
             padding: 20px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
         }
         
-        .day-popup-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+        .controls {
+            padding: 20px;
+            background: #f9f9f9;
             border-bottom: 1px solid #ddd;
         }
         
-        .day-popup-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .day-popup-close:hover {
-            color: #333;
-        }
-        
-        .day-events-list {
+        .control-section {
             margin-bottom: 20px;
         }
         
-        .day-event-item {
-            padding: 10px;
-            margin-bottom: 10px;
+        .control-section h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .event-form {
+            display: none;
+            background: white;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            padding: 20px;
+            margin-top: 10px;
+            border-radius: 5px;
         }
         
-        .day-event-item:hover {
-            background: #f8f9fa;
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
         }
         
-        .day-event-item.user-event {
-            border-left: 4px solid #28a745;
-        }
-        
-        .day-event-item.multi-day {
-            border-left: 4px solid #fd7e14;
-        }
-        
-        .day-event-item.recurring {
-            border-left: 4px solid #6f42c1;
-        }
-        
-        .day-event-title {
+        .form-row label {
+            min-width: 120px;
             font-weight: bold;
-            margin-bottom: 5px;
         }
         
-        .day-event-description {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
+        .form-row input, .form-row select, .form-row textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
         }
         
-        .day-event-meta {
-            font-size: 12px;
-            color: #999;
+        .form-row textarea {
+            min-height: 60px;
+            resize: vertical;
         }
         
-        .day-popup-actions {
+        .form-buttons {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
         
-        .day-popup-actions button {
-            padding: 8px 16px;
+        .events-list {
+            margin-top: 20px;
+        }
+        
+        .event-item {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .event-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .event-info {
+            flex: 1;
+        }
+        
+        .event-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .event-meta {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .event-type-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .badge-single {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-multi {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .badge-recurring {
+            background: #6f42c1;
+            color: white;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .auth-tab {
+            padding: 10px 20px;
+            cursor: pointer;
             border: none;
+            background: none;
+            color: #666;
+        }
+        
+        .auth-tab.active {
+            color: #007cba;
+            border-bottom: 2px solid #007cba;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
         }
         
-        .btn-add-event {
-            background: #007cba;
-            color: white;
+        .logout-btn:hover {
+            background: #c82333;
         }
         
-        .btn-add-event:hover {
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 40px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .modal-content h2 {
+            margin: 0 0 30px 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+        
+        .form-row label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        
+        .form-row input,
+        .form-row select,
+        .form-row textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            outline: none;
+            border-color: #007cba;
+            box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
+        }
+        
+        .form-row textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* Special styling for checkbox row */
+        .form-row:has(input[type="checkbox"]) {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-row:has(input[type="checkbox"]) label {
+            margin-bottom: 0;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-row:has(input[type="checkbox"]) input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .nav-links {
+            margin-top: 10px;
+        }
+        
+        .nav-links a {
+            color: #000000;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .nav-links a:hover {
+            opacity: 1;
+        }
+        
+        /* Language switch styles */
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .language-switch:hover {
             background: #005a87;
         }
         
-        /* Responsive adjustments for smaller screens */
-        @media (max-width: 768px) {
-            .day {
-                max-height: 100px;
-                padding: 5px;
-            }
-            
-            .event {
-                font-size: 9px;
-                padding: 1px 2px;
-            }
-            
-            .day-number {
-                margin-bottom: 3px;
-            }
-        }
-        
-        /* Custom scrollbar for events container */
-        .events-container::-webkit-scrollbar {
-            width: 4px;
-        }
-        
-        .events-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        
-        .events-container::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 2px;
-        }
-        
-        .events-container::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
+        .format-hint {
+            color: #666;
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 5px;
         }
         
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
             body {
-                margin: 10px;
+                padding: 10px;
             }
             
-            .calendar {
-                max-width: 100%;
+            .container {
+                margin: 0;
                 border-radius: 0;
             }
             
             .header {
                 padding: 15px;
+                flex-direction: column;
+                gap: 15px;
             }
             
-            .nav {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .user-info {
                 flex-direction: column;
                 gap: 10px;
-                align-items: center;
             }
             
-            .nav button {
-                padding: 8px 12px;
-                font-size: 14px;
+            .language-switch {
+                position: static;
+                margin-top: 10px;
             }
             
-            .nav span {
-                font-size: 16px;
-                font-weight: bold;
+            .auth-section {
+                padding: 20px;
             }
             
-            .header a {
-                font-size: 11px;
-                margin-right: 10px;
+            .login-form {
+                padding: 20px;
             }
             
-            .grid {
-                grid-template-columns: repeat(7, 1fr);
-                font-size: 12px;
+            .event-manager-content {
+                padding: 15px;
             }
             
-            .weekday {
-                padding: 8px 4px;
-                font-size: 11px;
+            .controls {
+                padding: 15px;
             }
             
-            .day {
-                min-height: 60px;
-                padding: 3px;
+            .quick-actions {
+                flex-direction: column;
+                gap: 10px;
             }
             
-            .day-number {
-                font-size: 12px;
-                margin-bottom: 3px;
+            .quick-actions .btn {
+                width: 100%;
             }
             
-            .event {
-                font-size: 10px;
-                padding: 2px 4px;
-                margin-bottom: 1px;
-                border-radius: 2px;
+            .event-item {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
             }
             
-            .event.multi-day.first-day {
-                border-radius: 2px 0 0 2px;
+            .event-actions {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 10px;
             }
             
-            .event.multi-day.middle-day {
-                border-radius: 0;
+            .event-actions .btn {
+                flex: 1;
+                min-width: 80px;
             }
             
-            .event.multi-day.last-day {
-                border-radius: 0 2px 2px 0;
-            }
-            
-            .event.multi-day.single-day {
-                border-radius: 2px;
-            }
-            
-            /* Day popup mobile fixes */
-            .day-popup-content {
+            /* Modal mobile fixes */
+            .modal-content {
+                margin: 10% auto;
+                padding: 20px;
                 width: 95%;
                 max-width: none;
-                margin: 10% auto;
-                max-height: 80vh;
+                max-height: 90vh;
             }
             
-            .day-popup-header h3 {
-                font-size: 16px;
+            .modal-content h2 {
+                font-size: 20px;
+                margin-bottom: 20px;
             }
             
-            .day-event-item {
+            .form-row {
+                margin-bottom: 15px;
+            }
+            
+            .form-row label {
+                font-size: 14px;
+                margin-bottom: 5px;
+            }
+            
+            .form-row input,
+            .form-row select,
+            .form-row textarea {
                 padding: 10px;
-                margin-bottom: 8px;
+                font-size: 16px; /* Prevents zoom on iOS */
             }
             
-            .day-event-title {
+            .form-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-buttons .btn {
+                width: 100%;
+            }
+            
+            /* Checkbox row mobile */
+            .form-row:has(input[type="checkbox"]) {
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .form-row:has(input[type="checkbox"]) label {
+                margin-bottom: 0;
                 font-size: 14px;
             }
             
-            .day-event-meta {
-                font-size: 12px;
+            .nav-links {
+                margin-top: 15px;
+            }
+            
+            .nav-links a {
+                font-size: 14px;
+                display: block;
+                margin-bottom: 10px;
             }
         }
         
         @media (max-width: 480px) {
-            body {
-                margin: 5px;
+            .header h1 {
+                font-size: 18px;
             }
             
-            .header {
-                padding: 10px;
+            .event-title {
+                font-size: 16px;
             }
             
-            .nav button {
-                padding: 6px 10px;
-                font-size: 12px;
+            .event-meta {
+                font-size: 13px;
             }
             
-            .nav span {
-                font-size: 14px;
-            }
-            
-            .grid {
-                font-size: 11px;
-            }
-            
-            .weekday {
-                padding: 6px 2px;
-                font-size: 10px;
-            }
-            
-            .day {
-                min-height: 50px;
-                padding: 2px;
-            }
-            
-            .day-number {
-                font-size: 11px;
-            }
-            
-            .event {
-                font-size: 9px;
-                padding: 1px 3px;
-            }
-            
-            .day-popup-content {
+            .modal-content {
                 margin: 5% auto;
                 padding: 15px;
             }
             
-            .day-popup-header h3 {
-                font-size: 14px;
-            }
-            
-            .day-event-item {
-                padding: 8px;
-            }
-            
-            .day-event-title {
-                font-size: 13px;
-            }
-            
-            .day-event-meta {
-                font-size: 11px;
+            .form-row input,
+            .form-row select,
+            .form-row textarea {
+                font-size: 16px;
             }
         }
-</style>
+    </style>
 </head>
 <body>
-    <div class="calendar">
+    <div class="container">
         <div class="header">
-            <div class="nav">
-                <button onclick="previousMonth()">← Previous</button>
-                <span id="monthYear"></span>
-                <button onclick="nextMonth()">Next →</button>
+            <h1>📅 Event Manager</h1>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userEmail"></span>
+                <button class="logout-btn" onclick="logout()">Abmelden</button>
             </div>
-            <div style="margin-top: 10px;">
-                <a href="admin.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">🔧 Admin Panel</a>
-                <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">📝 Event Manager</a>
-                <button onclick="refreshCalendar()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">🔄 Refresh</button>
+            <button class="language-switch" onclick="toggleLanguage()" id="languageSwitch">🇺🇸 English</button>
+        </div>
+        
+        <!-- Authentication Section -->
+        <div class="auth-section" id="authSection">
+            <div style="margin-bottom: 20px;">
+                <a href="index.html" onclick="clearCacheAndNavigate()" style="color: #000000; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Zurück zum Kalender
+                </a>
+            </div>
+            
+            <div class="login-form">
+                <h2>🔐 Event Manager Authentifizierung</h2>
+                <p>Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.</p>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active">Anmelden</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div class="auth-form active" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">E-Mail:</label>
+                        <input type="email" id="loginEmail" placeholder="Ihre E-Mail-Adresse eingeben" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Passwort:</label>
+                        <input type="password" id="loginPassword" placeholder="Ihr Passwort eingeben" />
+                    </div>
+                    
+                    <button class="btn" onclick="signIn()">Anmelden</button>
+                </div>
+                
+
+                
+                <div id="authMessage"></div>
             </div>
         </div>
-
         
-
-        <div class="loading" id="loading">Loading events...</div>
-        
-        <div class="grid" id="calendar" style="display: none;">
-            <div class="weekday">Mon</div>
-            <div class="weekday">Tue</div>
-            <div class="weekday">Wed</div>
-            <div class="weekday">Thu</div>
-            <div class="weekday">Fri</div>
-            <div class="weekday">Sat</div>
-            <div class="weekday">Sun</div>
+        <!-- Event Manager Content -->
+        <div class="event-manager-content" id="eventManagerContent">
+            <div class="nav-links">
+                <a href="index.html" onclick="clearCacheAndNavigate()">⬅️ Zurück zum Kalender</a>
+            </div>
+            
+            <div class="controls">
+                <div class="control-section">
+                    <h3>📅 Ereignisverwaltung</h3>
+                    <div class="quick-actions">
+                        <button class="btn" onclick="showAddEventForm()">➕ Ereignis hinzufügen</button>
+                        <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Ereignisse aktualisieren</button>
+                        <button class="btn btn-secondary" onclick="refreshWithCacheClear()">🔄 Vollständig aktualisieren</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="events-list" id="eventsList">
+                <!-- Events will be populated here -->
+            </div>
         </div>
     </div>
 
-    <!-- Day Events Popup Modal -->
-    <div class="day-popup" id="dayPopup">
-        <div class="day-popup-content">
-            <div class="day-popup-header">
-                <h3 id="dayPopupTitle">Events for</h3>
-                <button class="day-popup-close" onclick="closeDayPopup()">&times;</button>
-            </div>
-            <div class="day-events-list" id="dayEventsList">
-                <!-- Events will be populated here -->
-            </div>
-
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideEventForm()">&times;</span>
+            <h2 id="modalTitle">Ereignis hinzufügen</h2>
+            
+            <form id="eventForm">
+                <div class="form-row">
+                    <label id="titleLabel">Titel:</label>
+                    <input type="text" id="eventTitle" placeholder="Ereignistitel" required />
+                </div>
+                
+                <div class="form-row">
+                    <label id="descriptionLabel">Beschreibung:</label>
+                    <textarea id="eventDescription" placeholder="Optionale Beschreibung"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <label id="typeLabel">Typ:</label>
+                    <select id="eventType" onchange="handleEventTypeChange()">
+                        <option value="single">Einzeltag</option>
+                        <option value="multi">Mehrtägig</option>
+                        <option value="recurring">Wiederkehrend</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <label id="startDateLabel">Startdatum: <span id="startDateHint" class="format-hint">(tt/mm/jjjj)</span></label>
+                    <input type="date" id="eventStartDate" required />
+                </div>
+                
+                <div class="form-row">
+                    <label id="allDayLabel">
+                        <input type="checkbox" id="eventAllDay" onchange="handleAllDayChange()" />
+                        <span id="allDayText">Ganztägig</span>
+                    </label>
+                </div>
+                
+                <div class="form-row" id="timeRow">
+                    <label id="startTimeLabel">Startzeit:</label>
+                    <input type="time" id="eventStartTime" />
+                </div>
+                
+                <div class="form-row" id="endDateRow" style="display: none;">
+                    <label id="endDateLabel">Enddatum: <span id="endDateHint" class="format-hint">(tt/mm/jjjj)</span></label>
+                    <input type="date" id="eventEndDate" />
+                </div>
+                
+                <div class="form-row" id="endTimeRow" style="display: none;">
+                    <label id="endTimeLabel">Endzeit:</label>
+                    <input type="time" id="eventEndTime" />
+                </div>
+                
+                <div class="form-row" id="recurringRow" style="display: none;">
+                    <label id="recurrenceLabel">Wiederholung:</label>
+                    <select id="eventRecurrence">
+                        <option value="daily">Täglich</option>
+                        <option value="weekly">Wöchentlich</option>
+                        <option value="monthly">Monatlich</option>
+                        <option value="yearly">Jährlich</option>
+                    </select>
+                </div>
+                
+                <div class="form-row" id="recurringEndRow" style="display: none;">
+                    <label id="untilLabel">Bis: <span id="untilHint" class="format-hint">(tt/mm/jjjj)</span></label>
+                    <input type="date" id="eventRecurrenceEnd" />
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideEventForm()" id="cancelBtn">Abbrechen</button>
+                    <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">Löschen</button>
+                    <button type="button" class="btn" onclick="saveEvent()" id="saveBtn">Ereignis speichern</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        let currentDate = new Date();
-        let events = []; // External calendar events
-        let userEvents = []; // User-created events
-
-        let showHomeGamesOnly = false;
-        
-        // Google Calendar iCal URL
-        const calendarUrl = 'https://calendar.google.com/calendar/ical/cdnom1h6cu6b0753l110q9nh50f4sdg7%40import.calendar.google.com/public/basic.ics';
-        
-        // Function to check if an event is a KSC Wiedikon home game
-        function isKSCHomeGame(event) {
-            const title = event.title.toLowerCase();
-            const kscTerms = ['kscw', 'ksc wiedikon', 'ksc w'];
-            
-            // Check if any KSC term appears in the title
-            const hasKSC = kscTerms.some(term => title.includes(term));
-            
-            // Additional checks for home games (common patterns)
-            const homeIndicators = [
-                'training', // training sessions are usually at home
-                'halle', // hall/venue mentioned
-                'bb', // likely refers to home venue codes
-                'vs ', // "vs" might indicate opponent coming to us
-            ];
-            
-            // If it contains KSC terms, check for home indicators
-            if (hasKSC) {
-                // If it's training or has venue info, it's likely home
-                if (homeIndicators.some(indicator => title.includes(indicator))) {
-                    return true;
-                }
-                
-                // If it has "vs opponent" format and KSC is mentioned first, it's likely home
-                if (title.includes(' vs ') || title.includes(' - ')) {
-                    const parts = title.split(/\s+vs\s+|\s+-\s+/);
-                    if (parts.length > 1) {
-                        const firstPart = parts[0].toLowerCase();
-                        return kscTerms.some(term => firstPart.includes(term));
-                    }
-                }
-                
-                return true; // Default to showing if KSC is mentioned
-            }
-            
-            return false;
-        }
-        
-        // Filter events - default to home games only
-        function getFilteredEvents() {
-            // Always filter to show only KSC Wiedikon home games
-            return events.filter(isKSCHomeGame);
-        }
-        
         // Supabase configuration
         const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
         const supabaseKey = 'sb_publishable_smrIIJd_DJofe68QRJmB1w_qiASLbqE';
@@ -660,7 +785,7 @@
         async function logEventChange(action, event, oldValues = null) {
             try {
                 const browserId = getBrowserId();
-                const userEmail = 'anonymous'; // Main calendar doesn't have user auth
+                const userEmail = currentUser?.email || 'anonymous';
                 
                 const logEntry = {
                     user_email: userEmail,
@@ -707,6 +832,433 @@
             }
         }
         
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        let userEvents = [];
+        let editingEventId = null;
+        let currentUser = null;
+        let currentLanguage = 'de'; // Default to German
+        
+        // Translation object
+        const translations = {
+            de: {
+                // Header
+                eventManager: '📅 Event Manager',
+                logout: 'Abmelden',
+                languageSwitch: '🇺🇸 English',
+                
+                // Navigation
+                backToCalendar: '⬅️ Zurück zum Kalender',
+                
+                // Authentication
+                authTitle: '🔐 Event Manager Authentifizierung',
+                authDescription: 'Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.',
+                signIn: 'Anmelden',
+                email: 'E-Mail:',
+                password: 'Passwort:',
+                emailPlaceholder: 'Ihre E-Mail-Adresse eingeben',
+                passwordPlaceholder: 'Ihr Passwort eingeben',
+                
+                // Event Management
+                eventManagement: '📅 Ereignisverwaltung',
+                addEvent: '➕ Ereignis hinzufügen',
+                refreshEvents: '🔄 Ereignisse aktualisieren',
+                
+                // Modal
+                addEventTitle: 'Ereignis hinzufügen',
+                editEventTitle: 'Ereignis bearbeiten',
+                title: 'Titel:',
+                description: 'Beschreibung:',
+                type: 'Typ:',
+                startDate: 'Startdatum:',
+                startTime: 'Startzeit:',
+                endDate: 'Enddatum:',
+                endTime: 'Endzeit:',
+                recurrence: 'Wiederholung:',
+                until: 'Bis:',
+                allDay: 'Ganztägig',
+                titlePlaceholder: 'Ereignistitel',
+                descriptionPlaceholder: 'Optionale Beschreibung',
+                cancel: 'Abbrechen',
+                saveEvent: 'Ereignis speichern',
+                delete: 'Löschen',
+                
+                // Event Types
+                single: 'Einzeltag',
+                multi: 'Mehrtägig',
+                recurring: 'Wiederkehrend',
+                
+                // Recurrence
+                daily: 'Täglich',
+                weekly: 'Wöchentlich',
+                monthly: 'Monatlich',
+                yearly: 'Jährlich',
+                
+                // Event Display
+                date: 'Datum:',
+                time: 'Zeit:',
+                end: 'Ende:',
+                allDayDisplay: 'Ganztägig',
+                recurringDisplay: 'Wiederkehrend:',
+                edit: 'Bearbeiten',
+                
+                // Date Format Hints
+                dateFormatHint: '(tt/mm/jjjj)',
+                
+                // Messages
+                noEvents: 'Noch keine Ereignisse erstellt. Klicken Sie auf "Ereignis hinzufügen" um Ihr erstes Ereignis zu erstellen!',
+                fillRequiredFields: 'Bitte füllen Sie alle Felder aus.',
+                fillTitleDate: 'Bitte füllen Sie Titel und Startdatum aus.',
+                endDateRequired: 'Enddatum ist für mehrtägige Ereignisse erforderlich.',
+                endDateAfterStart: 'Enddatum muss nach oder gleich dem Startdatum sein.',
+                confirmDelete: 'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten?',
+                authSuccess: '✅ Anmeldung erfolgreich! Willkommen,',
+                noPermission: '❌ Sie haben keine Berechtigung für den Event Manager.',
+                authError: '❌ Bei der Anmeldung ist ein Fehler aufgetreten.',
+                loadError: 'Fehler beim Laden Ihrer Ereignisse aus der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung und aktualisieren Sie die Seite.',
+                saveError: 'Fehler beim Speichern Ihrer Ereignisse in der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung.',
+                noUsers: 'No users found.'
+            },
+            en: {
+                // Header
+                eventManager: '📅 Event Manager',
+                logout: 'Logout',
+                languageSwitch: '🇩🇪 Deutsch',
+                
+                // Navigation
+                backToCalendar: '⬅️ Back to Calendar',
+                
+                // Authentication
+                authTitle: '🔐 Event Manager Authentication',
+                authDescription: 'Please sign in to create and manage events.',
+                signIn: 'Sign In',
+                email: 'Email:',
+                password: 'Password:',
+                emailPlaceholder: 'Enter your email address',
+                passwordPlaceholder: 'Enter your password',
+                
+                // Event Management
+                eventManagement: '📅 Event Management',
+                addEvent: '➕ Add Event',
+                refreshEvents: '🔄 Refresh Events',
+                
+                // Modal
+                addEventTitle: 'Add Event',
+                editEventTitle: 'Edit Event',
+                title: 'Title:',
+                description: 'Description:',
+                type: 'Type:',
+                startDate: 'Start Date:',
+                startTime: 'Start Time:',
+                endDate: 'End Date:',
+                endTime: 'End Time:',
+                recurrence: 'Recurrence:',
+                until: 'Until:',
+                allDay: 'All Day',
+                titlePlaceholder: 'Event title',
+                descriptionPlaceholder: 'Optional description',
+                cancel: 'Cancel',
+                saveEvent: 'Save Event',
+                delete: 'Delete',
+                
+                // Event Types
+                single: 'Single Day',
+                multi: 'Multi-Day',
+                recurring: 'Recurring',
+                
+                // Recurrence
+                daily: 'Daily',
+                weekly: 'Weekly',
+                monthly: 'Monthly',
+                yearly: 'Yearly',
+                
+                // Event Display
+                date: 'Date:',
+                time: 'Time:',
+                end: 'End:',
+                allDayDisplay: 'All Day',
+                recurringDisplay: 'Recurring:',
+                edit: 'Edit',
+                
+                // Date Format Hints
+                dateFormatHint: '(dd/mm/yyyy)',
+                
+                // Messages
+                noEvents: 'No events created yet. Click "Add Event" to create your first event!',
+                fillRequiredFields: 'Please fill in all fields.',
+                fillTitleDate: 'Please fill in title and start date.',
+                endDateRequired: 'End date is required for multi-day events.',
+                endDateAfterStart: 'End date must be after or equal to start date.',
+                confirmDelete: 'Are you sure you want to delete this event?',
+                authSuccess: '✅ Sign in successful! Welcome,',
+                noPermission: '❌ You do not have permission for the Event Manager.',
+                authError: '❌ An error occurred during sign in.',
+                loadError: 'Error loading your events from the database. Please check your internet connection and refresh the page.',
+                saveError: 'Error saving your events to the database. Please check your internet connection.',
+                noUsers: 'No users found.'
+            }
+        };
+        
+        // Function to get translation
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+        
+        // Function to toggle language
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+            updateLanguageUI();
+            updateAllText();
+        }
+        
+        // Function to update language UI
+        function updateLanguageUI() {
+            const languageSwitch = document.getElementById('languageSwitch');
+            if (currentLanguage === 'de') {
+                languageSwitch.textContent = '🇺🇸 English';
+            } else {
+                languageSwitch.textContent = '🇩🇪 Deutsch';
+            }
+        }
+        
+        // Function to update all text on the page
+        function updateAllText() {
+            // Update header
+            document.querySelector('.header h1').textContent = t('eventManager');
+            document.querySelector('.logout-btn').textContent = t('logout');
+            
+            // Update navigation
+            const backLinks = document.querySelectorAll('a[href="index.html"]');
+            backLinks.forEach(link => {
+                link.textContent = t('backToCalendar');
+            });
+            
+            // Update auth section
+            const authTitle = document.querySelector('.login-form h2');
+            if (authTitle) authTitle.textContent = t('authTitle');
+            
+            const authDesc = document.querySelector('.login-form p');
+            if (authDesc) authDesc.textContent = t('authDescription');
+            
+            const signInBtn = document.querySelector('.btn[onclick="signIn()"]');
+            if (signInBtn) signInBtn.textContent = t('signIn');
+            
+            // Update form labels
+            const emailLabel = document.querySelector('label[for="loginEmail"]');
+            if (emailLabel) emailLabel.textContent = t('email');
+            
+            const passwordLabel = document.querySelector('label[for="loginPassword"]');
+            if (passwordLabel) passwordLabel.textContent = t('password');
+            
+            // Update placeholders
+            const emailInput = document.getElementById('loginEmail');
+            if (emailInput) emailInput.placeholder = t('emailPlaceholder');
+            
+            const passwordInput = document.getElementById('loginPassword');
+            if (passwordInput) passwordInput.placeholder = t('passwordPlaceholder');
+            
+            // Update event management section
+            const eventManagementTitle = document.querySelector('.control-section h3');
+            if (eventManagementTitle) eventManagementTitle.textContent = t('eventManagement');
+            
+            const addEventBtn = document.querySelector('.btn[onclick="showAddEventForm()"]');
+            if (addEventBtn) addEventBtn.textContent = t('addEvent');
+            
+            const refreshBtn = document.querySelector('.btn[onclick="refreshEvents()"]');
+            if (refreshBtn) refreshBtn.textContent = t('refreshEvents');
+            
+            // Update modal
+            updateModalText();
+            
+            // Update event list
+            renderEventsList();
+        }
+        
+        // Function to update modal text
+        function updateModalText() {
+            const modalTitle = document.getElementById('modalTitle');
+            if (modalTitle) {
+                modalTitle.textContent = editingEventId ? t('editEventTitle') : t('addEventTitle');
+            }
+            
+            // Update form labels using IDs
+            const titleLabel = document.getElementById('titleLabel');
+            if (titleLabel) titleLabel.textContent = t('title');
+            
+            const descLabel = document.getElementById('descriptionLabel');
+            if (descLabel) descLabel.textContent = t('description');
+            
+            const typeLabel = document.getElementById('typeLabel');
+            if (typeLabel) typeLabel.textContent = t('type');
+            
+            const startDateLabel = document.getElementById('startDateLabel');
+            if (startDateLabel) startDateLabel.textContent = t('startDate') + ' <span id="startDateHint" class="format-hint">' + t('dateFormatHint') + '</span>';
+            
+            const allDayText = document.getElementById('allDayText');
+            if (allDayText) allDayText.textContent = t('allDay');
+            
+            const startTimeLabel = document.getElementById('startTimeLabel');
+            if (startTimeLabel) startTimeLabel.textContent = t('startTime');
+            
+            const endDateLabel = document.getElementById('endDateLabel');
+            if (endDateLabel) endDateLabel.textContent = t('endDate') + ' <span id="endDateHint" class="format-hint">' + t('dateFormatHint') + '</span>';
+            
+            const endTimeLabel = document.getElementById('endTimeLabel');
+            if (endTimeLabel) endTimeLabel.textContent = t('endTime');
+            
+            const recurrenceLabel = document.getElementById('recurrenceLabel');
+            if (recurrenceLabel) recurrenceLabel.textContent = t('recurrence');
+            
+            const untilLabel = document.getElementById('untilLabel');
+            if (untilLabel) untilLabel.textContent = t('until') + ' <span id="untilHint" class="format-hint">' + t('dateFormatHint') + '</span>';
+            
+            // Update placeholders
+            const titleInput = document.getElementById('eventTitle');
+            if (titleInput) titleInput.placeholder = t('titlePlaceholder');
+            
+            const descInput = document.getElementById('eventDescription');
+            if (descInput) descInput.placeholder = t('descriptionPlaceholder');
+            
+            // Update buttons using IDs
+            const cancelBtn = document.getElementById('cancelBtn');
+            if (cancelBtn) cancelBtn.textContent = t('cancel');
+            
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn) saveBtn.textContent = t('saveEvent');
+            
+            const deleteBtn = document.getElementById('deleteEventBtn');
+            if (deleteBtn) deleteBtn.textContent = t('delete');
+            
+            // Update select options
+            updateSelectOptions();
+        }
+        
+        // Function to update select options
+        function updateSelectOptions() {
+            const eventTypeSelect = document.getElementById('eventType');
+            if (eventTypeSelect) {
+                eventTypeSelect.options[0].text = t('single');
+                eventTypeSelect.options[1].text = t('multi');
+                eventTypeSelect.options[2].text = t('recurring');
+            }
+            
+            const recurrenceSelect = document.getElementById('eventRecurrence');
+            if (recurrenceSelect) {
+                recurrenceSelect.options[0].text = t('daily');
+                recurrenceSelect.options[1].text = t('weekly');
+                recurrenceSelect.options[2].text = t('monthly');
+                recurrenceSelect.options[3].text = t('yearly');
+            }
+        }
+        
+        // Check if user is already authenticated
+        async function checkAuth() {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (user && !error) {
+                    currentUser = user;
+                    showEventManagerContent();
+                    loadUserEvents();
+                } else {
+                    showAuthSection();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                showAuthSection();
+            }
+        }
+        
+        // Sign in function
+        async function signIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageDiv = document.getElementById('authMessage');
+            
+            if (!email || !password) {
+                messageDiv.innerHTML = `<div class="error-message">❌ ${t('fillRequiredFields')}</div>`;
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) {
+                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
+                } else {
+                    currentUser = data.user;
+                    
+                    // Check user role and permissions
+                    const userRole = currentUser.user_metadata?.role;
+                    const permissions = currentUser.user_metadata?.permissions || [];
+                    
+                    if (userRole && permissions.includes('create_events')) {
+                        messageDiv.innerHTML = `<div class="success-message">${t('authSuccess')} ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
+                        showEventManagerContent();
+                        loadUserEvents();
+                    } else {
+                        messageDiv.innerHTML = `<div class="error-message">${t('noPermission')}</div>`;
+                        await logout();
+                    }
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error-message">${t('authError')}</div>`;
+                console.error('Sign in error:', error);
+            }
+        }
+        
+
+        
+        // Logout function
+        async function logout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('Logout error:', error);
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            currentUser = null;
+            showAuthSection();
+        }
+        
+        // Show event manager content
+        function showEventManagerContent() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('eventManagerContent').style.display = 'block';
+            document.getElementById('userInfo').style.display = 'flex';
+            
+            if (currentUser) {
+                // Display user info with role if available
+                const userRole = currentUser.user_metadata?.role || 'user';
+                const displayName = currentUser.user_metadata?.display_name || currentUser.email;
+                document.getElementById('userEmail').textContent = `${displayName} (${userRole})`;
+            }
+        }
+        
+        // Show auth section
+        function showAuthSection() {
+            document.getElementById('authSection').style.display = 'block';
+            document.getElementById('eventManagerContent').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            clearAuthForms();
+        }
+        
+        // Clear auth forms
+        function clearAuthForms() {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('authMessage').innerHTML = '';
+        }
+        
+
+        
         // Simple browser ID for anonymous users (persistent across browser sessions)
         function getBrowserId() {
             let browserId = localStorage.getItem('calendarBrowserId');
@@ -749,23 +1301,20 @@
                         source: row.source || 'manual'
                     }));
                     console.log(`Loaded ${userEvents.length} user events from Supabase`);
-                    
-                    // Debug: Log multi-day events
-                    const multiDayEvents = userEvents.filter(e => e.type === 'multi');
-                    if (multiDayEvents.length > 0) {
-                        console.log('Multi-day events loaded:', multiDayEvents);
-                    }
+                    renderEventsList();
                 } else if (response.status === 404) {
                     // Table doesn't exist yet, that's ok
                     console.log('User events table not found, will be created on first save');
                     userEvents = [];
+                    renderEventsList();
                 } else {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Failed to load events from Supabase:', error);
                 userEvents = [];
-                alert('Failed to load your events from database. Please check your internet connection and refresh the page.');
+                renderEventsList();
+                alert(t('loadError'));
             }
         }
         
@@ -803,12 +1352,6 @@
                         created_at: new Date().toISOString()
                     }));
                     
-                    // Debug: Log multi-day events being saved
-                    const multiDaySaves = eventsToSave.filter(e => e.event_type === 'multi');
-                    if (multiDaySaves.length > 0) {
-                        console.log('Saving multi-day events:', multiDaySaves);
-                    }
-                    
                     const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
                         method: 'POST',
                         headers: {
@@ -829,7 +1372,7 @@
                 
             } catch (error) {
                 console.error('Failed to save events to Supabase:', error);
-                alert('Failed to save your events to database. Please check your internet connection.');
+                alert(t('saveError'));
                 throw error; // Re-throw to prevent silent failures
             }
         }
@@ -839,587 +1382,337 @@
             return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
         
-        async function fetchEvents() {
-            try {
-                console.log('Fetching events from Supabase Edge Function...');
-                
-                const edgeFunctionUrl = `${supabaseUrl}/functions/v1/calendar-proxy`;
-                
-                const response = await fetch(edgeFunctionUrl, {
-                    method: 'GET'
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                // Log function version for debugging
-                const functionVersion = response.headers.get('X-Function-Version');
-                if (functionVersion) {
-                    console.log(`Connected to Edge Function version: ${functionVersion}`);
-                }
-                
-                const icalData = await response.text();
-                
-                if (!icalData.includes('BEGIN:VCALENDAR')) {
-                    throw new Error('Invalid calendar data received');
-                }
-                
-                events = parseIcalData(icalData);
-                console.log(`Successfully loaded ${events.length} external calendar events`);
-                
-                // Load user events from Supabase after external events are loaded
-                await loadUserEvents();
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('calendar').style.display = 'grid';
-                
-                renderCalendar();
-                
-            } catch (error) {
-                console.error('Failed to fetch events:', error);
-                document.getElementById('loading').innerHTML = `
-                    <p>Failed to load calendar events</p>
-                    <p style="font-size: 12px; color: #999;">
-                        ${error.message}<br>
-                        <a href="#" onclick="location.reload()">Try refreshing the page</a>
-                    </p>
-                `;
-            }
-        }
-        
-        function parseIcalData(icalData) {
-            const events = [];
-            const lines = icalData.split('\n');
-            let currentEvent = null;
-
-            for (let line of lines) {
-                line = line.trim();
-
-                if (line === 'BEGIN:VEVENT') {
-                    currentEvent = {};
-                } else if (line === 'END:VEVENT' && currentEvent) {
-                    if (currentEvent.summary && currentEvent.dtstart) {
-                        events.push({
-                            title: currentEvent.summary,
-                            date: formatIcalDate(currentEvent.dtstart)
-                        });
-                    }
-                    currentEvent = null;
-                } else if (currentEvent) {
-                    if (line.startsWith('SUMMARY:')) {
-                        currentEvent.summary = line.substring(8);
-                    } else if (line.startsWith('DTSTART')) {
-                        const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
-                        if (dateMatch) {
-                            currentEvent.dtstart = dateMatch[1];
-                        }
-                    }
-                }
-            }
-
-            return events;
-        }
-        
-        function formatIcalDate(icalDate) {
-            if (icalDate && icalDate.length >= 8) {
-                const year = icalDate.substring(0, 4);
-                const month = icalDate.substring(4, 6);
-                const day = icalDate.substring(6, 8);
-                return `${year}-${month}-${day}`;
-            }
-            return null;
-        }
-        
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            
-            // Update header
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                              'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('monthYear').textContent = `${monthNames[month]} ${year}`;
-            
-            // Clear existing day elements (keep weekday headers)
-            const calendarContainer = document.getElementById('calendar');
-            const weekdayElements = calendarContainer.querySelectorAll('.weekday');
-            calendarContainer.innerHTML = '';
-            // Re-add weekday headers
-            weekdayElements.forEach(weekday => calendarContainer.appendChild(weekday));
-            
-            // Calculate calendar layout (Monday = 0, Sunday = 6)
-            const firstDayRaw = new Date(year, month, 1).getDay();
-            const firstDay = (firstDayRaw + 6) % 7; // Convert so Monday = 0, Sunday = 6
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            // Previous month days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const day = daysInPrevMonth - i;
-                const dayElement = createDayElement(day, 'other-month', year, month - 1);
-                calendarContainer.appendChild(dayElement);
-            }
-            
-            // Current month days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = createDayElement(day, 'current-month', year, month);
-                calendarContainer.appendChild(dayElement);
-            }
-            
-            // Next month days
-            const totalDayCells = calendarContainer.children.length - 7; // Subtract weekday headers
-            const remainingCells = 42 - totalDayCells; // Need exactly 42 day cells (6 rows × 7 days)
-            for (let day = 1; day <= remainingCells; day++) {
-                const dayElement = createDayElement(day, 'other-month', year, month + 1);
-                calendarContainer.appendChild(dayElement);
-            }
-        }
-        
-        function createDayElement(day, monthClass, year, month) {
-            const dayElement = document.createElement('div');
-            dayElement.className = `day ${monthClass}`;
-            
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const today = new Date().toISOString().split('T')[0];
-            
-            if (dateStr === today && monthClass === 'current-month') {
-                dayElement.classList.add('today');
-            }
-            
-            // Create day number element
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'day-number';
-            dayNumber.textContent = day;
-            dayElement.appendChild(dayNumber);
-            
-            // Create events container
-            const eventsContainer = document.createElement('div');
-            eventsContainer.className = 'events-container';
-            dayElement.appendChild(eventsContainer);
-            
-            // Add click handler for day selection and popup
-            dayElement.addEventListener('click', (e) => {
-                if (e.target === dayElement || e.target === dayNumber || e.target === eventsContainer) {
-                    showDayPopup(dateStr);
-                }
-            });
-            
-            // Add events for this day
-            const allEvents = getAllDisplayEvents();
-            const dayEvents = allEvents.filter(event => event.date === dateStr);
-            
-            if (dayEvents.length > 0) {
-                dayElement.classList.add('has-event');
-                
-                // Show first 3 events expanded, then "+ X more" if there are more
-                const maxVisibleEvents = 3;
-                const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
-                const remainingCount = dayEvents.length - maxVisibleEvents;
-                
-                visibleEvents.forEach(event => {
-                    const eventElement = document.createElement('div');
-                    eventElement.className = 'event';
-                    
-                    // Add appropriate class based on event source
-                    if (event.isUserEvent) {
-                        eventElement.classList.add('user-event');
-                    } else {
-                        eventElement.classList.add('external-event');
-                    }
-                    
-                    if (event.type === 'multi') {
-                        eventElement.classList.add('multi-day');
-                        
-                        // Add specific classes for multi-day event positioning
-                        if (event.isFirstDay && event.isLastDay) {
-                            eventElement.classList.add('single-day');
-                        } else if (event.isFirstDay) {
-                            eventElement.classList.add('first-day');
-                        } else if (event.isLastDay) {
-                            eventElement.classList.add('last-day');
-                        } else {
-                            eventElement.classList.add('middle-day');
-                        }
-                    }
-                    
-                    // Create event content with time
-                    const eventContent = document.createElement('div');
-                    eventContent.className = 'event-content';
-                    
-                    // Add time if available
-                    if (event.startTime) {
-                        const timeElement = document.createElement('span');
-                        timeElement.className = 'event-time';
-                        timeElement.textContent = event.startTime;
-                        eventContent.appendChild(timeElement);
-                    } else {
-                        // Add empty space for alignment
-                        const timeElement = document.createElement('span');
-                        timeElement.className = 'event-time';
-                        timeElement.textContent = '';
-                        eventContent.appendChild(timeElement);
-                    }
-                    
-                    // Add event title
-                    const titleElement = document.createElement('span');
-                    titleElement.className = 'event-title';
-                    titleElement.textContent = event.title;
-                    eventContent.appendChild(titleElement);
-                    
-                    eventElement.appendChild(eventContent);
-                    
-                    // Make the event clickable
-                    eventElement.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        showDayPopup(dateStr);
-                    });
-                    
-                    eventsContainer.appendChild(eventElement);
-                });
-                
-                // Add "+ X more" indicator if there are more events
-                if (remainingCount > 0) {
-                    const moreIndicator = document.createElement('div');
-                    moreIndicator.className = 'events-more';
-                    moreIndicator.textContent = `+ ${remainingCount} more`;
-                    moreIndicator.title = `Click to view all ${dayEvents.length} events`;
-                    
-                    moreIndicator.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        showDayPopup(dateStr);
-                    });
-                    
-                    eventsContainer.appendChild(moreIndicator);
-                }
-            }
-            
-            return dayElement;
-        }
-        
-        // Function to show all events for a specific day
-        function showAllEventsForDay(dateStr, dayEvents) {
-            const eventsList = dayEvents.map(event => {
-                let description = event.title;
-                if (event.description) {
-                    description += '\n' + event.description;
-                }
-                if (event.type === 'recurring') {
-                    description += '\n(Recurring)';
-                } else if (event.type === 'multi') {
-                    description += '\n(Multi-day)';
-                }
-                return description;
-            }).join('\n\n');
-            
-            alert(`Events for ${dateStr}:\n\n${eventsList}`);
-        }
-        
-        // Day popup functions
-        function showDayPopup(dateStr) {
-            const allEvents = getAllDisplayEvents();
-            const dayEvents = allEvents.filter(event => event.date === dateStr);
-            
-            // Format date for display
-            const date = new Date(dateStr);
-            const formattedDate = date.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            
-            document.getElementById('dayPopupTitle').textContent = `Events for ${formattedDate}`;
-            
-            const eventsList = document.getElementById('dayEventsList');
+        // Render events list
+        function renderEventsList() {
+            const eventsList = document.getElementById('eventsList');
             eventsList.innerHTML = '';
             
-            if (dayEvents.length === 0) {
-                eventsList.innerHTML = '<p style="color: #666; text-align: center;">No events on this day</p>';
-            } else {
-                dayEvents.forEach(event => {
-                    const eventItem = document.createElement('div');
-                    eventItem.className = 'day-event-item';
-                    
-                    // Add classes for styling
-                    if (event.isUserEvent) {
-                        eventItem.classList.add('user-event');
-                    }
-                    if (event.type === 'multi') {
-                        eventItem.classList.add('multi-day');
-                    }
-                    if (event.type === 'recurring') {
-                        eventItem.classList.add('recurring');
-                    }
-                    
-                    // Create event content
-                    const eventTitle = document.createElement('div');
-                    eventTitle.className = 'day-event-title';
-                    
-                    // Add time if available
-                    let titleText = event.title;
-                    if (event.startTime) {
-                        titleText = `${event.startTime} - ${titleText}`;
-                    }
-                    eventTitle.textContent = titleText;
-                    
-                    const eventMeta = document.createElement('div');
-                    eventMeta.className = 'day-event-meta';
-                    
-                    let metaText = '';
-                    if (event.type === 'recurring') {
-                        metaText = '♻️ Recurring event';
-                    } else if (event.type === 'multi' && event.originalStartDate && event.originalEndDate) {
-                        // Format dates from yyyy-mm-dd to dd/mm/yyyy
-                        const formatDate = (dateString) => {
-                            if (!dateString) return '';
-                            const date = new Date(dateString);
-                            const day = String(date.getDate()).padStart(2, '0');
-                            const month = String(date.getMonth() + 1).padStart(2, '0');
-                            const year = date.getFullYear();
-                            return `${day}/${month}/${year}`;
-                        };
-                        metaText = `📅 Multi-day: ${formatDate(event.originalStartDate)} to ${formatDate(event.originalEndDate)}`;
-                    } else if (event.isUserEvent) {
-                        metaText = '✏️ User event';
-                    } else {
-                        metaText = '📅 External event';
-                    }
-                    
-                    // Add end time if available
-                    if (event.endTime) {
-                        metaText += ` (until ${event.endTime})`;
-                    }
-                    
-                    eventMeta.textContent = metaText;
-                    
-                    eventItem.appendChild(eventTitle);
-                    
-                    if (event.description) {
-                        const eventDesc = document.createElement('div');
-                        eventDesc.className = 'day-event-description';
-                        eventDesc.textContent = event.description;
-                        eventItem.appendChild(eventDesc);
-                    }
-                    
-                    eventItem.appendChild(eventMeta);
-                    
-
-                    
-                    eventsList.appendChild(eventItem);
-                });
+            if (userEvents.length === 0) {
+                eventsList.innerHTML = `<p style="text-align: center; color: #666; padding: 20px;">${t('noEvents')}</p>`;
+                return;
             }
             
-            document.getElementById('dayPopup').style.display = 'block';
+            // Sort events by date in ascending order
+            const sortedEvents = [...userEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedEvents.forEach(event => {
+                const eventItem = document.createElement('div');
+                eventItem.className = 'event-item';
+                
+                const eventInfo = document.createElement('div');
+                eventInfo.className = 'event-info';
+                
+                const eventTitle = document.createElement('div');
+                eventTitle.className = 'event-title';
+                eventTitle.textContent = event.title;
+                
+                const eventMeta = document.createElement('div');
+                eventMeta.className = 'event-meta';
+                
+                // Format date from yyyy-mm-dd to dd/mm/yyyy
+                const formatDate = (dateString) => {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                };
+                
+                let metaText = `${t('date')} ${formatDate(event.date)}`;
+                
+                // Check if it's an all-day event (no start time)
+                if (!event.startTime && !event.endTime) {
+                    metaText += ` | ${t('allDayDisplay')}`;
+                } else if (event.startTime) {
+                    metaText += ` | ${t('time')} ${event.startTime}`;
+                }
+                
+                if (event.endDate && event.type === 'multi') {
+                    metaText += ` | ${t('end')} ${formatDate(event.endDate)}`;
+                }
+                if (event.type === 'recurring') {
+                    metaText += ` | ${t('recurringDisplay')} ${event.recurrence}`;
+                }
+                if (event.description) {
+                    metaText += ` | ${event.description}`;
+                }
+                
+                eventMeta.textContent = metaText;
+                
+                const eventTypeBadge = document.createElement('span');
+                eventTypeBadge.className = 'event-type-badge';
+                
+                if (event.type === 'multi') {
+                    eventTypeBadge.classList.add('badge-multi');
+                    eventTypeBadge.textContent = t('multi');
+                } else if (event.type === 'recurring') {
+                    eventTypeBadge.classList.add('badge-recurring');
+                    eventTypeBadge.textContent = t('recurring');
+                } else {
+                    eventTypeBadge.classList.add('badge-single');
+                    eventTypeBadge.textContent = t('single');
+                }
+                
+                eventInfo.appendChild(eventTitle);
+                eventInfo.appendChild(eventMeta);
+                eventInfo.appendChild(eventTypeBadge);
+                
+                const eventActions = document.createElement('div');
+                eventActions.className = 'event-actions';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-small btn-warning';
+                editBtn.textContent = t('edit');
+                editBtn.onclick = () => editEvent(event);
+                
+                eventActions.appendChild(editBtn);
+                
+                eventItem.appendChild(eventInfo);
+                eventItem.appendChild(eventActions);
+                
+                eventsList.appendChild(eventItem);
+            });
         }
         
-        function closeDayPopup() {
-            document.getElementById('dayPopup').style.display = 'none';
+        // Event Form Management
+        function showAddEventForm() {
+            editingEventId = null;
+            document.getElementById('modalTitle').textContent = t('addEventTitle');
+            document.getElementById('eventModal').style.display = 'block';
+            
+            // Hide delete button for new events
+            document.getElementById('deleteEventBtn').style.display = 'none';
+            
+            // Set default date to today
+            const defaultDate = new Date().toISOString().split('T')[0];
+            document.getElementById('eventStartDate').value = defaultDate;
+            
+            // Clear form
+            clearEventForm();
+        }
+        
+        function hideEventForm() {
+            document.getElementById('eventModal').style.display = 'none';
+            clearEventForm();
+        }
+        
+        function clearEventForm() {
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('eventType').value = 'single';
+            document.getElementById('eventStartDate').value = '';
+            document.getElementById('eventAllDay').checked = false;
+            document.getElementById('eventStartTime').value = '';
+            document.getElementById('eventEndDate').value = '';
+            document.getElementById('eventEndTime').value = '';
+            document.getElementById('eventRecurrence').value = 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = '';
+            handleEventTypeChange();
+        }
+        
+        function handleEventTypeChange() {
+            const eventType = document.getElementById('eventType').value;
+            const allDay = document.getElementById('eventAllDay').checked;
+            const endDateRow = document.getElementById('endDateRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            const recurringRow = document.getElementById('recurringRow');
+            const recurringEndRow = document.getElementById('recurringEndRow');
+            
+            endDateRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            
+            // Show time fields only if not all-day
+            if (!allDay) {
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            } else {
+                endTimeRow.style.display = 'none';
+            }
+            
+            recurringRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+            recurringEndRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+        }
+        
+        function handleAllDayChange() {
+            const allDay = document.getElementById('eventAllDay').checked;
+            const timeRow = document.getElementById('timeRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            
+            if (allDay) {
+                timeRow.style.display = 'none';
+                endTimeRow.style.display = 'none';
+                // Clear time values
+                document.getElementById('eventStartTime').value = '';
+                document.getElementById('eventEndTime').value = '';
+            } else {
+                timeRow.style.display = 'flex';
+                // Show end time only if it's a multi-day event
+                const eventType = document.getElementById('eventType').value;
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            }
+        }
+        
+        // Save Event
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+            const type = document.getElementById('eventType').value;
+            const startDate = document.getElementById('eventStartDate').value;
+            const allDay = document.getElementById('eventAllDay').checked;
+            const startTime = document.getElementById('eventStartTime').value;
+            const endDate = document.getElementById('eventEndDate').value;
+            const endTime = document.getElementById('eventEndTime').value;
+            const recurrence = document.getElementById('eventRecurrence').value;
+            const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
+            
+            if (!title || !startDate) {
+                alert(t('fillTitleDate'));
+                return;
+            }
+            
+            if (type === 'multi') {
+                if (!endDate) {
+                    alert(t('endDateRequired'));
+                    return;
+                }
+                if (new Date(endDate) < new Date(startDate)) {
+                    alert(t('endDateAfterStart'));
+                    return;
+                }
+            }
+            
+            // Format time for display - if all-day, set times to null
+            const formattedStartTime = allDay ? null : (startTime ? startTime : null);
+            const formattedEndTime = allDay ? null : (endTime ? endTime : null);
+            
+            if (editingEventId) {
+                // Update existing event
+                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    const oldEvent = { ...userEvents[eventIndex] };
+                    userEvents[eventIndex] = {
+                        ...userEvents[eventIndex],
+                        title: title,
+                        description: description,
+                        type: type,
+                        date: startDate,
+                        startTime: formattedStartTime,
+                        endDate: endDate,
+                        endTime: formattedEndTime,
+                        recurrence: recurrence,
+                        recurrenceEnd: recurrenceEnd
+                    };
+                    
+                    // Log the edit
+                    logEventChange('edit', userEvents[eventIndex], oldEvent);
+                }
+            } else {
+                // Create new event
+                const newEvent = {
+                    id: generateEventId(),
+                    title: title,
+                    description: description,
+                    type: type,
+                    date: startDate,
+                    startTime: formattedStartTime,
+                    endDate: endDate,
+                    endTime: formattedEndTime,
+                    recurrence: recurrence,
+                    recurrenceEnd: recurrenceEnd,
+                    isUserEvent: true,
+                    source: 'manual'
+                };
+                
+                userEvents.push(newEvent);
+                
+                // Log the creation
+                logEventChange('create', newEvent);
+            }
+            
+            saveUserEvents();
+            renderEventsList();
+            hideEventForm();
+        }
+        
+        // Edit event
+        function editEvent(event) {
+            editingEventId = event.id;
+            document.getElementById('modalTitle').textContent = t('editEventTitle');
+            
+            // Show delete button for editing
+            document.getElementById('deleteEventBtn').style.display = 'inline-block';
+            
+            // Populate form with event data
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventType').value = event.type || 'single';
+            document.getElementById('eventStartDate').value = event.date;
+            
+            // Handle all-day checkbox
+            const isAllDay = !event.startTime && !event.endTime;
+            document.getElementById('eventAllDay').checked = isAllDay;
+            document.getElementById('eventStartTime').value = event.startTime || '';
+            document.getElementById('eventEndDate').value = event.endDate || '';
+            document.getElementById('eventEndTime').value = event.endTime || '';
+            document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
+            
+            handleEventTypeChange();
+            handleAllDayChange();
+            document.getElementById('eventModal').style.display = 'block';
+        }
+        
+        // Delete event
+        function deleteEvent() {
+            if (!editingEventId) return;
+            
+            if (confirm(t('confirmDelete'))) {
+                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    const deletedEvent = userEvents[eventIndex];
+                    
+                    // Log the deletion before removing the event
+                    logEventChange('delete', deletedEvent);
+                    
+                    userEvents.splice(eventIndex, 1);
+                    saveUserEvents();
+                    renderEventsList();
+                    hideEventForm();
+                }
+            }
         }
         
 
         
-        function previousMonth() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            renderCalendar();
-        }
-        
-        function nextMonth() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            renderCalendar();
-        }
-        
-        // Export Calendar as ICS
-        function exportCalendar() {
-            const allEvents = [...getFilteredEvents(), ...userEvents];
-            let icsContent = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Custom Calendar//EN',
-                'CALSCALE:GREGORIAN'
-            ];
-            
-            allEvents.forEach(event => {
-                icsContent.push('BEGIN:VEVENT');
-                icsContent.push(`UID:${event.id || generateEventId()}`);
-                icsContent.push(`DTSTART:${formatDateToIcal(event.date)}`);
-                icsContent.push(`SUMMARY:${event.title}`);
-                if (event.description) {
-                    icsContent.push(`DESCRIPTION:${event.description}`);
-                }
-                icsContent.push('END:VEVENT');
-            });
-            
-            icsContent.push('END:VCALENDAR');
-            
-            const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'calendar.ics';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        // Format date for ICS export
-        function formatDateToIcal(dateStr) {
-            return dateStr.replace(/-/g, '');
-        }
-        
-        // Refresh calendar - clear cache and reload all data
-        async function refreshCalendar() {
-            // Clear all cached data
-            events = [];
-            userEvents = [];
-            
+        // Clear cache and navigate back to calendar
+        function clearCacheAndNavigate() {
             // Clear localStorage cache
             localStorage.removeItem('calendarUserEvents');
             localStorage.removeItem('calendarExternalEvents');
+            localStorage.removeItem('calendarBrowserId');
             
-            // Show loading
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('calendar').style.display = 'none';
-            document.getElementById('loading').textContent = 'Refreshing events...';
-            
-            try {
-                // Reload external events from API
-                await fetchEvents();
-                
-                // Reload user events from Supabase
-                await loadUserEvents();
-                
-                // Re-render calendar
-                renderCalendar();
-                
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('calendar').style.display = 'grid';
-                
-                console.log('Calendar refreshed successfully');
-            } catch (error) {
-                console.error('Error refreshing calendar:', error);
-                document.getElementById('loading').textContent = 'Error refreshing events. Please try again.';
-            }
+            // Navigate to calendar
+            window.location.href = 'index.html';
         }
         
-        // Clear all user events
-        function clearUserEvents() {
-            if (confirm('Are you sure you want to clear all user-created events?')) {
-                // Log deletion of all events before clearing
-                userEvents.forEach(event => {
-                    logEventChange('delete', event);
-                });
-                
-                userEvents = [];
-                
-                // Clear old localStorage backup if it exists
-                localStorage.removeItem('calendarUserEvents');
-                
-                saveUserEvents();
-                renderCalendar();
-                clearSelection();
-            }
+        // Refresh events with cache clear
+        function refreshWithCacheClear() {
+            // Clear localStorage cache
+            localStorage.removeItem('calendarUserEvents');
+            localStorage.removeItem('calendarExternalEvents');
+            localStorage.removeItem('calendarBrowserId');
+            
+            // Reload user events
+            loadUserEvents();
         }
         
-
-        
-        // Generate recurring events for display
-        function generateRecurringEvents(event) {
-            const events = [];
-            const startDate = new Date(event.date);
-            const endDate = event.recurrenceEnd ? new Date(event.recurrenceEnd) : new Date(startDate.getFullYear() + 1, startDate.getMonth(), startDate.getDate());
-            
-            let currentDate = new Date(startDate);
-            
-            while (currentDate <= endDate) {
-                events.push({
-                    ...event,
-                    date: currentDate.toISOString().split('T')[0],
-                    isRecurring: true
-                });
-                
-                switch (event.recurrence) {
-                    case 'daily':
-                        currentDate.setDate(currentDate.getDate() + 1);
-                        break;
-                    case 'weekly':
-                        currentDate.setDate(currentDate.getDate() + 7);
-                        break;
-                    case 'monthly':
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                        break;
-                    case 'yearly':
-                        currentDate.setFullYear(currentDate.getFullYear() + 1);
-                        break;
-                }
-            }
-            
-            return events;
-        }
-        
-        // Get all events for display (including recurring)
-        function getAllDisplayEvents() {
-            let allEvents = [...getFilteredEvents()]; // Use filtered events instead of all events
-            
-            console.log('Processing user events for display:', userEvents.length);
-            
-            userEvents.forEach(event => {
-                if (event.type === 'recurring') {
-                    const recurringEvents = generateRecurringEvents(event);
-                    allEvents.push(...recurringEvents);
-                    console.log(`Generated ${recurringEvents.length} recurring instances for: ${event.title}`);
-                } else if (event.type === 'multi' && event.endDate) {
-                    // For multi-day events, create separate instances for each day
-                    console.log(`Processing multi-day event: ${event.title} from ${event.date} to ${event.endDate}`);
-                    
-                    const startDate = new Date(event.date + 'T00:00:00');
-                    const endDate = new Date(event.endDate + 'T00:00:00');
-                    
-                    if (endDate >= startDate) {
-                        // Create an event for each day in the range
-                        const currentDate = new Date(startDate);
-                        let dayIndex = 0;
-                        
-                        while (currentDate <= endDate) {
-                            const currentDateStr = currentDate.toISOString().split('T')[0];
-                            
-                            allEvents.push({
-                                ...event,
-                                date: currentDateStr,
-                                isMultiDay: true,
-                                originalStartDate: event.date,
-                                originalEndDate: event.endDate,
-                                totalDays: Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1,
-                                dayIndex: dayIndex, // 0 for first day, 1 for second day, etc.
-                                isFirstDay: dayIndex === 0,
-                                isLastDay: currentDate.getTime() === endDate.getTime()
-                            });
-                            
-                            dayIndex++;
-                            currentDate.setDate(currentDate.getDate() + 1);
-                        }
-                        
-                        console.log(`Added multi-day event "${event.title}" across ${dayIndex} days`);
-                    } else {
-                        console.warn(`Invalid multi-day event: end date ${event.endDate} is before start date ${event.date}`);
-                    }
-                } else {
-                    allEvents.push(event);
-                    console.log(`Added single-day event: ${event.title} on ${event.date}`);
-                }
-            });
-            
-            console.log(`Total events for display: ${allEvents.length}`);
-            return allEvents;
-        }
-        
-        // Show storage information
-        function showStorageInfo() {
-            const userEventCount = userEvents.length;
-            const browserId = getBrowserId();
+        // Refresh events
+        function refreshEvents() {
+            loadUserEvents();
         }
         
         // Initialize
-        fetchEvents();
+        updateLanguageUI();
+        checkAuth();
     </script>
 </body>
-</html>
+</html> 
