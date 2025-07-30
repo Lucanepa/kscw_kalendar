@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Manager - Ereignisse erstellen & verwalten</title>
+    <title>Calendar Admin - Event Management</title>
     <!-- Add Supabase JavaScript client -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -15,7 +15,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 8px;
@@ -35,14 +35,6 @@
         .header h1 {
             margin: 0;
             font-size: 24px;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 14px;
         }
         
         .auth-section {
@@ -71,18 +63,13 @@
             color: #333;
         }
         
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
             box-sizing: border-box;
-        }
-        
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
         }
         
         .btn {
@@ -93,6 +80,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            width: 100%;
         }
         
         .btn:hover {
@@ -105,6 +93,70 @@
         
         .btn-secondary:hover {
             background: #545b62;
+        }
+        
+        .admin-content {
+            display: none;
+            padding: 20px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007cba;
+        }
+        
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007cba;
+        }
+        
+        .events-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .events-table th,
+        .events-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .events-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .events-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
         }
         
         .btn-danger {
@@ -124,129 +176,20 @@
             background: #e0a800;
         }
         
-        .event-manager-content {
-            display: none;
-            padding: 20px;
-        }
-        
-        .controls {
-            padding: 20px;
-            background: #f9f9f9;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .control-section {
-            margin-bottom: 20px;
-        }
-        
-        .control-section h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 16px;
-        }
-        
-        .quick-actions {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .event-form {
-            display: none;
-            background: white;
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        
-        .form-row label {
-            min-width: 120px;
-            font-weight: bold;
-        }
-        
-        .form-row input, .form-row select, .form-row textarea {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-        }
-        
-        .form-row textarea {
-            min-height: 60px;
-            resize: vertical;
-        }
-        
-        .form-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-        
-        .events-list {
-            margin-top: 20px;
-        }
-        
-        .event-item {
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
-        }
-        
-        .event-item:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-1px);
-        }
-        
-        .event-info {
-            flex: 1;
-        }
-        
-        .event-title {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: #333;
-        }
-        
-        .event-meta {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 8px;
-        }
-        
-        .event-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        
         .event-type-badge {
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: bold;
-            margin-left: 10px;
         }
         
-        .badge-single {
-            background: #28a745;
+        .badge-user {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .badge-external {
+            background: #007cba;
             color: white;
         }
         
@@ -258,6 +201,78 @@
         .badge-recurring {
             background: #6f42c1;
             color: white;
+        }
+        
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-filters input,
+        .search-filters select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .search-filters input {
+            min-width: 200px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .pagination button.active {
+            background: #007cba;
+            color: white;
+            border-color: #007cba;
+        }
+        
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .logout-btn:hover {
+            background: #c82333;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #28a745;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
         }
         
         .auth-tabs {
@@ -287,29 +302,105 @@
             display: block;
         }
         
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-            text-align: center;
+        /* User Management Styles */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
         }
         
-        .success-message {
-            color: #28a745;
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+        .admin-tab {
+            padding: 10px 20px;
             cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+            font-size: 16px;
         }
         
-        .logout-btn:hover {
-            background: #c82333;
+        .admin-tab.active {
+            color: #007cba;
+            border-bottom: 2px solid #007cba;
+        }
+        
+        .admin-section {
+            display: none;
+        }
+        
+        .admin-section.active {
+            display: block;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .user-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .user-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .role-admin {
+            background: #dc3545;
+        }
+        
+        .role-hauswart {
+            background: #fd7e14;
+        }
+        
+        .role-coach {
+            background: #28a745;
+        }
+        
+        .role-user {
+            background: #6c757d;
+        }
+        
+        .role-scorer {
+            background: #17a2b8;
+        }
+        
+        .role-super_admin {
+            background: #dc3545;
+        }
+        
+        .project-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .project-calendar_ {
+            background: #007cba;
+            color: white;
+        }
+        
+        .project-scorer_ {
+            background: #28a745;
+            color: white;
         }
         
         /* Modal styles */
@@ -327,14 +418,11 @@
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 40px;
-            border-radius: 12px;
-            width: 90%;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
             max-width: 600px;
             position: relative;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .close {
@@ -349,158 +437,280 @@
             color: #000;
         }
         
-        .modal-content h2 {
-            margin: 0 0 30px 0;
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 15px;
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .permission-chip {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 10px;
+            color: #495057;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
         }
         
         .form-row {
             display: flex;
-            flex-direction: column;
-            margin-bottom: 20px;
-            align-items: flex-start;
-        }
-        
-        .form-row label {
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-            min-width: 120px;
-        }
-        
-        .form-row input,
-        .form-row select,
-        .form-row textarea {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            width: 100%;
-            box-sizing: border-box;
-            transition: border-color 0.2s ease;
-        }
-        
-        .form-row input:focus,
-        .form-row select:focus,
-        .form-row textarea:focus {
-            outline: none;
-            border-color: #007cba;
-            box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
-        }
-        
-        .form-row textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-        
-        /* Special styling for checkbox row */
-        .form-row:has(input[type="checkbox"]) {
-            flex-direction: row;
-            align-items: center;
             gap: 10px;
+            margin-bottom: 15px;
         }
         
-        .form-row:has(input[type="checkbox"]) label {
+        .form-row .form-group {
+            flex: 1;
             margin-bottom: 0;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         
-        .form-row:has(input[type="checkbox"]) input[type="checkbox"] {
-            width: auto;
-            margin: 0;
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .auth-section {
+                padding: 20px;
+            }
+            
+            .login-form {
+                padding: 20px;
+            }
+            
+            .admin-content {
+                padding: 15px;
+            }
+            
+            .admin-tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .admin-tab {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .controls {
+                padding: 15px;
+            }
+            
+            .control-section {
+                margin-bottom: 15px;
+            }
+            
+            .control-section h3 {
+                font-size: 16px;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filter-controls input,
+            .filter-controls select {
+                width: 100%;
+            }
+            
+            .filter-controls .btn {
+                width: 100%;
+            }
+            
+            /* Table mobile responsiveness */
+            .events-table,
+            .users-table {
+                font-size: 12px;
+                overflow-x: auto;
+                display: block;
+            }
+            
+            .events-table th,
+            .events-table td,
+            .users-table th,
+            .users-table td {
+                padding: 8px 4px;
+                min-width: 80px;
+                white-space: nowrap;
+            }
+            
+            .events-table th:nth-child(1),
+            .events-table td:nth-child(1),
+            .users-table th:nth-child(1),
+            .users-table td:nth-child(1) {
+                min-width: 120px;
+            }
+            
+            .events-table th:nth-child(2),
+            .events-table td:nth-child(2),
+            .users-table th:nth-child(2),
+            .users-table td:nth-child(2) {
+                min-width: 100px;
+            }
+            
+            /* Hide less important columns on mobile */
+            .events-table th:nth-child(4),
+            .events-table td:nth-child(4),
+            .events-table th:nth-child(5),
+            .events-table td:nth-child(5),
+            .users-table th:nth-child(4),
+            .users-table td:nth-child(4),
+            .users-table th:nth-child(5),
+            .users-table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Modal mobile fixes */
+            .modal-content {
+                margin: 10% auto;
+                padding: 20px;
+                width: 95%;
+                max-width: none;
+            }
+            
+            .modal-content h2 {
+                font-size: 18px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
         }
         
-        .form-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        
-        .nav-links {
-            margin-top: 10px;
-        }
-        
-        .nav-links a {
-            color: #000000;
-            text-decoration: none;
-            margin-right: 15px;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
-        .nav-links a:hover {
-            opacity: 1;
-        }
-        
-        /* Language switch styles */
-        .language-switch {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #007cba;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .language-switch:hover {
-            background: #005a87;
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .events-table,
+            .users-table {
+                font-size: 11px;
+            }
+            
+            .events-table th,
+            .events-table td,
+            .users-table th,
+            .users-table td {
+                padding: 6px 2px;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 15px;
+            }
+            
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Event Manager</h1>
+            <h1>📅 Calendar Admin Panel</h1>
             <div class="user-info" id="userInfo" style="display: none;">
                 <span id="userEmail"></span>
-                <button class="logout-btn" onclick="logout()">Abmelden</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
-            <button class="language-switch" onclick="toggleLanguage()" id="languageSwitch">🇺🇸 English</button>
         </div>
         
         <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
             <div style="margin-bottom: 20px;">
-                <a href="index.html" style="color: #000000; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
-                    ⬅️ Zurück zum Kalender
+                <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Back to Calendar
                 </a>
             </div>
             
             <div class="login-form">
-                <h2>🔐 Event Manager Authentifizierung</h2>
-                <p>Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.</p>
+                <h2>🔐 Admin Authentication</h2>
+                <p>Please sign in to access event management.</p>
                 
                 <div class="auth-tabs">
-                    <button class="auth-tab active">Anmelden</button>
+                    <button class="auth-tab active">Sign In</button>
                 </div>
                 
                 <!-- Login Form -->
                 <div class="auth-form active" id="loginForm">
                     <div class="form-group">
-                        <label for="loginEmail">E-Mail:</label>
-                        <input type="email" id="loginEmail" placeholder="Ihre E-Mail-Adresse eingeben" />
+                        <label for="loginEmail">Email:</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" />
                     </div>
                     
                     <div class="form-group">
-                        <label for="loginPassword">Passwort:</label>
-                        <input type="password" id="loginPassword" placeholder="Ihr Passwort eingeben" />
+                        <label for="loginPassword">Password:</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" />
                     </div>
                     
-                    <button class="btn" onclick="signIn()">Anmelden</button>
+                    <button class="btn" onclick="signIn()">Sign In</button>
                 </div>
                 
 
@@ -509,101 +719,160 @@
             </div>
         </div>
         
-        <!-- Event Manager Content -->
-        <div class="event-manager-content" id="eventManagerContent">
-            <div class="nav-links">
-                <a href="index.html">⬅️ Zurück zum Kalender</a>
+        <!-- Admin Content -->
+        <div class="admin-content" id="adminContent">
+            <div style="margin-bottom: 20px;">
+                <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Back to Calendar
+                </a>
             </div>
             
-            <div class="controls">
-                <div class="control-section">
-                    <h3>📅 Ereignisverwaltung</h3>
-                    <div class="quick-actions">
-                        <button class="btn" onclick="showAddEventForm()">➕ Ereignis hinzufügen</button>
-                        <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Ereignisse aktualisieren</button>
+            <!-- Admin Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchTab('events')">📅 Event Management</button>
+                <button class="admin-tab" onclick="switchTab('users')">👥 User Management</button>
+                
+            </div>
+            
+            <!-- Events Section -->
+            <div class="admin-section active" id="eventsSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Events</h3>
+                        <div class="number" id="totalEvents">0</div>
                     </div>
+                    <div class="stat-card">
+                        <h3>User Events</h3>
+                        <div class="number" id="userEvents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>External Events</h3>
+                        <div class="number" id="externalEvents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Multi-day Events</h3>
+                        <div class="number" id="multiDayEvents">0</div>
+                    </div>
+                </div>
+                
+                <div class="search-filters">
+                    <input type="text" id="searchInput" placeholder="Search events..." onkeyup="filterEvents()" />
+                    <select id="typeFilter" onchange="filterEvents()">
+                        <option value="">All Types</option>
+                        <option value="user">User Events</option>
+                        <option value="external">External Events</option>
+                        <option value="multi">Multi-day</option>
+                        <option value="recurring">Recurring</option>
+                    </select>
+                    <input type="date" id="dateFilter" onchange="filterEvents()" />
+                    <button class="btn" onclick="exportEvents()">📥 Export Events</button>
+                    <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+                </div>
+                
+                <table class="events-table" id="eventsTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTableBody">
+                        <!-- Events will be populated here -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be generated here -->
                 </div>
             </div>
             
-            <div class="events-list" id="eventsList">
-                <!-- Events will be populated here -->
+            <!-- Users Section -->
+            <div class="admin-section" id="usersSection">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh Users</button>
+                </div>
+                
+                <table class="user-table" id="usersTable">
+                                            <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Display Name</th>
+                                <th>Role</th>
+                                <th>Project</th>
+                                <th>Permissions</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
             </div>
+        </div>
         </div>
     </div>
 
-    <!-- Event Modal -->
-    <div id="eventModal" class="modal">
+    <!-- User Modal -->
+    <div id="userModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <span class="close" onclick="hideEventForm()">&times;</span>
-            <h2 id="modalTitle">Ereignis hinzufügen</h2>
+            <span class="close" onclick="closeUserModal()">&times;</span>
+            <h2 id="modalTitle">Edit User</h2>
             
-            <form id="eventForm">
+            <form id="userForm">
                 <div class="form-row">
-                    <label id="titleLabel">Titel:</label>
-                    <input type="text" id="eventTitle" placeholder="Ereignistitel" required />
-                </div>
-                
-                <div class="form-row">
-                    <label id="descriptionLabel">Beschreibung:</label>
-                    <textarea id="eventDescription" placeholder="Optionale Beschreibung"></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <label id="typeLabel">Typ:</label>
-                    <select id="eventType" onchange="handleEventTypeChange()">
-                        <option value="single">Einzeltag</option>
-                        <option value="multi">Mehrtägig</option>
-                        <option value="recurring">Wiederkehrend</option>
-                    </select>
+                    <div class="form-group">
+                        <label for="userEmail">Email:</label>
+                        <input type="email" id="userEmail" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userPassword">Password:</label>
+                        <input type="password" id="userPassword" />
+                    </div>
                 </div>
                 
                 <div class="form-row">
-                    <label id="startDateLabel">Startdatum:</label>
-                    <input type="date" id="eventStartDate" required />
+                    <div class="form-group">
+                        <label for="userDisplayName">Display Name:</label>
+                        <input type="text" id="userDisplayName" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userRole">Role:</label>
+                        <select id="userRole" onchange="updatePermissions()">
+                            <option value="hauswart">Hauswart</option>
+                            <option value="coach">Coach Volleyball</option>
+                            <option value="coach_basketball">Coach Basketball</option>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin (Full Access)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userProject">Project:</label>
+                        <select id="userProject">
+                            <option value="calendar_">Calendar System</option>
+                            <option value="scorer_">Scorer System</option>
+                        </select>
+                    </div>
                 </div>
                 
-                <div class="form-row">
-                    <label id="allDayLabel">
-                        <input type="checkbox" id="eventAllDay" onchange="handleAllDayChange()" />
-                        <span id="allDayText">Ganztägig</span>
-                    </label>
+                <div class="form-group">
+                    <label>Permissions:</label>
+                    <div id="permissionsContainer">
+                        <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
+                        <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
+                        <label><input type="checkbox" value="admin_access"> Admin Access</label><br>
+                        <label><input type="checkbox" value="super_admin"> Super Admin (Full Access)</label>
+                    </div>
                 </div>
                 
-                <div class="form-row" id="timeRow">
-                    <label id="startTimeLabel">Startzeit:</label>
-                    <input type="time" id="eventStartTime" />
-                </div>
-                
-                <div class="form-row" id="endDateRow" style="display: none;">
-                    <label id="endDateLabel">Enddatum:</label>
-                    <input type="date" id="eventEndDate" />
-                </div>
-                
-                <div class="form-row" id="endTimeRow" style="display: none;">
-                    <label id="endTimeLabel">Endzeit:</label>
-                    <input type="time" id="eventEndTime" />
-                </div>
-                
-                <div class="form-row" id="recurringRow" style="display: none;">
-                    <label id="recurrenceLabel">Wiederholung:</label>
-                    <select id="eventRecurrence">
-                        <option value="daily">Täglich</option>
-                        <option value="weekly">Wöchentlich</option>
-                        <option value="monthly">Monatlich</option>
-                        <option value="yearly">Jährlich</option>
-                    </select>
-                </div>
-                
-                <div class="form-row" id="recurringEndRow" style="display: none;">
-                    <label id="untilLabel">Bis:</label>
-                    <input type="date" id="eventRecurrenceEnd" />
-                </div>
-                
-                <div class="form-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="hideEventForm()" id="cancelBtn">Abbrechen</button>
-                    <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">Löschen</button>
-                    <button type="button" class="btn" onclick="saveEvent()" id="saveBtn">Ereignis speichern</button>
-                </div>
+                <button type="submit" class="btn">Update User</button>
             </form>
         </div>
     </div>
@@ -616,316 +885,11 @@
         // Initialize Supabase client
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         
-        let userEvents = [];
-        let editingEventId = null;
+        let allEvents = [];
+        let filteredEvents = [];
+        let currentPage = 1;
+        const eventsPerPage = 20;
         let currentUser = null;
-        let currentLanguage = 'de'; // Default to German
-        
-        // Translation object
-        const translations = {
-            de: {
-                // Header
-                eventManager: '📅 Event Manager',
-                logout: 'Abmelden',
-                languageSwitch: '🇺🇸 English',
-                
-                // Navigation
-                backToCalendar: '⬅️ Zurück zum Kalender',
-                
-                // Authentication
-                authTitle: '🔐 Event Manager Authentifizierung',
-                authDescription: 'Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.',
-                signIn: 'Anmelden',
-                email: 'E-Mail:',
-                password: 'Passwort:',
-                emailPlaceholder: 'Ihre E-Mail-Adresse eingeben',
-                passwordPlaceholder: 'Ihr Passwort eingeben',
-                
-                // Event Management
-                eventManagement: '📅 Ereignisverwaltung',
-                addEvent: '➕ Ereignis hinzufügen',
-                refreshEvents: '🔄 Ereignisse aktualisieren',
-                
-                // Modal
-                addEventTitle: 'Ereignis hinzufügen',
-                editEventTitle: 'Ereignis bearbeiten',
-                title: 'Titel:',
-                description: 'Beschreibung:',
-                type: 'Typ:',
-                startDate: 'Startdatum:',
-                startTime: 'Startzeit:',
-                endDate: 'Enddatum:',
-                endTime: 'Endzeit:',
-                recurrence: 'Wiederholung:',
-                until: 'Bis:',
-                allDay: 'Ganztägig',
-                titlePlaceholder: 'Ereignistitel',
-                descriptionPlaceholder: 'Optionale Beschreibung',
-                cancel: 'Abbrechen',
-                saveEvent: 'Ereignis speichern',
-                delete: 'Löschen',
-                
-                // Event Types
-                single: 'Einzeltag',
-                multi: 'Mehrtägig',
-                recurring: 'Wiederkehrend',
-                
-                // Recurrence
-                daily: 'Täglich',
-                weekly: 'Wöchentlich',
-                monthly: 'Monatlich',
-                yearly: 'Jährlich',
-                
-                // Event Display
-                date: 'Datum:',
-                time: 'Zeit:',
-                end: 'Ende:',
-                allDayDisplay: 'Ganztägig',
-                recurringDisplay: 'Wiederkehrend:',
-                edit: 'Bearbeiten',
-                
-                // Messages
-                noEvents: 'Noch keine Ereignisse erstellt. Klicken Sie auf "Ereignis hinzufügen" um Ihr erstes Ereignis zu erstellen!',
-                fillRequiredFields: 'Bitte füllen Sie alle Felder aus.',
-                fillTitleDate: 'Bitte füllen Sie Titel und Startdatum aus.',
-                endDateRequired: 'Enddatum ist für mehrtägige Ereignisse erforderlich.',
-                endDateAfterStart: 'Enddatum muss nach oder gleich dem Startdatum sein.',
-                confirmDelete: 'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten?',
-                authSuccess: '✅ Anmeldung erfolgreich! Willkommen,',
-                noPermission: '❌ Sie haben keine Berechtigung für den Event Manager.',
-                authError: '❌ Bei der Anmeldung ist ein Fehler aufgetreten.',
-                loadError: 'Fehler beim Laden Ihrer Ereignisse aus der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung und aktualisieren Sie die Seite.',
-                saveError: 'Fehler beim Speichern Ihrer Ereignisse in der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung.',
-                noUsers: 'No users found.'
-            },
-            en: {
-                // Header
-                eventManager: '📅 Event Manager',
-                logout: 'Logout',
-                languageSwitch: '🇩🇪 Deutsch',
-                
-                // Navigation
-                backToCalendar: '⬅️ Back to Calendar',
-                
-                // Authentication
-                authTitle: '🔐 Event Manager Authentication',
-                authDescription: 'Please sign in to create and manage events.',
-                signIn: 'Sign In',
-                email: 'Email:',
-                password: 'Password:',
-                emailPlaceholder: 'Enter your email address',
-                passwordPlaceholder: 'Enter your password',
-                
-                // Event Management
-                eventManagement: '📅 Event Management',
-                addEvent: '➕ Add Event',
-                refreshEvents: '🔄 Refresh Events',
-                
-                // Modal
-                addEventTitle: 'Add Event',
-                editEventTitle: 'Edit Event',
-                title: 'Title:',
-                description: 'Description:',
-                type: 'Type:',
-                startDate: 'Start Date:',
-                startTime: 'Start Time:',
-                endDate: 'End Date:',
-                endTime: 'End Time:',
-                recurrence: 'Recurrence:',
-                until: 'Until:',
-                allDay: 'All Day',
-                titlePlaceholder: 'Event title',
-                descriptionPlaceholder: 'Optional description',
-                cancel: 'Cancel',
-                saveEvent: 'Save Event',
-                delete: 'Delete',
-                
-                // Event Types
-                single: 'Single Day',
-                multi: 'Multi-Day',
-                recurring: 'Recurring',
-                
-                // Recurrence
-                daily: 'Daily',
-                weekly: 'Weekly',
-                monthly: 'Monthly',
-                yearly: 'Yearly',
-                
-                // Event Display
-                date: 'Date:',
-                time: 'Time:',
-                end: 'End:',
-                allDayDisplay: 'All Day',
-                recurringDisplay: 'Recurring:',
-                edit: 'Edit',
-                
-                // Messages
-                noEvents: 'No events created yet. Click "Add Event" to create your first event!',
-                fillRequiredFields: 'Please fill in all fields.',
-                fillTitleDate: 'Please fill in title and start date.',
-                endDateRequired: 'End date is required for multi-day events.',
-                endDateAfterStart: 'End date must be after or equal to start date.',
-                confirmDelete: 'Are you sure you want to delete this event?',
-                authSuccess: '✅ Sign in successful! Welcome,',
-                noPermission: '❌ You do not have permission for the Event Manager.',
-                authError: '❌ An error occurred during sign in.',
-                loadError: 'Error loading your events from the database. Please check your internet connection and refresh the page.',
-                saveError: 'Error saving your events to the database. Please check your internet connection.',
-                noUsers: 'No users found.'
-            }
-        };
-        
-        // Function to get translation
-        function t(key) {
-            return translations[currentLanguage][key] || key;
-        }
-        
-        // Function to toggle language
-        function toggleLanguage() {
-            currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
-            updateLanguageUI();
-            updateAllText();
-        }
-        
-        // Function to update language UI
-        function updateLanguageUI() {
-            const languageSwitch = document.getElementById('languageSwitch');
-            if (currentLanguage === 'de') {
-                languageSwitch.textContent = '🇺🇸 English';
-            } else {
-                languageSwitch.textContent = '🇩🇪 Deutsch';
-            }
-        }
-        
-        // Function to update all text on the page
-        function updateAllText() {
-            // Update header
-            document.querySelector('.header h1').textContent = t('eventManager');
-            document.querySelector('.logout-btn').textContent = t('logout');
-            
-            // Update navigation
-            const backLinks = document.querySelectorAll('a[href="index.html"]');
-            backLinks.forEach(link => {
-                link.textContent = t('backToCalendar');
-            });
-            
-            // Update auth section
-            const authTitle = document.querySelector('.login-form h2');
-            if (authTitle) authTitle.textContent = t('authTitle');
-            
-            const authDesc = document.querySelector('.login-form p');
-            if (authDesc) authDesc.textContent = t('authDescription');
-            
-            const signInBtn = document.querySelector('.btn[onclick="signIn()"]');
-            if (signInBtn) signInBtn.textContent = t('signIn');
-            
-            // Update form labels
-            const emailLabel = document.querySelector('label[for="loginEmail"]');
-            if (emailLabel) emailLabel.textContent = t('email');
-            
-            const passwordLabel = document.querySelector('label[for="loginPassword"]');
-            if (passwordLabel) passwordLabel.textContent = t('password');
-            
-            // Update placeholders
-            const emailInput = document.getElementById('loginEmail');
-            if (emailInput) emailInput.placeholder = t('emailPlaceholder');
-            
-            const passwordInput = document.getElementById('loginPassword');
-            if (passwordInput) passwordInput.placeholder = t('passwordPlaceholder');
-            
-            // Update event management section
-            const eventManagementTitle = document.querySelector('.control-section h3');
-            if (eventManagementTitle) eventManagementTitle.textContent = t('eventManagement');
-            
-            const addEventBtn = document.querySelector('.btn[onclick="showAddEventForm()"]');
-            if (addEventBtn) addEventBtn.textContent = t('addEvent');
-            
-            const refreshBtn = document.querySelector('.btn[onclick="refreshEvents()"]');
-            if (refreshBtn) refreshBtn.textContent = t('refreshEvents');
-            
-            // Update modal
-            updateModalText();
-            
-            // Update event list
-            renderEventsList();
-        }
-        
-        // Function to update modal text
-        function updateModalText() {
-            const modalTitle = document.getElementById('modalTitle');
-            if (modalTitle) {
-                modalTitle.textContent = editingEventId ? t('editEventTitle') : t('addEventTitle');
-            }
-            
-            // Update form labels using IDs
-            const titleLabel = document.getElementById('titleLabel');
-            if (titleLabel) titleLabel.textContent = t('title');
-            
-            const descLabel = document.getElementById('descriptionLabel');
-            if (descLabel) descLabel.textContent = t('description');
-            
-            const typeLabel = document.getElementById('typeLabel');
-            if (typeLabel) typeLabel.textContent = t('type');
-            
-            const startDateLabel = document.getElementById('startDateLabel');
-            if (startDateLabel) startDateLabel.textContent = t('startDate');
-            
-            const allDayText = document.getElementById('allDayText');
-            if (allDayText) allDayText.textContent = t('allDay');
-            
-            const startTimeLabel = document.getElementById('startTimeLabel');
-            if (startTimeLabel) startTimeLabel.textContent = t('startTime');
-            
-            const endDateLabel = document.getElementById('endDateLabel');
-            if (endDateLabel) endDateLabel.textContent = t('endDate');
-            
-            const endTimeLabel = document.getElementById('endTimeLabel');
-            if (endTimeLabel) endTimeLabel.textContent = t('endTime');
-            
-            const recurrenceLabel = document.getElementById('recurrenceLabel');
-            if (recurrenceLabel) recurrenceLabel.textContent = t('recurrence');
-            
-            const untilLabel = document.getElementById('untilLabel');
-            if (untilLabel) untilLabel.textContent = t('until');
-            
-            // Update placeholders
-            const titleInput = document.getElementById('eventTitle');
-            if (titleInput) titleInput.placeholder = t('titlePlaceholder');
-            
-            const descInput = document.getElementById('eventDescription');
-            if (descInput) descInput.placeholder = t('descriptionPlaceholder');
-            
-            // Update buttons using IDs
-            const cancelBtn = document.getElementById('cancelBtn');
-            if (cancelBtn) cancelBtn.textContent = t('cancel');
-            
-            const saveBtn = document.getElementById('saveBtn');
-            if (saveBtn) saveBtn.textContent = t('saveEvent');
-            
-            const deleteBtn = document.getElementById('deleteEventBtn');
-            if (deleteBtn) deleteBtn.textContent = t('delete');
-            
-            // Update select options
-            updateSelectOptions();
-        }
-        
-        // Function to update select options
-        function updateSelectOptions() {
-            const eventTypeSelect = document.getElementById('eventType');
-            if (eventTypeSelect) {
-                eventTypeSelect.options[0].text = t('single');
-                eventTypeSelect.options[1].text = t('multi');
-                eventTypeSelect.options[2].text = t('recurring');
-            }
-            
-            const recurrenceSelect = document.getElementById('eventRecurrence');
-            if (recurrenceSelect) {
-                recurrenceSelect.options[0].text = t('daily');
-                recurrenceSelect.options[1].text = t('weekly');
-                recurrenceSelect.options[2].text = t('monthly');
-                recurrenceSelect.options[3].text = t('yearly');
-            }
-        }
         
         // Check if user is already authenticated
         async function checkAuth() {
@@ -934,8 +898,8 @@
                 
                 if (user && !error) {
                     currentUser = user;
-                    showEventManagerContent();
-                    loadUserEvents();
+                    showAdminContent();
+                    loadEvents();
                 } else {
                     showAuthSection();
                 }
@@ -952,7 +916,7 @@
             const messageDiv = document.getElementById('authMessage');
             
             if (!email || !password) {
-                messageDiv.innerHTML = `<div class="error-message">❌ ${t('fillRequiredFields')}</div>`;
+                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
                 return;
             }
             
@@ -967,21 +931,21 @@
                 } else {
                     currentUser = data.user;
                     
-                    // Check user role and permissions
+                    // Check user role and permissions for admin access
                     const userRole = currentUser.user_metadata?.role;
                     const permissions = currentUser.user_metadata?.permissions || [];
                     
-                    if (userRole && permissions.includes('create_events')) {
-                        messageDiv.innerHTML = `<div class="success-message">${t('authSuccess')} ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
-                        showEventManagerContent();
-                        loadUserEvents();
+                    if (userRole && permissions.includes('admin_access')) {
+                        messageDiv.innerHTML = `<div class="success-message">✅ Login successful! Welcome, ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
+                        showAdminContent();
+                        loadEvents();
                     } else {
-                        messageDiv.innerHTML = `<div class="error-message">${t('noPermission')}</div>`;
+                        messageDiv.innerHTML = '<div class="error-message">❌ You do not have permission to access the admin panel.</div>';
                         await logout();
                     }
                 }
             } catch (error) {
-                messageDiv.innerHTML = `<div class="error-message">${t('authError')}</div>`;
+                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign in.</div>';
                 console.error('Sign in error:', error);
             }
         }
@@ -1003,54 +967,57 @@
             showAuthSection();
         }
         
-        // Show event manager content
-        function showEventManagerContent() {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('eventManagerContent').style.display = 'block';
-            document.getElementById('userInfo').style.display = 'flex';
+        // Show admin content
+        function showAdminContent() {
+            const authSection = document.getElementById('authSection');
+            const adminContent = document.getElementById('adminContent');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (authSection) authSection.style.display = 'none';
+            if (adminContent) adminContent.style.display = 'block';
+            if (userInfo) userInfo.style.display = 'flex';
             
             if (currentUser) {
                 // Display user info with role if available
                 const userRole = currentUser.user_metadata?.role || 'user';
                 const displayName = currentUser.user_metadata?.display_name || currentUser.email;
-                document.getElementById('userEmail').textContent = `${displayName} (${userRole})`;
+                const userEmailElement = document.getElementById('userEmail');
+                if (userEmailElement) {
+                    userEmailElement.textContent = `${displayName} (${userRole})`;
+                }
             }
         }
         
         // Show auth section
         function showAuthSection() {
-            document.getElementById('authSection').style.display = 'block';
-            document.getElementById('eventManagerContent').style.display = 'none';
-            document.getElementById('userInfo').style.display = 'none';
+            const authSection = document.getElementById('authSection');
+            const adminContent = document.getElementById('adminContent');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (authSection) authSection.style.display = 'block';
+            if (adminContent) adminContent.style.display = 'none';
+            if (userInfo) userInfo.style.display = 'none';
             clearAuthForms();
         }
         
         // Clear auth forms
         function clearAuthForms() {
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            document.getElementById('authMessage').innerHTML = '';
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            const authMessage = document.getElementById('authMessage');
+            
+            if (loginEmail) loginEmail.value = '';
+            if (loginPassword) loginPassword.value = '';
+            if (authMessage) authMessage.innerHTML = '';
         }
         
 
         
-        // Simple browser ID for anonymous users (persistent across browser sessions)
-        function getBrowserId() {
-            let browserId = localStorage.getItem('calendarBrowserId');
-            if (!browserId) {
-                browserId = 'browser_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('calendarBrowserId', browserId);
-            }
-            return browserId;
-        }
-        
-        // Load user events from Supabase database
-        async function loadUserEvents() {
+        // Load events from Supabase
+        async function loadEvents() {
             try {
-                console.log('Loading user events from Supabase database...');
-                const browserId = getBrowserId();
-                
-                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
+                // Load user events
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?select=*`, {
                     method: 'GET',
                     headers: {
                         'apikey': supabaseKey,
@@ -1059,6 +1026,7 @@
                     }
                 });
                 
+                let userEvents = [];
                 if (response.ok) {
                     const data = await response.json();
                     userEvents = data.map(row => ({
@@ -1072,378 +1040,643 @@
                         endTime: row.end_time,
                         recurrence: row.recurrence,
                         recurrenceEnd: row.recurrence_end,
-                        isUserEvent: true,
-                        source: row.source || 'manual'
+                        browserId: row.browser_id,
+                        source: 'user',
+                        isUserEvent: true
                     }));
-                    console.log(`Loaded ${userEvents.length} user events from Supabase`);
-                    renderEventsList();
-                } else if (response.status === 404) {
-                    // Table doesn't exist yet, that's ok
-                    console.log('User events table not found, will be created on first save');
-                    userEvents = [];
-                    renderEventsList();
+                }
+                
+                // Load external events (from volleymanager)
+                const externalResponse = await fetch(`${supabaseUrl}/functions/v1/calendar-proxy`);
+                let externalEvents = [];
+                if (externalResponse.ok) {
+                    const icalData = await externalResponse.text();
+                    externalEvents = parseIcalData(icalData).map(event => ({
+                        ...event,
+                        source: 'external',
+                        isUserEvent: false
+                    }));
+                }
+                
+                allEvents = [...userEvents, ...externalEvents];
+                filteredEvents = [...allEvents];
+                
+                updateStats();
+                renderEventsTable();
+                
+            } catch (error) {
+                console.error('Failed to load events:', error);
+                alert('Failed to load events. Please check your connection.');
+            }
+        }
+        
+        // Parse iCal data (reused from main calendar)
+        function parseIcalData(icalData) {
+            const events = [];
+            const lines = icalData.split('\n');
+            let currentEvent = null;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                if (line === 'BEGIN:VEVENT') {
+                    currentEvent = {};
+                } else if (line === 'END:VEVENT' && currentEvent) {
+                    if (currentEvent.summary && currentEvent.dtstart) {
+                        events.push({
+                            title: currentEvent.summary,
+                            date: formatIcalDate(currentEvent.dtstart)
+                        });
+                    }
+                    currentEvent = null;
+                } else if (currentEvent) {
+                    if (line.startsWith('SUMMARY:')) {
+                        currentEvent.summary = line.substring(8);
+                    } else if (line.startsWith('DTSTART')) {
+                        const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
+                        if (dateMatch) {
+                            currentEvent.dtstart = dateMatch[1];
+                        }
+                    }
+                }
+            }
+
+            return events;
+        }
+        
+        function formatIcalDate(icalDate) {
+            if (icalDate && icalDate.length >= 8) {
+                const year = icalDate.substring(0, 4);
+                const month = icalDate.substring(4, 6);
+                const day = icalDate.substring(6, 8);
+                return `${year}-${month}-${day}`;
+            }
+            return null;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const userEventsCount = allEvents.filter(e => e.isUserEvent).length;
+            const externalEventsCount = allEvents.filter(e => !e.isUserEvent).length;
+            const multiDayEventsCount = allEvents.filter(e => e.type === 'multi').length;
+            
+            document.getElementById('totalEvents').textContent = allEvents.length;
+            document.getElementById('userEvents').textContent = userEventsCount;
+            document.getElementById('externalEvents').textContent = externalEventsCount;
+            document.getElementById('multiDayEvents').textContent = multiDayEventsCount;
+        }
+        
+        // Filter events
+        function filterEvents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            filteredEvents = allEvents.filter(event => {
+                // Search filter
+                const matchesSearch = !searchTerm || 
+                    event.title.toLowerCase().includes(searchTerm) ||
+                    (event.description && event.description.toLowerCase().includes(searchTerm));
+                
+                // Type filter
+                const matchesType = !typeFilter || 
+                    (typeFilter === 'user' && event.isUserEvent) ||
+                    (typeFilter === 'external' && !event.isUserEvent) ||
+                    (typeFilter === 'multi' && event.type === 'multi') ||
+                    (typeFilter === 'recurring' && event.type === 'recurring');
+                
+                // Date filter
+                const matchesDate = !dateFilter || event.date === dateFilter;
+                
+                return matchesSearch && matchesType && matchesDate;
+            });
+            
+            currentPage = 1;
+            renderEventsTable();
+        }
+        
+        // Render events table
+        function renderEventsTable() {
+            const tbody = document.getElementById('eventsTableBody');
+            tbody.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * eventsPerPage;
+            const endIndex = startIndex + eventsPerPage;
+            const pageEvents = filteredEvents.slice(startIndex, endIndex);
+            
+            pageEvents.forEach(event => {
+                const row = document.createElement('tr');
+                
+                // Title
+                const titleCell = document.createElement('td');
+                titleCell.textContent = event.title;
+                row.appendChild(titleCell);
+                
+                // Type badge
+                const typeCell = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = 'event-type-badge';
+                
+                if (event.isUserEvent) {
+                    badge.classList.add('badge-user');
+                    badge.textContent = 'User';
                 } else {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    badge.classList.add('badge-external');
+                    badge.textContent = 'External';
                 }
-            } catch (error) {
-                console.error('Failed to load events from Supabase:', error);
-                userEvents = [];
-                renderEventsList();
-                alert(t('loadError'));
-            }
-        }
-        
-        // Save user events to Supabase database
-        async function saveUserEvents() {
-            try {
-                console.log('Saving user events to Supabase database...');
-                const browserId = getBrowserId();
-                
-                // First, delete all existing events for this browser
-                await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?browser_id=eq.${browserId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'apikey': supabaseKey,
-                        'Authorization': `Bearer ${supabaseKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                // Then insert all current events
-                if (userEvents.length > 0) {
-                    const eventsToSave = userEvents.map(event => ({
-                        id: event.id,
-                        browser_id: browserId,
-                        title: event.title,
-                        description: event.description || null,
-                        event_type: event.type || 'single',
-                        start_date: event.date,
-                        start_time: event.startTime || null,
-                        end_date: event.endDate || null,
-                        end_time: event.endTime || null,
-                        recurrence: event.recurrence || null,
-                        recurrence_end: event.recurrenceEnd || null,
-                        source: event.source || 'manual',
-                        created_at: new Date().toISOString()
-                    }));
-                    
-                    const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
-                        method: 'POST',
-                        headers: {
-                            'apikey': supabaseKey,
-                            'Authorization': `Bearer ${supabaseKey}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                        },
-                        body: JSON.stringify(eventsToSave)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                }
-                
-                console.log(`Saved ${userEvents.length} user events to Supabase`);
-                
-            } catch (error) {
-                console.error('Failed to save events to Supabase:', error);
-                alert(t('saveError'));
-                throw error; // Re-throw to prevent silent failures
-            }
-        }
-        
-        // Generate unique ID for events
-        function generateEventId() {
-            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        }
-        
-        // Render events list
-        function renderEventsList() {
-            const eventsList = document.getElementById('eventsList');
-            eventsList.innerHTML = '';
-            
-            if (userEvents.length === 0) {
-                eventsList.innerHTML = `<p style="text-align: center; color: #666; padding: 20px;">${t('noEvents')}</p>`;
-                return;
-            }
-            
-            // Sort events by date in ascending order
-            const sortedEvents = [...userEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            sortedEvents.forEach(event => {
-                const eventItem = document.createElement('div');
-                eventItem.className = 'event-item';
-                
-                const eventInfo = document.createElement('div');
-                eventInfo.className = 'event-info';
-                
-                const eventTitle = document.createElement('div');
-                eventTitle.className = 'event-title';
-                eventTitle.textContent = event.title;
-                
-                const eventMeta = document.createElement('div');
-                eventMeta.className = 'event-meta';
-                
-                let metaText = `${t('date')} ${event.date}`;
-                
-                // Check if it's an all-day event (no start time)
-                if (!event.startTime && !event.endTime) {
-                    metaText += ` | ${t('allDayDisplay')}`;
-                } else if (event.startTime) {
-                    metaText += ` | ${t('time')} ${event.startTime}`;
-                }
-                
-                if (event.endDate && event.type === 'multi') {
-                    metaText += ` | ${t('end')} ${event.endDate}`;
-                }
-                if (event.type === 'recurring') {
-                    metaText += ` | ${t('recurringDisplay')} ${event.recurrence}`;
-                }
-                if (event.description) {
-                    metaText += ` | ${event.description}`;
-                }
-                
-                eventMeta.textContent = metaText;
-                
-                const eventTypeBadge = document.createElement('span');
-                eventTypeBadge.className = 'event-type-badge';
                 
                 if (event.type === 'multi') {
-                    eventTypeBadge.classList.add('badge-multi');
-                    eventTypeBadge.textContent = t('multi');
+                    badge.classList.add('badge-multi');
+                    badge.textContent += ' Multi';
                 } else if (event.type === 'recurring') {
-                    eventTypeBadge.classList.add('badge-recurring');
-                    eventTypeBadge.textContent = t('recurring');
+                    badge.classList.add('badge-recurring');
+                    badge.textContent += ' Recurring';
+                }
+                
+                typeCell.appendChild(badge);
+                row.appendChild(typeCell);
+                
+                // Date
+                const dateCell = document.createElement('td');
+                dateCell.textContent = event.date;
+                row.appendChild(dateCell);
+                
+                // Time
+                const timeCell = document.createElement('td');
+                timeCell.textContent = event.startTime || '-';
+                row.appendChild(timeCell);
+                
+                // Description
+                const descCell = document.createElement('td');
+                descCell.textContent = event.description || '-';
+                row.appendChild(descCell);
+                
+                // Actions
+                const actionsCell = document.createElement('td');
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'event-actions';
+                
+                if (event.isUserEvent) {
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn btn-small btn-warning';
+                    editBtn.textContent = 'Edit';
+                    editBtn.onclick = () => editEvent(event);
+                    actionsDiv.appendChild(editBtn);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn btn-small btn-danger';
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.onclick = () => deleteEvent(event);
+                    actionsDiv.appendChild(deleteBtn);
                 } else {
-                    eventTypeBadge.classList.add('badge-single');
-                    eventTypeBadge.textContent = t('single');
+                    const viewBtn = document.createElement('button');
+                    viewBtn.className = 'btn btn-small';
+                    viewBtn.textContent = 'View';
+                    viewBtn.onclick = () => viewEvent(event);
+                    actionsDiv.appendChild(viewBtn);
                 }
                 
-                eventInfo.appendChild(eventTitle);
-                eventInfo.appendChild(eventMeta);
-                eventInfo.appendChild(eventTypeBadge);
+                actionsCell.appendChild(actionsDiv);
+                row.appendChild(actionsCell);
                 
-                const eventActions = document.createElement('div');
-                eventActions.className = 'event-actions';
-                
-                const editBtn = document.createElement('button');
-                editBtn.className = 'btn btn-small btn-warning';
-                editBtn.textContent = t('edit');
-                editBtn.onclick = () => editEvent(event);
-                
-                eventActions.appendChild(editBtn);
-                
-                eventItem.appendChild(eventInfo);
-                eventItem.appendChild(eventActions);
-                
-                eventsList.appendChild(eventItem);
+                tbody.appendChild(row);
             });
+            
+            renderPagination();
         }
         
-        // Event Form Management
-        function showAddEventForm() {
-            editingEventId = null;
-            document.getElementById('modalTitle').textContent = t('addEventTitle');
-            document.getElementById('eventModal').style.display = 'block';
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredEvents.length / eventsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            paginationDiv.innerHTML = '';
             
-            // Hide delete button for new events
-            document.getElementById('deleteEventBtn').style.display = 'none';
+            if (totalPages <= 1) return;
             
-            // Set default date to today
-            const defaultDate = new Date().toISOString().split('T')[0];
-            document.getElementById('eventStartDate').value = defaultDate;
-            
-            // Clear form
-            clearEventForm();
-        }
-        
-        function hideEventForm() {
-            document.getElementById('eventModal').style.display = 'none';
-            clearEventForm();
-        }
-        
-        function clearEventForm() {
-            document.getElementById('eventTitle').value = '';
-            document.getElementById('eventDescription').value = '';
-            document.getElementById('eventType').value = 'single';
-            document.getElementById('eventStartDate').value = '';
-            document.getElementById('eventAllDay').checked = false;
-            document.getElementById('eventStartTime').value = '';
-            document.getElementById('eventEndDate').value = '';
-            document.getElementById('eventEndTime').value = '';
-            document.getElementById('eventRecurrence').value = 'weekly';
-            document.getElementById('eventRecurrenceEnd').value = '';
-            handleEventTypeChange();
-        }
-        
-        function handleEventTypeChange() {
-            const eventType = document.getElementById('eventType').value;
-            const allDay = document.getElementById('eventAllDay').checked;
-            const endDateRow = document.getElementById('endDateRow');
-            const endTimeRow = document.getElementById('endTimeRow');
-            const recurringRow = document.getElementById('recurringRow');
-            const recurringEndRow = document.getElementById('recurringEndRow');
-            
-            endDateRow.style.display = eventType === 'multi' ? 'flex' : 'none';
-            
-            // Show time fields only if not all-day
-            if (!allDay) {
-                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
-            } else {
-                endTimeRow.style.display = 'none';
+            // Previous button
+            if (currentPage > 1) {
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '← Previous';
+                prevBtn.onclick = () => {
+                    currentPage--;
+                    renderEventsTable();
+                };
+                paginationDiv.appendChild(prevBtn);
             }
             
-            recurringRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
-            recurringEndRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
-        }
-        
-        function handleAllDayChange() {
-            const allDay = document.getElementById('eventAllDay').checked;
-            const timeRow = document.getElementById('timeRow');
-            const endTimeRow = document.getElementById('endTimeRow');
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = i === currentPage ? 'active' : '';
+                pageBtn.onclick = () => {
+                    currentPage = i;
+                    renderEventsTable();
+                };
+                paginationDiv.appendChild(pageBtn);
+            }
             
-            if (allDay) {
-                timeRow.style.display = 'none';
-                endTimeRow.style.display = 'none';
-                // Clear time values
-                document.getElementById('eventStartTime').value = '';
-                document.getElementById('eventEndTime').value = '';
-            } else {
-                timeRow.style.display = 'flex';
-                // Show end time only if it's a multi-day event
-                const eventType = document.getElementById('eventType').value;
-                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            // Next button
+            if (currentPage < totalPages) {
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next →';
+                nextBtn.onclick = () => {
+                    currentPage++;
+                    renderEventsTable();
+                };
+                paginationDiv.appendChild(nextBtn);
             }
         }
         
-        // Save Event
-        function saveEvent() {
-            const title = document.getElementById('eventTitle').value.trim();
-            const description = document.getElementById('eventDescription').value.trim();
-            const type = document.getElementById('eventType').value;
-            const startDate = document.getElementById('eventStartDate').value;
-            const allDay = document.getElementById('eventAllDay').checked;
-            const startTime = document.getElementById('eventStartTime').value;
-            const endDate = document.getElementById('eventEndDate').value;
-            const endTime = document.getElementById('eventEndTime').value;
-            const recurrence = document.getElementById('eventRecurrence').value;
-            const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
-            
-            if (!title || !startDate) {
-                alert(t('fillTitleDate'));
-                return;
+        // Edit event (placeholder)
+        function editEvent(event) {
+            alert(`Edit functionality for event: ${event.title}\n\nThis would open an edit form in a real implementation.`);
+        }
+        
+        // Delete event (placeholder)
+        function deleteEvent(event) {
+            if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
+                alert(`Delete functionality for event: ${event.title}\n\nThis would delete the event from the database in a real implementation.`);
             }
+        }
+        
+        // View event (placeholder)
+        function viewEvent(event) {
+            alert(`View details for: ${event.title}\n\nDate: ${event.date}\nTime: ${event.startTime || 'N/A'}\nDescription: ${event.description || 'N/A'}`);
+        }
+        
+        // Export events
+        function exportEvents() {
+            const csvContent = [
+                'Title,Type,Date,Time,Description,Source',
+                ...filteredEvents.map(event => 
+                    `"${event.title}","${event.isUserEvent ? 'User' : 'External'}","${event.date}","${event.startTime || ''}","${event.description || ''}","${event.source}"`
+                )
+            ].join('\n');
             
-            if (type === 'multi') {
-                if (!endDate) {
-                    alert(t('endDateRequired'));
-                    return;
-                }
-                if (new Date(endDate) < new Date(startDate)) {
-                    alert(t('endDateAfterStart'));
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calendar_events_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Refresh data
+        function refreshData() {
+            loadEvents();
+        }
+        
+        // ===== USER MANAGEMENT FUNCTIONS =====
+        
+        // Switch between admin tabs
+        function switchTab(tabName) {
+            // Check if user is super_admin for user management access
+            if (tabName === 'users') {
+                const userRole = currentUser?.user_metadata?.role;
+                const permissions = currentUser?.user_metadata?.permissions || [];
+                
+                if (userRole !== 'super_admin' && !permissions.includes('super_admin')) {
+                    alert('❌ Access denied. Only super admins can access User Management.');
                     return;
                 }
             }
             
-            // Format time for display - if all-day, set times to null
-            const formattedStartTime = allDay ? null : (startTime ? startTime : null);
-            const formattedEndTime = allDay ? null : (endTime ? endTime : null);
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
             
-            if (editingEventId) {
-                // Update existing event
-                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
-                if (eventIndex !== -1) {
-                    userEvents[eventIndex] = {
-                        ...userEvents[eventIndex],
-                        title: title,
-                        description: description,
-                        type: type,
-                        date: startDate,
-                        startTime: formattedStartTime,
-                        endDate: endDate,
-                        endTime: formattedEndTime,
-                        recurrence: recurrence,
-                        recurrenceEnd: recurrenceEnd
+            // Update sections
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            if (tabName === 'events') {
+                document.getElementById('eventsSection').classList.add('active');
+            } else if (tabName === 'users') {
+                document.getElementById('usersSection').classList.add('active');
+                loadUsers();
+            }
+        }
+        
+        // Load all users
+        async function loadUsers() {
+            try {
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
+                
+                // Call the Edge Function to get users
+                try {
+                    console.log('Attempting to fetch users from Edge Function...');
+                    console.log('Using supabaseKey:', supabaseKey);
+                    
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'apikey': `${supabaseKey}`
                     };
+                    
+                    console.log('Request headers:', headers);
+                    
+                    const response = await fetch('https://wilrrlwqgvzjdhmnwmte.supabase.co/functions/v1/list-users', {
+                        method: 'GET',
+                        headers: headers
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+                    
+                    if (!response.ok) {
+                        console.log(`Edge Function failed with status ${response.status}, showing manual setup instructions`);
+                        
+                        // Try to get the error response body
+                        try {
+                            const errorBody = await response.text();
+                            console.log('Error response body:', errorBody);
+                        } catch (e) {
+                            console.log('Could not read error response body');
+                        }
+                        
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const result = await response.json();
+                    const users = result.users || [];
+                    
+                    if (!users || users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #666;">No users found.</td></tr>';
+                        return;
+                    }
+                    
+                    // Display users in table
+                    tbody.innerHTML = '';
+                    users.forEach(user => {
+                        // Filter out scorer users - only show calendar_ users
+                        if (user.user_metadata?.project === 'scorer_') {
+                            return; // Skip this user
+                        }
+                        const row = document.createElement('tr');
+                        
+                        // Email
+                        const emailCell = document.createElement('td');
+                        emailCell.textContent = user.email;
+                        row.appendChild(emailCell);
+                        
+                        // Display Name
+                        const displayNameCell = document.createElement('td');
+                        displayNameCell.textContent = user.user_metadata?.display_name || '-';
+                        row.appendChild(displayNameCell);
+                        
+                        // Role
+                        const roleCell = document.createElement('td');
+                        const role = user.user_metadata?.role || 'user';
+                        const roleBadge = document.createElement('span');
+                        roleBadge.className = `role-badge role-${role}`;
+                        roleBadge.textContent = role;
+                        roleCell.appendChild(roleBadge);
+                        row.appendChild(roleCell);
+                        
+                        // Project
+                        const projectCell = document.createElement('td');
+                        const project = user.user_metadata?.project || 'calendar_';
+                        const projectBadge = document.createElement('span');
+                        projectBadge.className = `project-badge project-${project}`;
+                        projectBadge.textContent = project;
+                        projectCell.appendChild(projectBadge);
+                        row.appendChild(projectCell);
+                        
+                        // Permissions
+                        const permissionsCell = document.createElement('td');
+                        const permissions = user.user_metadata?.permissions || [];
+                        if (permissions.length > 0) {
+                            permissions.forEach(permission => {
+                                const chip = document.createElement('span');
+                                chip.className = 'permission-chip';
+                                chip.textContent = permission;
+                                permissionsCell.appendChild(chip);
+                            });
+                        } else {
+                            permissionsCell.textContent = '-';
+                        }
+                        row.appendChild(permissionsCell);
+                        
+                        // Created
+                        const createdCell = document.createElement('td');
+                        const createdDate = new Date(user.created_at);
+                        const day = createdDate.getDate().toString().padStart(2, '0');
+                        const month = (createdDate.getMonth() + 1).toString().padStart(2, '0');
+                        const year = createdDate.getFullYear();
+                        createdCell.textContent = `${day}/${month}/${year}`;
+                        row.appendChild(createdCell);
+                        
+                        // Actions
+                        const actionsCell = document.createElement('td');
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn btn-small btn-warning';
+                        editBtn.textContent = 'Edit';
+                        editBtn.onclick = () => editUser(user);
+                        actionsCell.appendChild(editBtn);
+                        row.appendChild(actionsCell);
+                        
+                        tbody.appendChild(row);
+                    });
+                    
+                } catch (error) {
+                    console.log('Edge Function not available, showing manual setup instructions');
+                    // Show manual setup instructions as fallback
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                                <h3>👥 User Management</h3>
+                                <p>To manage users and their roles, please use the Supabase Dashboard:</p>
+                                <ol style="text-align: left; max-width: 500px; margin: 20px auto;">
+                                    <li>Go to your Supabase project dashboard</li>
+                                    <li>Navigate to Authentication → Users</li>
+                                    <li>Click on a user to edit their metadata</li>
+                                    <li>Add the following JSON to their user_metadata:</li>
+                                </ol>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
+                                    <strong>Example for Super Admin (Your Account):</strong><br>
+                                    <code>{
+  "display_name": "Luca Canepa",
+  "role": "super_admin",
+  "project": "calendar_",
+  "permissions": ["create_events", "manage_calendar", "admin_access", "super_admin"]
+}</code>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
+                                    <strong>Example for Scorer User:</strong><br>
+                                    <code>{
+  "display_name": "Coach Name",
+  "role": "user",
+  "project": "scorer_",
+  "permissions": ["scorer_access"]
+}</code>
+                                </div>
+                                <p><strong>Available roles:</strong> hauswart, coach, coach_basketball, admin, super_admin</p>
+                                <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, super_admin</p>
+                                <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
                 }
-            } else {
-                // Create new event
-                const newEvent = {
-                    id: generateEventId(),
-                    title: title,
-                    description: description,
-                    type: type,
-                    date: startDate,
-                    startTime: formattedStartTime,
-                    endDate: endDate,
-                    endTime: formattedEndTime,
-                    recurrence: recurrence,
-                    recurrenceEnd: recurrenceEnd,
-                    isUserEvent: true,
-                    source: 'manual'
+            } catch (error) {
+                console.error('Error loading users:', error);
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">Error loading users. Please check console for details.</td></tr>';
+            }
+        }
+        
+        // Show create user modal
+        function showCreateUserModal() {
+            alert('User creation is disabled. Please create users in the Supabase Dashboard first, then edit their roles here.\n\nSteps:\n1. Go to Supabase Dashboard → Authentication → Users\n2. Click "Add User"\n3. Enter email and password\n4. Come back here to edit their role and permissions');
+            return;
+        }
+        
+        // Close user modal
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+        
+        // Update permissions based on role
+        function updatePermissions() {
+            const role = document.getElementById('userRole').value;
+            const permissionsContainer = document.getElementById('permissionsContainer');
+            const checkboxes = permissionsContainer.querySelectorAll('input[type="checkbox"]');
+            
+            // Reset all checkboxes
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Set permissions based on role
+            switch (role) {
+                case 'super_admin':
+                    checkboxes.forEach(cb => cb.checked = true);
+                    break;
+                case 'admin':
+                    checkboxes[0].checked = true; // create_events
+                    checkboxes[1].checked = true; // manage_calendar
+                    checkboxes[2].checked = true; // admin_access
+                    break;
+                case 'hauswart':
+                    checkboxes[0].checked = true; // create_events
+                    checkboxes[1].checked = true; // manage_calendar
+                    break;
+                case 'coach':
+                    checkboxes[0].checked = true; // create_events
+                    break;
+                case 'coach_basketball':
+                    checkboxes[0].checked = true; // create_events
+                    break;
+            }
+        }
+        
+        // Note: Form submission is now handled in showCreateUserModal() and editUser() functions
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('userModal');
+            if (event.target === modal) {
+                closeUserModal();
+            }
+        }
+        
+        // Edit user function
+        function editUser(user) {
+            document.getElementById('modalTitle').textContent = 'Edit User';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userEmail').disabled = false; // Allow email editing
+            document.getElementById('userEmail').placeholder = user.email; // Pre-fill with current email as placeholder
+            document.getElementById('userEmail').required = false; // Make email optional
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').placeholder = 'Leave blank to keep current password';
+            document.getElementById('userPassword').required = false;
+            document.getElementById('userDisplayName').value = user.user_metadata?.display_name || '';
+            document.getElementById('userRole').value = user.user_metadata?.role || 'user';
+            document.getElementById('userProject').value = user.user_metadata?.project || 'calendar_';
+            
+            // Set permissions
+            const permissions = user.user_metadata?.permissions || [];
+            document.querySelectorAll('#permissionsContainer input[type="checkbox"]').forEach(cb => {
+                cb.checked = permissions.includes(cb.value);
+            });
+            
+            document.getElementById('userModal').style.display = 'block';
+            
+            // Update form submission for editing
+            const form = document.getElementById('userForm');
+            form.onsubmit = (e) => updateUser(e, user.id);
+        }
+        
+        // Update user function
+        async function updateUser(e, userId) {
+            e.preventDefault();
+            
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const displayName = document.getElementById('userDisplayName').value;
+            const role = document.getElementById('userRole').value;
+            const project = document.getElementById('userProject').value;
+            
+            // Get selected permissions
+            const permissions = [];
+            document.querySelectorAll('#permissionsContainer input[type="checkbox"]:checked').forEach(cb => {
+                permissions.push(cb.value);
+            });
+            
+            try {
+                const userMetadata = {
+                    display_name: displayName,
+                    role: role,
+                    project: project,
+                    permissions: permissions
                 };
                 
-                userEvents.push(newEvent);
-            }
-            
-            saveUserEvents();
-            renderEventsList();
-            hideEventForm();
-        }
-        
-        // Edit event
-        function editEvent(event) {
-            editingEventId = event.id;
-            document.getElementById('modalTitle').textContent = t('editEventTitle');
-            
-            // Show delete button for editing
-            document.getElementById('deleteEventBtn').style.display = 'inline-block';
-            
-            // Populate form with event data
-            document.getElementById('eventTitle').value = event.title || '';
-            document.getElementById('eventDescription').value = event.description || '';
-            document.getElementById('eventType').value = event.type || 'single';
-            document.getElementById('eventStartDate').value = event.date;
-            
-            // Handle all-day checkbox
-            const isAllDay = !event.startTime && !event.endTime;
-            document.getElementById('eventAllDay').checked = isAllDay;
-            document.getElementById('eventStartTime').value = event.startTime || '';
-            document.getElementById('eventEndDate').value = event.endDate || '';
-            document.getElementById('eventEndTime').value = event.endTime || '';
-            document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
-            document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
-            
-            handleEventTypeChange();
-            handleAllDayChange();
-            document.getElementById('eventModal').style.display = 'block';
-        }
-        
-        // Delete event
-        function deleteEvent() {
-            if (!editingEventId) return;
-            
-            if (confirm(t('confirmDelete'))) {
-                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
-                if (eventIndex !== -1) {
-                    userEvents.splice(eventIndex, 1);
-                    saveUserEvents();
-                    renderEventsList();
-                    hideEventForm();
+                // Prepare update data - only include email if provided
+                const updateData = {
+                    userId: userId,
+                    userMetadata: userMetadata,
+                    password: password || null
+                };
+                
+                // Only include email if it's not empty
+                if (email) {
+                    updateData.email = email;
                 }
+                
+                // Call the Edge Function to update user metadata
+                const response = await fetch('https://wilrrlwqgvzjdhmnwmte.supabase.co/functions/v1/update-user-metadata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': `${supabaseKey}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    alert(`Error updating user: ${result.error}`);
+                } else {
+                    alert(`User updated successfully!`);
+                    closeUserModal();
+                    loadUsers();
+                }
+            } catch (error) {
+                alert(`Error updating user: ${error.message}`);
+                console.error('Update user error:', error);
             }
         }
         
 
         
-        // Refresh events
-        function refreshEvents() {
-            loadUserEvents();
-        }
-        
         // Initialize
-        updateLanguageUI();
         checkAuth();
     </script>
 </body>
-</html> 
+</html>
