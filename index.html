@@ -564,7 +564,8 @@
             </div>
             <div style="margin-top: 10px;">
                 <a href="admin.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">🔧 Admin Panel</a>
-                <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8;">📝 Event Manager</a>
+                <a href="event_manager.html" style="color: white; text-decoration: none; font-size: 12px; opacity: 0.8; margin-right: 15px;">📝 Event Manager</a>
+                <button onclick="refreshCalendar()" style="background: rgba(255,255,255,0.2); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">🔄 Refresh</button>
             </div>
         </div>
 
@@ -1262,6 +1263,42 @@
         // Format date for ICS export
         function formatDateToIcal(dateStr) {
             return dateStr.replace(/-/g, '');
+        }
+        
+        // Refresh calendar - clear cache and reload all data
+        async function refreshCalendar() {
+            // Clear all cached data
+            events = [];
+            userEvents = [];
+            
+            // Clear localStorage cache
+            localStorage.removeItem('calendarUserEvents');
+            localStorage.removeItem('calendarExternalEvents');
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('calendar').style.display = 'none';
+            document.getElementById('loading').textContent = 'Refreshing events...';
+            
+            try {
+                // Reload external events from API
+                await fetchEvents();
+                
+                // Reload user events from Supabase
+                await loadUserEvents();
+                
+                // Re-render calendar
+                renderCalendar();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('calendar').style.display = 'grid';
+                
+                console.log('Calendar refreshed successfully');
+            } catch (error) {
+                console.error('Error refreshing calendar:', error);
+                document.getElementById('loading').textContent = 'Error refreshing events. Please try again.';
+            }
         }
         
         // Clear all user events
