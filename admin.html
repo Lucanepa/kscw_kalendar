@@ -1477,11 +1477,19 @@
                     // Log the deletion before removing the event
                     logEventChange('delete', event);
                     
-                    allEvents.splice(eventIndex, 1);
-                    // Update filtered events
-                    filterEvents();
-                    renderEventsTable();
-                    alert(`Event "${event.title}" has been deleted.`);
+                    // Delete from database first
+                    deleteEventFromDatabase(event.id).then(deleteSuccess => {
+                        if (deleteSuccess) {
+                            // Remove from local array
+                            allEvents.splice(eventIndex, 1);
+                            // Update filtered events
+                            filterEvents();
+                            renderEventsTable();
+                            alert(`Event "${event.title}" has been deleted.`);
+                        } else {
+                            alert('Failed to delete event from database. Please try again.');
+                        }
+                    });
                 }
             }
         }
@@ -1600,6 +1608,90 @@
             }
         }
         
+        // Save event to database
+        async function saveEventToDatabase(event) {
+            try {
+                const browserId = getBrowserId();
+                const eventData = {
+                    id: event.id,
+                    browser_id: browserId,
+                    title: event.title,
+                    description: event.description || null,
+                    event_type: event.type || 'single',
+                    start_date: event.date,
+                    start_time: event.startTime || null,
+                    end_date: event.endDate || null,
+                    end_time: event.endTime || null,
+                    recurrence: event.recurrence || null,
+                    recurrence_end: event.recurrenceEnd || null,
+                    source: event.source || 'admin',
+                    created_at: new Date().toISOString()
+                };
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to save event to database:', response.status, response.statusText);
+                    return false;
+                }
+                
+                console.log('Event saved to database successfully');
+                return true;
+            } catch (error) {
+                console.error('Error saving event to database:', error);
+                return false;
+            }
+        }
+        
+        // Update event in database
+        async function updateEventInDatabase(event) {
+            try {
+                const eventData = {
+                    title: event.title,
+                    description: event.description || null,
+                    event_type: event.type || 'single',
+                    start_date: event.date,
+                    start_time: event.startTime || null,
+                    end_date: event.endDate || null,
+                    end_time: event.endTime || null,
+                    recurrence: event.recurrence || null,
+                    recurrence_end: event.recurrenceEnd || null,
+                    source: event.source || 'admin'
+                };
+                
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?id=eq.${event.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify(eventData)
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to update event in database:', response.status, response.statusText);
+                    return false;
+                }
+                
+                console.log('Event updated in database successfully');
+                return true;
+            } catch (error) {
+                console.error('Error updating event in database:', error);
+                return false;
+            }
+        }
+        
         function saveEventFromModal() {
             const title = document.getElementById('eventTitle').value.trim();
             const description = document.getElementById('eventDescription').value.trim();
@@ -1636,7 +1728,7 @@
                 const eventIndex = allEvents.findIndex(e => e.id === editingEventId);
                 if (eventIndex !== -1) {
                     const oldEvent = { ...allEvents[eventIndex] };
-                    allEvents[eventIndex] = {
+                    const updatedEvent = {
                         ...allEvents[eventIndex],
                         title: title,
                         description: description,
@@ -1650,7 +1742,22 @@
                     };
                     
                     // Log the edit
-                    logEventChange('edit', allEvents[eventIndex], oldEvent);
+                    logEventChange('edit', updatedEvent, oldEvent);
+                    
+                    // Update in database
+                    updateEventInDatabase(updatedEvent).then(updateSuccess => {
+                        if (updateSuccess) {
+                            allEvents[eventIndex] = updatedEvent;
+                            // Update filtered events
+                            filterEvents();
+                            renderEventsTable();
+                            closeEventModal();
+                            alert('Event updated successfully!');
+                        } else {
+                            alert('Failed to update event in database. Please try again.');
+                        }
+                    });
+                    return; // Don't continue with the rest of the function
                 }
             } else {
                 // Create new event
@@ -1669,17 +1776,52 @@
                     source: 'admin'
                 };
                 
-                allEvents.push(newEvent);
-                
                 // Log the creation
                 logEventChange('create', newEvent);
+                
+                // Save to database
+                saveEventToDatabase(newEvent).then(saveSuccess => {
+                    if (saveSuccess) {
+                        allEvents.push(newEvent);
+                        // Update filtered events
+                        filterEvents();
+                        renderEventsTable();
+                        closeEventModal();
+                        alert('Event created successfully!');
+                    } else {
+                        alert('Failed to create event in database. Please try again.');
+                    }
+                });
+                return; // Don't continue with the rest of the function
             }
             
-            // Update filtered events
-            filterEvents();
-            renderEventsTable();
-            closeEventModal();
-            alert('Event saved successfully!');
+            // This should only be reached if there was an error
+            alert('Error processing event. Please try again.');
+        }
+        
+        // Delete specific event from database
+        async function deleteEventFromDatabase(eventId) {
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/calendar_user_events?id=eq.${eventId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('Failed to delete event from database:', response.status, response.statusText);
+                    return false;
+                }
+                
+                console.log('Event deleted from database successfully');
+                return true;
+            } catch (error) {
+                console.error('Error deleting event from database:', error);
+                return false;
+            }
         }
         
         function deleteEventFromModal() {
@@ -1693,12 +1835,20 @@
                     // Log the deletion before removing the event
                     logEventChange('delete', deletedEvent);
                     
-                    allEvents.splice(eventIndex, 1);
-                    // Update filtered events
-                    filterEvents();
-                    renderEventsTable();
-                    closeEventModal();
-                    alert('Event deleted successfully!');
+                    // Delete from database first
+                    deleteEventFromDatabase(editingEventId).then(deleteSuccess => {
+                        if (deleteSuccess) {
+                            // Remove from local array
+                            allEvents.splice(eventIndex, 1);
+                            // Update filtered events
+                            filterEvents();
+                            renderEventsTable();
+                            closeEventModal();
+                            alert('Event deleted successfully!');
+                        } else {
+                            alert('Failed to delete event from database. Please try again.');
+                        }
+                    });
                 }
             }
         }
