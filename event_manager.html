@@ -488,6 +488,13 @@
                 </div>
                 
                 <div class="form-row">
+                    <label>
+                        <input type="checkbox" id="eventAllDay" onchange="handleAllDayChange()" />
+                        Ganztägig
+                    </label>
+                </div>
+                
+                <div class="form-row" id="timeRow">
                     <label>Startzeit:</label>
                     <input type="time" id="eventStartTime" />
                 </div>
@@ -795,9 +802,14 @@
                 eventMeta.className = 'event-meta';
                 
                 let metaText = `Datum: ${event.date}`;
-                if (event.startTime) {
+                
+                // Check if it's an all-day event (no start time)
+                if (!event.startTime && !event.endTime) {
+                    metaText += ` | Ganztägig`;
+                } else if (event.startTime) {
                     metaText += ` | Zeit: ${event.startTime}`;
                 }
+                
                 if (event.endDate && event.type === 'multi') {
                     metaText += ` | Ende: ${event.endDate}`;
                 }
@@ -869,6 +881,7 @@
             document.getElementById('eventDescription').value = '';
             document.getElementById('eventType').value = 'single';
             document.getElementById('eventStartDate').value = '';
+            document.getElementById('eventAllDay').checked = false;
             document.getElementById('eventStartTime').value = '';
             document.getElementById('eventEndDate').value = '';
             document.getElementById('eventEndTime').value = '';
@@ -879,15 +892,42 @@
         
         function handleEventTypeChange() {
             const eventType = document.getElementById('eventType').value;
+            const allDay = document.getElementById('eventAllDay').checked;
             const endDateRow = document.getElementById('endDateRow');
             const endTimeRow = document.getElementById('endTimeRow');
             const recurringRow = document.getElementById('recurringRow');
             const recurringEndRow = document.getElementById('recurringEndRow');
             
             endDateRow.style.display = eventType === 'multi' ? 'flex' : 'none';
-            endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            
+            // Show time fields only if not all-day
+            if (!allDay) {
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            } else {
+                endTimeRow.style.display = 'none';
+            }
+            
             recurringRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
             recurringEndRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+        }
+        
+        function handleAllDayChange() {
+            const allDay = document.getElementById('eventAllDay').checked;
+            const timeRow = document.getElementById('timeRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            
+            if (allDay) {
+                timeRow.style.display = 'none';
+                endTimeRow.style.display = 'none';
+                // Clear time values
+                document.getElementById('eventStartTime').value = '';
+                document.getElementById('eventEndTime').value = '';
+            } else {
+                timeRow.style.display = 'flex';
+                // Show end time only if it's a multi-day event
+                const eventType = document.getElementById('eventType').value;
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            }
         }
         
         // Save Event
@@ -896,6 +936,7 @@
             const description = document.getElementById('eventDescription').value.trim();
             const type = document.getElementById('eventType').value;
             const startDate = document.getElementById('eventStartDate').value;
+            const allDay = document.getElementById('eventAllDay').checked;
             const startTime = document.getElementById('eventStartTime').value;
             const endDate = document.getElementById('eventEndDate').value;
             const endTime = document.getElementById('eventEndTime').value;
@@ -918,9 +959,9 @@
                 }
             }
             
-            // Format time for display
-            const formattedStartTime = startTime ? startTime : null;
-            const formattedEndTime = endTime ? endTime : null;
+            // Format time for display - if all-day, set times to null
+            const formattedStartTime = allDay ? null : (startTime ? startTime : null);
+            const formattedEndTime = allDay ? null : (endTime ? endTime : null);
             
             if (editingEventId) {
                 // Update existing event
@@ -974,6 +1015,10 @@
             document.getElementById('eventDescription').value = event.description || '';
             document.getElementById('eventType').value = event.type || 'single';
             document.getElementById('eventStartDate').value = event.date;
+            
+            // Handle all-day checkbox
+            const isAllDay = !event.startTime && !event.endTime;
+            document.getElementById('eventAllDay').checked = isAllDay;
             document.getElementById('eventStartTime').value = event.startTime || '';
             document.getElementById('eventEndDate').value = event.endDate || '';
             document.getElementById('eventEndTime').value = event.endTime || '';
@@ -981,6 +1026,7 @@
             document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
             
             handleEventTypeChange();
+            handleAllDayChange();
             document.getElementById('eventModal').style.display = 'block';
         }
         
