@@ -134,6 +134,26 @@
             border-left: 3px solid #e76500;
         }
         
+        .event.multi-day.first-day {
+            border-radius: 4px 0 0 4px;
+            border-left: 3px solid #e76500;
+        }
+        
+        .event.multi-day.middle-day {
+            border-radius: 0;
+            border-left: 1px solid #e76500;
+        }
+        
+        .event.multi-day.last-day {
+            border-radius: 0 4px 4px 0;
+            border-left: 1px solid #e76500;
+        }
+        
+        .event.multi-day.single-day {
+            border-radius: 4px;
+            border-left: 3px solid #e76500;
+        }
+        
         .event.selected {
             background: #ffc107;
             color: #212529;
@@ -188,11 +208,6 @@
 
         
         .event.user-event {
-            background: #fd7e14;
-            border-left: 3px solid #e76500;
-        }
-        
-        .event.multi-day {
             background: #fd7e14;
             border-left: 3px solid #e76500;
         }
@@ -794,6 +809,17 @@
                     
                     if (event.type === 'multi') {
                         eventElement.classList.add('multi-day');
+                        
+                        // Add specific classes for multi-day event positioning
+                        if (event.isFirstDay && event.isLastDay) {
+                            eventElement.classList.add('single-day');
+                        } else if (event.isFirstDay) {
+                            eventElement.classList.add('first-day');
+                        } else if (event.isLastDay) {
+                            eventElement.classList.add('last-day');
+                        } else {
+                            eventElement.classList.add('middle-day');
+                        }
                     }
                     
                     // Create event content with time
@@ -1072,25 +1098,37 @@
                     allEvents.push(...recurringEvents);
                     console.log(`Generated ${recurringEvents.length} recurring instances for: ${event.title}`);
                 } else if (event.type === 'multi' && event.endDate) {
-                    // For multi-day events, only show the first day in the calendar
-                    // The full range will be shown in the day popup
+                    // For multi-day events, create separate instances for each day
                     console.log(`Processing multi-day event: ${event.title} from ${event.date} to ${event.endDate}`);
                     
                     const startDate = new Date(event.date + 'T00:00:00');
                     const endDate = new Date(event.endDate + 'T00:00:00');
                     
                     if (endDate >= startDate) {
-                        // Only add the first day to the calendar display
-                        allEvents.push({
-                            ...event,
-                            date: event.date,
-                            isMultiDay: true,
-                            originalStartDate: event.date,
-                            originalEndDate: event.endDate,
-                            totalDays: Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1
-                        });
+                        // Create an event for each day in the range
+                        const currentDate = new Date(startDate);
+                        let dayIndex = 0;
                         
-                        console.log(`Added multi-day event "${event.title}" as single block starting ${event.date}`);
+                        while (currentDate <= endDate) {
+                            const currentDateStr = currentDate.toISOString().split('T')[0];
+                            
+                            allEvents.push({
+                                ...event,
+                                date: currentDateStr,
+                                isMultiDay: true,
+                                originalStartDate: event.date,
+                                originalEndDate: event.endDate,
+                                totalDays: Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1,
+                                dayIndex: dayIndex, // 0 for first day, 1 for second day, etc.
+                                isFirstDay: dayIndex === 0,
+                                isLastDay: currentDate.getTime() === endDate.getTime()
+                            });
+                            
+                            dayIndex++;
+                            currentDate.setDate(currentDate.getDate() + 1);
+                        }
+                        
+                        console.log(`Added multi-day event "${event.title}" across ${dayIndex} days`);
                     } else {
                         console.warn(`Invalid multi-day event: end date ${event.endDate} is before start date ${event.date}`);
                     }
