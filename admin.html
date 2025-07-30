@@ -1245,19 +1245,13 @@
                     <h3>🔐 Permissions</h3>
                     <div id="permissionsContainer" class="permissions-grid">
                         <div class="permission-item">
-                            <input type="checkbox" id="perm_create_events" value="create_events">
-                            <label for="perm_create_events">
+                            <input type="checkbox" id="perm_manage_events" value="manage_events">
+                            <label for="perm_manage_events">
                                 <span class="permission-icon">➕</span>
-                                <span class="permission-text">Create Events</span>
+                                <span class="permission-text">Manage Events</span>
                             </label>
                         </div>
-                        <div class="permission-item">
-                            <input type="checkbox" id="perm_manage_calendar" value="manage_calendar">
-                            <label for="perm_manage_calendar">
-                                <span class="permission-icon">📅</span>
-                                <span class="permission-text">Manage Calendar</span>
-                            </label>
-                        </div>
+
                         <div class="permission-item">
                             <input type="checkbox" id="perm_admin_access" value="admin_access">
                             <label for="perm_admin_access">
@@ -2831,7 +2825,7 @@
   "display_name": "Luca Canepa",
   "role": "super_admin",
   "project": "calendar_",
-  "permissions": ["create_events", "manage_calendar", "admin_access", "super_admin"]
+                  "permissions": ["manage_events", "admin_access", "super_admin"]
 }</code>
                                 </div>
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
@@ -2844,7 +2838,7 @@
 }</code>
                                 </div>
                                 <p><strong>Available roles:</strong> hauswart, coach, coach_basketball, admin, super_admin</p>
-                                <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, super_admin</p>
+                                <p><strong>Available permissions:</strong> manage_events, admin_access, super_admin</p>
                                 <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
                         </div>
                     `;
@@ -2885,17 +2879,15 @@
                     checkboxes.forEach(cb => cb.checked = true);
                     break;
                 case 'admin':
-                    document.getElementById('perm_create_events').checked = true;
-                    document.getElementById('perm_manage_calendar').checked = true;
-                    document.getElementById('perm_admin_access').checked = true;
+                                    document.getElementById('perm_manage_events').checked = true;
+                document.getElementById('perm_admin_access').checked = true;
                     break;
                 case 'hauswart':
-                    document.getElementById('perm_create_events').checked = true;
-                    document.getElementById('perm_manage_calendar').checked = true;
+                                    document.getElementById('perm_manage_events').checked = true;
                     break;
                 case 'coach':
                 case 'coach_basketball':
-                    document.getElementById('perm_create_events').checked = true;
+                    document.getElementById('perm_manage_events').checked = true;
                     break;
             }
         }
@@ -2926,8 +2918,8 @@
             
             // Set permissions
             const permissions = user.user_metadata?.permissions || [];
-            document.getElementById('perm_create_events').checked = permissions.includes('create_events');
-            document.getElementById('perm_manage_calendar').checked = permissions.includes('manage_calendar');
+            document.getElementById('perm_manage_events').checked = permissions.includes('manage_events');
+            
             document.getElementById('perm_admin_access').checked = permissions.includes('admin_access');
             document.getElementById('perm_super_admin').checked = permissions.includes('super_admin');
             
