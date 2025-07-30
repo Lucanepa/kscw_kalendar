@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Manager - Create & Manage Events</title>
+    <title>Event Manager - Ereignisse erstellen & verwalten</title>
     <!-- Add Supabase JavaScript client -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -325,55 +324,36 @@
             <h1>📅 Event Manager</h1>
             <div class="user-info" id="userInfo" style="display: none;">
                 <span id="userEmail"></span>
-                <button class="logout-btn" onclick="logout()">Logout</button>
+                <button class="logout-btn" onclick="logout()">Abmelden</button>
             </div>
         </div>
         
         <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
             <div class="login-form">
-                <h2>🔐 Event Manager Authentication</h2>
-                <p>Please sign in to create and manage your events.</p>
+                <h2>🔐 Event Manager Authentifizierung</h2>
+                <p>Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.</p>
                 
                 <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="showLoginForm()">Sign In</button>
-                    <button class="auth-tab" onclick="showSignUpForm()">Sign Up</button>
+                    <button class="auth-tab active">Anmelden</button>
                 </div>
                 
                 <!-- Login Form -->
                 <div class="auth-form active" id="loginForm">
                     <div class="form-group">
-                        <label for="loginEmail">Email:</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email" />
+                        <label for="loginEmail">E-Mail:</label>
+                        <input type="email" id="loginEmail" placeholder="Ihre E-Mail-Adresse eingeben" />
                     </div>
                     
                     <div class="form-group">
-                        <label for="loginPassword">Password:</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password" />
+                        <label for="loginPassword">Passwort:</label>
+                        <input type="password" id="loginPassword" placeholder="Ihr Passwort eingeben" />
                     </div>
                     
-                    <button class="btn" onclick="signIn()">Sign In</button>
+                    <button class="btn" onclick="signIn()">Anmelden</button>
                 </div>
                 
-                <!-- Sign Up Form -->
-                <div class="auth-form" id="signUpForm">
-                    <div class="form-group">
-                        <label for="signUpEmail">Email:</label>
-                        <input type="email" id="signUpEmail" placeholder="Enter your email" />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signUpPassword">Password:</label>
-                        <input type="password" id="signUpPassword" placeholder="Enter your password (min 6 characters)" />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signUpConfirmPassword">Confirm Password:</label>
-                        <input type="password" id="signUpConfirmPassword" placeholder="Confirm your password" />
-                    </div>
-                    
-                    <button class="btn" onclick="signUp()">Sign Up</button>
-                </div>
+
                 
                 <div id="authMessage"></div>
             </div>
@@ -382,77 +362,77 @@
         <!-- Event Manager Content -->
         <div class="event-manager-content" id="eventManagerContent">
             <div class="nav-links">
-                <a href="index.html">📅 View Calendar</a>
+                <a href="index.html">⬅️ Zurück zum Kalender</a>
                 <a href="admin.html">🔧 Admin Panel</a>
             </div>
             
             <div class="controls">
                 <div class="control-section">
-                    <h3>📅 Event Management</h3>
+                    <h3>📅 Ereignisverwaltung</h3>
                     <div class="quick-actions">
-                        <button class="btn" onclick="showAddEventForm()">➕ Add Event</button>
-                        <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Refresh Events</button>
-                        <button class="btn btn-danger" onclick="clearAllEvents()">🗑️ Clear All Events</button>
+                        <button class="btn" onclick="showAddEventForm()">➕ Ereignis hinzufügen</button>
+                        <button class="btn btn-secondary" onclick="refreshEvents()">🔄 Ereignisse aktualisieren</button>
+                        <button class="btn btn-danger" onclick="clearAllEvents()">🗑️ Alle Ereignisse löschen</button>
                     </div>
                     
                     <div class="event-form" id="eventForm">
                         <div class="form-row">
-                            <label>Title:</label>
-                            <input type="text" id="eventTitle" placeholder="Event title" required />
+                            <label>Titel:</label>
+                            <input type="text" id="eventTitle" placeholder="Ereignistitel" required />
                         </div>
                         
                         <div class="form-row">
-                            <label>Description:</label>
-                            <textarea id="eventDescription" placeholder="Optional description"></textarea>
+                            <label>Beschreibung:</label>
+                            <textarea id="eventDescription" placeholder="Optionale Beschreibung"></textarea>
                         </div>
                         
                         <div class="form-row">
-                            <label>Type:</label>
+                            <label>Typ:</label>
                             <select id="eventType" onchange="handleEventTypeChange()">
-                                <option value="single">Single Day</option>
-                                <option value="multi">Multi-Day</option>
-                                <option value="recurring">Recurring</option>
+                                <option value="single">Einzeltag</option>
+                                <option value="multi">Mehrtägig</option>
+                                <option value="recurring">Wiederkehrend</option>
                             </select>
                         </div>
                         
                         <div class="form-row">
-                            <label>Start Date:</label>
+                            <label>Startdatum:</label>
                             <input type="date" id="eventStartDate" required />
                         </div>
                         
                         <div class="form-row">
-                            <label>Start Time:</label>
+                            <label>Startzeit:</label>
                             <input type="time" id="eventStartTime" />
                         </div>
                         
                         <div class="form-row" id="endDateRow" style="display: none;">
-                            <label>End Date:</label>
+                            <label>Enddatum:</label>
                             <input type="date" id="eventEndDate" />
                         </div>
                         
                         <div class="form-row" id="endTimeRow" style="display: none;">
-                            <label>End Time:</label>
+                            <label>Endzeit:</label>
                             <input type="time" id="eventEndTime" />
                         </div>
                         
                         <div class="form-row" id="recurringRow" style="display: none;">
-                            <label>Repeat:</label>
+                            <label>Wiederholung:</label>
                             <select id="eventRecurrence">
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
+                                <option value="daily">Täglich</option>
+                                <option value="weekly">Wöchentlich</option>
+                                <option value="monthly">Monatlich</option>
+                                <option value="yearly">Jährlich</option>
                             </select>
                         </div>
                         
                         <div class="form-row" id="recurringEndRow" style="display: none;">
-                            <label>Until:</label>
+                            <label>Bis:</label>
                             <input type="date" id="eventRecurrenceEnd" />
                         </div>
                         
                         <div class="form-buttons">
-                            <button type="button" class="btn btn-secondary" onclick="hideEventForm()">Cancel</button>
-                            <button type="button" class="btn" onclick="saveEvent()">Save Event</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideEventForm()">Abbrechen</button>
+                            <button type="button" class="btn" onclick="saveEvent()">Ereignis speichern</button>
                         </div>
                     </div>
                 </div>
@@ -501,7 +481,7 @@
             const messageDiv = document.getElementById('authMessage');
             
             if (!email || !password) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
+                messageDiv.innerHTML = '<div class="error-message">❌ Bitte füllen Sie alle Felder aus.</div>';
                 return;
             }
             
@@ -515,58 +495,17 @@
                     messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
                 } else {
                     currentUser = data.user;
-                    messageDiv.innerHTML = '<div class="success-message">✅ Login successful!</div>';
+                    messageDiv.innerHTML = '<div class="success-message">✅ Anmeldung erfolgreich!</div>';
                     showEventManagerContent();
                     loadUserEvents();
                 }
             } catch (error) {
-                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign in.</div>';
+                messageDiv.innerHTML = '<div class="error-message">❌ Bei der Anmeldung ist ein Fehler aufgetreten.</div>';
                 console.error('Sign in error:', error);
             }
         }
         
-        // Sign up function
-        async function signUp() {
-            const email = document.getElementById('signUpEmail').value;
-            const password = document.getElementById('signUpPassword').value;
-            const confirmPassword = document.getElementById('signUpConfirmPassword').value;
-            const messageDiv = document.getElementById('authMessage');
-            
-            if (!email || !password || !confirmPassword) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Please fill in all fields.</div>';
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Passwords do not match.</div>';
-                return;
-            }
-            
-            if (password.length < 6) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Password must be at least 6 characters.</div>';
-                return;
-            }
-            
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-                
-                if (error) {
-                    messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
-                } else {
-                    messageDiv.innerHTML = '<div class="success-message">✅ Account created! Please check your email for verification.</div>';
-                    // Clear form
-                    document.getElementById('signUpEmail').value = '';
-                    document.getElementById('signUpPassword').value = '';
-                    document.getElementById('signUpConfirmPassword').value = '';
-                }
-            } catch (error) {
-                messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign up.</div>';
-                console.error('Sign up error:', error);
-            }
-        }
+
         
         // Logout function
         async function logout() {
@@ -606,29 +545,10 @@
         function clearAuthForms() {
             document.getElementById('loginEmail').value = '';
             document.getElementById('loginPassword').value = '';
-            document.getElementById('signUpEmail').value = '';
-            document.getElementById('signUpPassword').value = '';
-            document.getElementById('signUpConfirmPassword').value = '';
             document.getElementById('authMessage').innerHTML = '';
         }
         
-        // Show login form
-        function showLoginForm() {
-            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            
-            document.querySelector('.auth-tab').classList.add('active');
-            document.getElementById('loginForm').classList.add('active');
-        }
-        
-        // Show sign up form
-        function showSignUpForm() {
-            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-            
-            document.querySelectorAll('.auth-tab')[1].classList.add('active');
-            document.getElementById('signUpForm').classList.add('active');
-        }
+
         
         // Simple browser ID for anonymous users (persistent across browser sessions)
         function getBrowserId() {
@@ -685,7 +605,7 @@
                 console.error('Failed to load events from Supabase:', error);
                 userEvents = [];
                 renderEventsList();
-                alert('Failed to load your events from database. Please check your internet connection and refresh the page.');
+                alert('Fehler beim Laden Ihrer Ereignisse aus der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung und aktualisieren Sie die Seite.');
             }
         }
         
@@ -743,7 +663,7 @@
                 
             } catch (error) {
                 console.error('Failed to save events to Supabase:', error);
-                alert('Failed to save your events to database. Please check your internet connection.');
+                alert('Fehler beim Speichern Ihrer Ereignisse in der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung.');
                 throw error; // Re-throw to prevent silent failures
             }
         }
@@ -759,11 +679,14 @@
             eventsList.innerHTML = '';
             
             if (userEvents.length === 0) {
-                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No events created yet. Click "Add Event" to create your first event!</p>';
+                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Noch keine Ereignisse erstellt. Klicken Sie auf "Ereignis hinzufügen" um Ihr erstes Ereignis zu erstellen!</p>';
                 return;
             }
             
-            userEvents.forEach(event => {
+            // Sort events by date in ascending order
+            const sortedEvents = [...userEvents].sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            sortedEvents.forEach(event => {
                 const eventItem = document.createElement('div');
                 eventItem.className = 'event-item';
                 
@@ -777,15 +700,15 @@
                 const eventMeta = document.createElement('div');
                 eventMeta.className = 'event-meta';
                 
-                let metaText = `Date: ${event.date}`;
+                let metaText = `Datum: ${event.date}`;
                 if (event.startTime) {
-                    metaText += ` | Time: ${event.startTime}`;
+                    metaText += ` | Zeit: ${event.startTime}`;
                 }
                 if (event.endDate && event.type === 'multi') {
-                    metaText += ` | End: ${event.endDate}`;
+                    metaText += ` | Ende: ${event.endDate}`;
                 }
                 if (event.type === 'recurring') {
-                    metaText += ` | Recurring: ${event.recurrence}`;
+                    metaText += ` | Wiederkehrend: ${event.recurrence}`;
                 }
                 if (event.description) {
                     metaText += ` | ${event.description}`;
@@ -798,13 +721,13 @@
                 
                 if (event.type === 'multi') {
                     eventTypeBadge.classList.add('badge-multi');
-                    eventTypeBadge.textContent = 'Multi-day';
+                    eventTypeBadge.textContent = 'Mehrtägig';
                 } else if (event.type === 'recurring') {
                     eventTypeBadge.classList.add('badge-recurring');
-                    eventTypeBadge.textContent = 'Recurring';
+                    eventTypeBadge.textContent = 'Wiederkehrend';
                 } else {
                     eventTypeBadge.classList.add('badge-single');
-                    eventTypeBadge.textContent = 'Single';
+                    eventTypeBadge.textContent = 'Einzeltag';
                 }
                 
                 eventInfo.appendChild(eventTitle);
@@ -816,12 +739,12 @@
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn btn-small btn-warning';
-                editBtn.textContent = 'Edit';
+                editBtn.textContent = 'Bearbeiten';
                 editBtn.onclick = () => editEvent(event);
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn btn-small btn-danger';
-                deleteBtn.textContent = 'Delete';
+                deleteBtn.textContent = 'Löschen';
                 deleteBtn.onclick = () => deleteEvent(event);
                 
                 eventActions.appendChild(editBtn);
@@ -891,17 +814,17 @@
             const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
             
             if (!title || !startDate) {
-                alert('Please fill in the title and start date.');
+                alert('Bitte füllen Sie Titel und Startdatum aus.');
                 return;
             }
             
             if (type === 'multi') {
                 if (!endDate) {
-                    alert('End date is required for multi-day events.');
+                    alert('Enddatum ist für mehrtägige Ereignisse erforderlich.');
                     return;
                 }
                 if (new Date(endDate) < new Date(startDate)) {
-                    alert('End date must be after or equal to start date.');
+                    alert('Enddatum muss nach oder gleich dem Startdatum sein.');
                     return;
                 }
             }
@@ -973,7 +896,7 @@
         
         // Delete event
         function deleteEvent(event) {
-            if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
+            if (confirm(`Sind Sie sicher, dass Sie "${event.title}" löschen möchten?`)) {
                 userEvents = userEvents.filter(e => e.id !== event.id);
                 saveUserEvents();
                 renderEventsList();
@@ -982,7 +905,7 @@
         
         // Clear all events
         function clearAllEvents() {
-            if (confirm('Are you sure you want to clear all your events? This action cannot be undone.')) {
+            if (confirm('Sind Sie sicher, dass Sie alle Ihre Ereignisse löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.')) {
                 userEvents = [];
                 saveUserEvents();
                 renderEventsList();
