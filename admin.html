@@ -877,6 +877,83 @@
         </div>
     </div>
 
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeEventModal()">&times;</span>
+            <h2 id="eventModalTitle">Edit Event</h2>
+            
+            <form id="eventForm">
+                <div class="form-row">
+                    <label for="eventTitle">Title:</label>
+                    <input type="text" id="eventTitle" placeholder="Event title" required />
+                </div>
+                
+                <div class="form-row">
+                    <label for="eventDescription">Description:</label>
+                    <textarea id="eventDescription" placeholder="Optional description"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <label for="eventType">Type:</label>
+                    <select id="eventType" onchange="handleEventTypeChange()">
+                        <option value="single">Single Day</option>
+                        <option value="multi">Multi-Day</option>
+                        <option value="recurring">Recurring</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <label for="eventStartDate">Start Date: <span class="format-hint">(dd/mm/yyyy)</span></label>
+                    <input type="date" id="eventStartDate" required />
+                </div>
+                
+                <div class="form-row">
+                    <label>
+                        <input type="checkbox" id="eventAllDay" onchange="handleAllDayChange()" />
+                        <span>All Day</span>
+                    </label>
+                </div>
+                
+                <div class="form-row" id="timeRow">
+                    <label for="eventStartTime">Start Time:</label>
+                    <input type="time" id="eventStartTime" />
+                </div>
+                
+                <div class="form-row" id="endDateRow" style="display: none;">
+                    <label for="eventEndDate">End Date: <span class="format-hint">(dd/mm/yyyy)</span></label>
+                    <input type="date" id="eventEndDate" />
+                </div>
+                
+                <div class="form-row" id="endTimeRow" style="display: none;">
+                    <label for="eventEndTime">End Time:</label>
+                    <input type="time" id="eventEndTime" />
+                </div>
+                
+                <div class="form-row" id="recurringRow" style="display: none;">
+                    <label for="eventRecurrence">Recurrence:</label>
+                    <select id="eventRecurrence">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
+                
+                <div class="form-row" id="recurringEndRow" style="display: none;">
+                    <label for="eventRecurrenceEnd">Until: <span class="format-hint">(dd/mm/yyyy)</span></label>
+                    <input type="date" id="eventRecurrenceEnd" />
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeEventModal()">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEventFromModal()" style="display: none;">Delete</button>
+                    <button type="button" class="btn" onclick="saveEventFromModal()">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Supabase configuration
         const supabaseUrl = 'https://wilrrlwqgvzjdhmnwmte.supabase.co';
@@ -1301,15 +1378,46 @@
             }
         }
         
-        // Edit event (placeholder)
+        // Edit event
         function editEvent(event) {
-            alert(`Edit functionality for event: ${event.title}\n\nThis would open an edit form in a real implementation.`);
+            editingEventId = event.id;
+            document.getElementById('eventModalTitle').textContent = 'Edit Event';
+            
+            // Show delete button for editing
+            document.getElementById('deleteEventBtn').style.display = 'inline-block';
+            
+            // Populate form with event data
+            document.getElementById('eventTitle').value = event.title || '';
+            document.getElementById('eventDescription').value = event.description || '';
+            document.getElementById('eventType').value = event.type || 'single';
+            document.getElementById('eventStartDate').value = event.date;
+            
+            // Handle all-day checkbox
+            const isAllDay = !event.startTime && !event.endTime;
+            document.getElementById('eventAllDay').checked = isAllDay;
+            document.getElementById('eventStartTime').value = event.startTime || '';
+            document.getElementById('eventEndDate').value = event.endDate || '';
+            document.getElementById('eventEndTime').value = event.endTime || '';
+            document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
+            
+            handleEventTypeChange();
+            handleAllDayChange();
+            document.getElementById('eventModal').style.display = 'block';
         }
         
-        // Delete event (placeholder)
+        // Delete event
         function deleteEvent(event) {
             if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
-                alert(`Delete functionality for event: ${event.title}\n\nThis would delete the event from the database in a real implementation.`);
+                // Find and remove the event from the array
+                const eventIndex = allEvents.findIndex(e => e.id === event.id);
+                if (eventIndex !== -1) {
+                    allEvents.splice(eventIndex, 1);
+                    // Update filtered events
+                    filterEvents();
+                    renderEventsTable();
+                    alert(`Event "${event.title}" has been deleted.`);
+                }
             }
         }
         
@@ -1345,6 +1453,141 @@
             a.download = `calendar_events_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
+        }
+        
+        // Event modal functions
+        let editingEventId = null;
+        
+        function closeEventModal() {
+            document.getElementById('eventModal').style.display = 'none';
+            clearEventForm();
+        }
+        
+        function clearEventForm() {
+            document.getElementById('eventTitle').value = '';
+            document.getElementById('eventDescription').value = '';
+            document.getElementById('eventType').value = 'single';
+            document.getElementById('eventStartDate').value = '';
+            document.getElementById('eventAllDay').checked = false;
+            document.getElementById('eventStartTime').value = '';
+            document.getElementById('eventEndDate').value = '';
+            document.getElementById('eventEndTime').value = '';
+            document.getElementById('eventRecurrence').value = 'weekly';
+            document.getElementById('eventRecurrenceEnd').value = '';
+            handleEventTypeChange();
+        }
+        
+        function handleEventTypeChange() {
+            const eventType = document.getElementById('eventType').value;
+            const allDay = document.getElementById('eventAllDay').checked;
+            const endDateRow = document.getElementById('endDateRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            const recurringRow = document.getElementById('recurringRow');
+            const recurringEndRow = document.getElementById('recurringEndRow');
+            
+            endDateRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            
+            // Show time fields only if not all-day
+            if (!allDay) {
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            } else {
+                endTimeRow.style.display = 'none';
+            }
+            
+            recurringRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+            recurringEndRow.style.display = eventType === 'recurring' ? 'flex' : 'none';
+        }
+        
+        function handleAllDayChange() {
+            const allDay = document.getElementById('eventAllDay').checked;
+            const timeRow = document.getElementById('timeRow');
+            const endTimeRow = document.getElementById('endTimeRow');
+            
+            if (allDay) {
+                timeRow.style.display = 'none';
+                endTimeRow.style.display = 'none';
+                // Clear time values
+                document.getElementById('eventStartTime').value = '';
+                document.getElementById('eventEndTime').value = '';
+            } else {
+                timeRow.style.display = 'flex';
+                // Show end time only if it's a multi-day event
+                const eventType = document.getElementById('eventType').value;
+                endTimeRow.style.display = eventType === 'multi' ? 'flex' : 'none';
+            }
+        }
+        
+        function saveEventFromModal() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value.trim();
+            const type = document.getElementById('eventType').value;
+            const startDate = document.getElementById('eventStartDate').value;
+            const allDay = document.getElementById('eventAllDay').checked;
+            const startTime = document.getElementById('eventStartTime').value;
+            const endDate = document.getElementById('eventEndDate').value;
+            const endTime = document.getElementById('eventEndTime').value;
+            const recurrence = document.getElementById('eventRecurrence').value;
+            const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
+            
+            if (!title || !startDate) {
+                alert('Please fill in title and start date.');
+                return;
+            }
+            
+            if (type === 'multi' && !endDate) {
+                alert('End date is required for multi-day events.');
+                return;
+            }
+            
+            if (type === 'multi' && new Date(endDate) < new Date(startDate)) {
+                alert('End date must be after or equal to start date.');
+                return;
+            }
+            
+            // Format time for display - if all-day, set times to null
+            const formattedStartTime = allDay ? null : (startTime ? startTime : null);
+            const formattedEndTime = allDay ? null : (endTime ? endTime : null);
+            
+            if (editingEventId) {
+                // Update existing event
+                const eventIndex = allEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    allEvents[eventIndex] = {
+                        ...allEvents[eventIndex],
+                        title: title,
+                        description: description,
+                        type: type,
+                        date: startDate,
+                        startTime: formattedStartTime,
+                        endDate: endDate,
+                        endTime: formattedEndTime,
+                        recurrence: recurrence,
+                        recurrenceEnd: recurrenceEnd
+                    };
+                }
+            }
+            
+            // Update filtered events
+            filterEvents();
+            renderEventsTable();
+            closeEventModal();
+            alert('Event saved successfully!');
+        }
+        
+        function deleteEventFromModal() {
+            if (!editingEventId) return;
+            
+            if (confirm('Are you sure you want to delete this event?')) {
+                const eventIndex = allEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    allEvents.splice(eventIndex, 1);
+                    // Update filtered events
+                    filterEvents();
+                    renderEventsTable();
+                    closeEventModal();
+                    alert('Event deleted successfully!');
+                }
+            }
         }
         
         // Refresh data
