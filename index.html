@@ -251,6 +251,93 @@
             background-color: rgba(255, 255, 255, 0.3);
         }
         
+        /* Event details popup */
+        .event-details-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+        
+        .event-details-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .event-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .event-details-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .event-details-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .event-details-close:hover {
+            color: #333;
+        }
+        
+        .event-details-info {
+            line-height: 1.6;
+        }
+        
+        .event-detail-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+        
+        .event-detail-icon {
+            margin-right: 8px;
+            font-size: 16px;
+            min-width: 20px;
+        }
+        
+        .event-detail-text {
+            flex: 1;
+            color: #333;
+        }
+        
+        .event-detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
         /* Mobile responsive design */
         @media (max-width: 768px) {
             .day {
@@ -1190,72 +1277,155 @@
                 return `${day}/${month}/${year}`;
             };
             
-            // Build detailed event information
-            let details = `📅 ${event.title}\n\n`;
+            // Set popup title
+            document.getElementById('eventDetailsTitle').textContent = event.title;
+            
+            // Build detailed event information HTML
+            let detailsHTML = '';
             
             // Date information
             if (event.date) {
-                details += `📆 Date: ${formatDate(event.date)}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📆</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Date:</span> ${formatDate(event.date)}
+                        </div>
+                    </div>`;
             }
             
             // Time information
             if (event.startTime) {
-                details += `🕐 Time: ${event.startTime}`;
+                let timeText = event.startTime;
                 if (event.endTime) {
-                    details += ` - ${event.endTime}`;
+                    timeText += ` - ${event.endTime}`;
                 }
-                details += '\n';
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🕐</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Time:</span> ${timeText}
+                        </div>
+                    </div>`;
             } else {
-                details += `🕐 Time: All day\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🕐</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Time:</span> All day
+                        </div>
+                    </div>`;
             }
             
             // Multi-day event information
             if (event.type === 'multi' && event.endDate) {
-                details += `📅 End Date: ${formatDate(event.endDate)}\n`;
-                details += `📊 Duration: ${event.totalDays || 'Multiple days'}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📅</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">End Date:</span> ${formatDate(event.endDate)}
+                        </div>
+                    </div>
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📊</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Duration:</span> ${event.totalDays || 'Multiple days'}
+                        </div>
+                    </div>`;
             }
             
             // Location information (for games)
             if (event.location) {
-                details += `📍 Location: ${event.location}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📍</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Location:</span> ${event.location}
+                        </div>
+                    </div>`;
             }
             
             // Team information (for games)
             if (event.homeTeam) {
-                details += `🏠 Home: ${event.homeTeam}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🏠</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Home:</span> ${event.homeTeam}
+                        </div>
+                    </div>`;
             }
             if (event.awayTeam) {
-                details += `✈️ Away: ${event.awayTeam}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">✈️</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Away:</span> ${event.awayTeam}
+                        </div>
+                    </div>`;
             }
             
             // Score information (for completed games)
             if (event.homeScore !== undefined && event.awayScore !== undefined) {
-                details += `🏆 Score: ${event.homeTeam || 'Home'} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || 'Away'}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🏆</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Score:</span> ${event.homeTeam || 'Home'} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || 'Away'}
+                        </div>
+                    </div>`;
             }
             
             // League/Competition information
             if (event.league) {
-                details += `🏆 League: ${event.league}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">🏆</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">League:</span> ${event.league}
+                        </div>
+                    </div>`;
             }
             
             // Description
             if (event.description) {
-                details += `📝 Description: ${event.description}\n`;
+                detailsHTML += `
+                    <div class="event-detail-row">
+                        <span class="event-detail-icon">📝</span>
+                        <div class="event-detail-text">
+                            <span class="event-detail-label">Description:</span> ${event.description}
+                        </div>
+                    </div>`;
             }
             
             // Event type
+            let eventType = '';
             if (event.type === 'recurring') {
-                details += `🔄 Type: Recurring Event\n`;
+                eventType = '🔄 Recurring Event';
             } else if (event.type === 'multi') {
-                details += `📅 Type: Multi-day Event\n`;
+                eventType = '📅 Multi-day Event';
             } else if (event.isUserEvent) {
-                details += `👤 Type: User Created Event\n`;
+                eventType = '👤 User Created Event';
             } else {
-                details += `🌐 Type: External Event\n`;
+                eventType = '🌐 External Event';
             }
             
-            // Show the details in a mobile-friendly alert
-            alert(details);
+            detailsHTML += `
+                <div class="event-detail-row">
+                    <span class="event-detail-icon">ℹ️</span>
+                    <div class="event-detail-text">
+                        <span class="event-detail-label">Type:</span> ${eventType}
+                    </div>
+                </div>`;
+            
+            // Set the content and show popup
+            document.getElementById('eventDetailsInfo').innerHTML = detailsHTML;
+            document.getElementById('eventDetailsPopup').style.display = 'block';
+        }
+        
+        // Function to close event details popup
+        function closeEventDetails() {
+            document.getElementById('eventDetailsPopup').style.display = 'none';
         }
         
         // Function to show all events for a specific day
@@ -1365,7 +1535,11 @@
                     
                     eventItem.appendChild(eventMeta);
                     
-
+                    // Make the event item clickable to show details
+                    eventItem.addEventListener('click', () => {
+                        closeDayPopup();
+                        showEventDetails(event);
+                    });
                     
                     eventsList.appendChild(eventItem);
                 });
@@ -1584,5 +1758,18 @@
         // Initialize
         fetchEvents();
     </script>
+    
+    <!-- Event Details Popup -->
+    <div id="eventDetailsPopup" class="event-details-popup">
+        <div class="event-details-content">
+            <div class="event-details-header">
+                <h3 class="event-details-title" id="eventDetailsTitle"></h3>
+                <button class="event-details-close" onclick="closeEventDetails()">&times;</button>
+            </div>
+            <div class="event-details-info" id="eventDetailsInfo">
+                <!-- Event details will be populated here -->
+            </div>
+        </div>
+    </div>
 </body>
 </html>
