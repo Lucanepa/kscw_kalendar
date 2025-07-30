@@ -598,8 +598,192 @@
         }
         
         .project-calendar_ {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .project-scorer_ {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        /* Enhanced User Management Styles */
+        .user-modal-content {
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-form {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #007cba;
+            box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .permissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .permission-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .permission-item:hover {
+            border-color: #007cba;
+            background: #f8f9fa;
+        }
+        
+        .permission-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .permission-item input[type="checkbox"]:checked + label {
+            color: #007cba;
+            font-weight: 600;
+        }
+        
+        .permission-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin: 0;
+            width: 100%;
+        }
+        
+        .permission-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .permission-text {
+            font-size: 14px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .btn-primary {
             background: #007cba;
             color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #005a87;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+                .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .user-modal-content {
+                width: 95%;
+                margin: 10px;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .permissions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions .btn {
+                width: 100%;
+            }
         }
         
         .project-scorer_ {
@@ -999,60 +1183,99 @@
 
     <!-- User Modal -->
     <div id="userModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close" onclick="closeUserModal()">&times;</span>
-            <h2 id="modalTitle">Edit User</h2>
+        <div class="modal-content user-modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Edit User</h2>
+                <span class="close" onclick="closeUserModal()">&times;</span>
+            </div>
             
-            <form id="userForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="userEmail">Email:</label>
-                        <input type="email" id="userEmail" required />
+            <form id="userForm" class="user-form">
+                <div class="form-section">
+                    <h3>👤 Basic Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userEmail">📧 Email Address</label>
+                            <input type="email" id="userEmail" placeholder="user@example.com" />
+                            <small class="form-hint">Leave empty to keep current email</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userPassword">🔒 Password</label>
+                            <input type="password" id="userPassword" placeholder="Leave blank to keep current password" />
+                            <small class="form-hint">Leave empty to keep current password</small>
+                        </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="userPassword">Password:</label>
-                        <input type="password" id="userPassword" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userDisplayName">👤 Display Name</label>
+                            <input type="text" id="userDisplayName" placeholder="Full Name" required />
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="userDisplayName">Display Name:</label>
-                        <input type="text" id="userDisplayName" required />
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="userRole">Role:</label>
-                        <select id="userRole" onchange="updatePermissions()">
-                            <option value="hauswart">Hauswart</option>
-                            <option value="coach">Coach Volleyball</option>
-                            <option value="coach_basketball">Coach Basketball</option>
-                            <option value="admin">Admin</option>
-                            <option value="super_admin">Super Admin (Full Access)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="userProject">Project:</label>
-                        <select id="userProject">
-                            <option value="calendar_">Calendar System</option>
-                            <option value="scorer_">Scorer System</option>
-                        </select>
+                <div class="form-section">
+                    <h3>🎭 Role & Access</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userRole">👑 Role</label>
+                            <select id="userRole" onchange="updatePermissions()">
+                                <option value="hauswart">🏠 Hauswart (Facility Manager)</option>
+                                <option value="coach">🏐 Coach Volleyball</option>
+                                <option value="coach_basketball">🏀 Coach Basketball</option>
+                                <option value="admin">⚙️ Admin</option>
+                                <option value="super_admin">👑 Super Admin (Full Access)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userProject">📋 Project</label>
+                            <select id="userProject">
+                                <option value="calendar_">📅 Calendar System</option>
+                                <option value="scorer_">📊 Scorer System</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label>Permissions:</label>
-                    <div id="permissionsContainer">
-                        <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
-                        <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
-                        <label><input type="checkbox" value="admin_access"> Admin Access</label><br>
-                        <label><input type="checkbox" value="super_admin"> Super Admin (Full Access)</label>
+                <div class="form-section">
+                    <h3>🔐 Permissions</h3>
+                    <div id="permissionsContainer" class="permissions-grid">
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_create_events" value="create_events">
+                            <label for="perm_create_events">
+                                <span class="permission-icon">➕</span>
+                                <span class="permission-text">Create Events</span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_manage_calendar" value="manage_calendar">
+                            <label for="perm_manage_calendar">
+                                <span class="permission-icon">📅</span>
+                                <span class="permission-text">Manage Calendar</span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_admin_access" value="admin_access">
+                            <label for="perm_admin_access">
+                                <span class="permission-icon">⚙️</span>
+                                <span class="permission-text">Admin Access</span>
+                            </label>
+                        </div>
+                        <div class="permission-item">
+                            <input type="checkbox" id="perm_super_admin" value="super_admin">
+                            <label for="perm_super_admin">
+                                <span class="permission-icon">👑</span>
+                                <span class="permission-text">Super Admin (Full Access)</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn">Update User</button>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeUserModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">💾 Update User</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1123,6 +1346,52 @@
                 <div class="form-row" id="recurringEndRow" style="display: none;">
                     <label for="eventRecurrenceEnd">Until: <span class="format-hint">(dd/mm/yyyy)</span></label>
                     <input type="date" id="eventRecurrenceEnd" />
+                </div>
+                
+                <!-- More Info Section -->
+                <div class="form-row">
+                    <button type="button" class="btn btn-secondary" onclick="toggleMoreInfo()" id="moreInfoBtn">📋 More Info</button>
+                </div>
+                
+                <div id="moreInfoSection" style="display: none;">
+                    <div class="form-row">
+                        <label for="eventSport">Sport:</label>
+                        <select id="eventSport" onchange="updateEventColor()">
+                            <option value="">No Selection</option>
+                            <option value="volleyball">Volleyball</option>
+                            <option value="basketball">Basketball</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="eventHalle">Halle:</label>
+                        <select id="eventHalle">
+                            <option value="">No Selection</option>
+                            <option value="halle_a">Halle A</option>
+                            <option value="halle_b">Halle B</option>
+                            <option value="halle_c">Halle C</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="eventEventType">Type:</label>
+                        <select id="eventEventType" onchange="updateEventColor()">
+                            <option value="">No Selection</option>
+                            <option value="event">Event</option>
+                            <option value="tournament">Tournament</option>
+                            <option value="game">Game</option>
+                            <option value="training">Training</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div id="colorPreview" style="padding: 10px; border-radius: 4px; margin-top: 10px; text-align: center; font-weight: bold;">
+                            Color will be determined based on sport and type
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-buttons">
@@ -1401,20 +1670,72 @@
                     currentEvent = {};
                 } else if (line === 'END:VEVENT' && currentEvent) {
                     if (currentEvent.summary && currentEvent.dtstart) {
-                        events.push({
+                        const event = {
                             title: currentEvent.summary,
-                            date: formatIcalDate(currentEvent.dtstart)
-                        });
+                            date: formatIcalDate(currentEvent.dtstart),
+                            startTime: formatIcalTime(currentEvent.dtstart),
+                            endTime: formatIcalTime(currentEvent.dtend),
+                            description: currentEvent.description,
+                            location: currentEvent.location,
+                            uid: currentEvent.uid,
+                            categories: currentEvent.categories,
+                            status: currentEvent.status,
+                            isUserEvent: false
+                        };
+                        
+                        // Parse team information from title (for volleyball games)
+                        const teamInfo = parseTeamInfo(currentEvent.summary);
+                        if (teamInfo) {
+                            event.homeTeam = teamInfo.homeTeam;
+                            event.awayTeam = teamInfo.awayTeam;
+                            event.league = teamInfo.league;
+                        }
+                        
+                        // Parse additional game details from description
+                        const gameDetails = parseGameDetails(currentEvent.description);
+                        if (gameDetails) {
+                            event.gameId = gameDetails.gameId;
+                            event.result = gameDetails.result;
+                            event.leagueInfo = gameDetails.leagueInfo;
+                            event.venue = gameDetails.venue;
+                            event.address = gameDetails.address;
+                            event.mapUrl = gameDetails.mapUrl;
+                        }
+                        
+                        events.push(event);
                     }
                     currentEvent = null;
                 } else if (currentEvent) {
                     if (line.startsWith('SUMMARY:')) {
                         currentEvent.summary = line.substring(8);
                     } else if (line.startsWith('DTSTART')) {
+                        // Handle both date-only and datetime formats
+                        const dateTimeMatch = line.match(/DTSTART[^:]*:(\d{8}T\d{6})/);
                         const dateMatch = line.match(/DTSTART[^:]*:(\d{8})/);
-                        if (dateMatch) {
+                        if (dateTimeMatch) {
+                            currentEvent.dtstart = dateTimeMatch[1];
+                        } else if (dateMatch) {
                             currentEvent.dtstart = dateMatch[1];
                         }
+                    } else if (line.startsWith('DTEND')) {
+                        // Handle both date-only and datetime formats
+                        const dateTimeMatch = line.match(/DTEND[^:]*:(\d{8}T\d{6})/);
+                        const dateMatch = line.match(/DTEND[^:]*:(\d{8})/);
+                        if (dateTimeMatch) {
+                            currentEvent.dtend = dateTimeMatch[1];
+                        } else if (dateMatch) {
+                            currentEvent.dtend = dateMatch[1];
+                        }
+                    } else if (line.startsWith('DESCRIPTION:')) {
+                        currentEvent.description = line.substring(12);
+                    } else if (line.startsWith('LOCATION:')) {
+                        currentEvent.location = line.substring(9);
+                    } else if (line.startsWith('UID:')) {
+                        currentEvent.uid = line.substring(4);
+                    } else if (line.startsWith('CATEGORIES:')) {
+                        currentEvent.categories = line.substring(11);
+                    } else if (line.startsWith('STATUS:')) {
+                        currentEvent.status = line.substring(7);
                     }
                 }
             }
@@ -1430,6 +1751,118 @@
                 return `${year}-${month}-${day}`;
             }
             return null;
+        }
+        
+        function formatIcalTime(icalDateTime) {
+            if (!icalDateTime) return null;
+            
+            // Check if it's a datetime format (YYYYMMDDTHHMMSS)
+            if (icalDateTime.includes('T') && icalDateTime.length >= 15) {
+                const timePart = icalDateTime.substring(9, 15); // HHMMSS
+                const hours = timePart.substring(0, 2);
+                const minutes = timePart.substring(2, 4);
+                return `${hours}:${minutes}`;
+            }
+            
+            // Check for timezone format (YYYYMMDDTHHMMSSZ)
+            if (icalDateTime.includes('T') && icalDateTime.endsWith('Z') && icalDateTime.length >= 16) {
+                const timePart = icalDateTime.substring(9, 15); // HHMMSS
+                const hours = timePart.substring(0, 2);
+                const minutes = timePart.substring(2, 4);
+                return `${hours}:${minutes}`;
+            }
+            
+            return null; // No time component
+        }
+        
+        function parseTeamInfo(title) {
+            // Enhanced patterns for volleyball game titles from iCal data
+            const patterns = [
+                // Pattern: "Team1 - Team2 (League)"
+                /^(.+?)\s+-\s+(.+?)\s+\((.+?)\)$/,
+                // Pattern: "Team1 vs Team2"
+                /^(.+?)\s+vs\s+(.+?)$/,
+                // Pattern: "Team1 — Team2 (League)" (with em dash)
+                /^(.+?)\s+—\s+(.+?)\s+\((.+?)\)$/,
+                // Pattern: "KSCW vs Team Name"
+                /KSCW\s+vs\s+(.+)/i,
+                // Pattern: "Team Name vs KSCW"
+                /(.+)\s+vs\s+KSCW/i,
+                // Pattern: "KSCW - Team Name"
+                /KSCW\s+-\s+(.+)/i,
+                // Pattern: "Team Name - KSCW"
+                /(.+)\s+-\s+KSCW/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = title.match(pattern);
+                if (match) {
+                    if (match.length === 4) {
+                        // Pattern with league info
+                        return {
+                            homeTeam: match[1].trim(),
+                            awayTeam: match[2].trim(),
+                            league: match[3].trim()
+                        };
+                    } else if (match.length === 3) {
+                        // Pattern without league info
+                        const otherTeam = match[2].trim();
+                        const isHome = match[1].toLowerCase().includes('ksc') || match[1].toLowerCase().includes('wiedikon');
+                        
+                        return {
+                            homeTeam: isHome ? match[1].trim() : otherTeam,
+                            awayTeam: isHome ? otherTeam : match[1].trim(),
+                            league: 'Volleyball' // Default league
+                        };
+                    }
+                }
+            }
+            
+            return null;
+        }
+        
+        function parseGameDetails(description) {
+            if (!description) return null;
+            
+            const details = {};
+            
+            // Extract game ID (#123456)
+            const gameIdMatch = description.match(/#(\d+)/);
+            if (gameIdMatch) {
+                details.gameId = gameIdMatch[1];
+            }
+            
+            // Extract result (Risultato: X-Y or Risultato: -)
+            const resultMatch = description.match(/Risultato:\s*([^\n]+)/);
+            if (resultMatch) {
+                details.result = resultMatch[1].trim();
+            }
+            
+            // Extract league info (Lega: #1234 | 2L | ♂)
+            const leagueMatch = description.match(/Lega:\s*([^\n]+)/);
+            if (leagueMatch) {
+                details.leagueInfo = leagueMatch[1].trim();
+            }
+            
+            // Extract venue (Palestra: Venue Name)
+            const venueMatch = description.match(/Palestra:\s*([^\n]+)/);
+            if (venueMatch) {
+                details.venue = venueMatch[1].trim();
+            }
+            
+            // Extract address (Indirizzo: Address)
+            const addressMatch = description.match(/Indirizzo:\s*([^\n]+)/);
+            if (addressMatch) {
+                details.address = addressMatch[1].trim();
+            }
+            
+            // Extract map URL (https://maps.google.com/...)
+            const mapUrlMatch = description.match(/(https:\/\/maps\.google\.com\/[^\s]+)/);
+            if (mapUrlMatch) {
+                details.mapUrl = mapUrlMatch[1];
+            }
+            
+            return Object.keys(details).length > 0 ? details : null;
         }
         
         // Update statistics
@@ -1679,6 +2112,18 @@
             document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
             document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
             
+            // Populate more info fields
+            document.getElementById('eventSport').value = event.sport || '';
+            document.getElementById('eventHalle').value = event.halle || '';
+            document.getElementById('eventEventType').value = event.eventType || '';
+            
+            // Update color preview if more info is available
+            if (event.sport || event.eventType) {
+                document.getElementById('moreInfoSection').style.display = 'block';
+                document.getElementById('moreInfoBtn').textContent = '📋 Less Info';
+                updateEventColor();
+            }
+            
             handleEventTypeChange();
             handleAllDayChange();
             document.getElementById('eventModal').style.display = 'block';
@@ -1781,6 +2226,17 @@
             document.getElementById('eventEndTime').value = '';
             document.getElementById('eventRecurrence').value = 'weekly';
             document.getElementById('eventRecurrenceEnd').value = '';
+            
+            // Clear more info fields
+            document.getElementById('eventSport').value = '';
+            document.getElementById('eventHalle').value = '';
+            document.getElementById('eventEventType').value = '';
+            document.getElementById('moreInfoSection').style.display = 'none';
+            document.getElementById('moreInfoBtn').textContent = '📋 More Info';
+            document.getElementById('colorPreview').style.backgroundColor = '';
+            document.getElementById('colorPreview').style.color = '';
+            document.getElementById('colorPreview').textContent = 'Color will be determined based on sport and type';
+            
             handleEventTypeChange();
         }
         
@@ -1824,6 +2280,59 @@
             }
         }
         
+        // Toggle more info section
+        function toggleMoreInfo() {
+            const moreInfoSection = document.getElementById('moreInfoSection');
+            const moreInfoBtn = document.getElementById('moreInfoBtn');
+            
+            if (moreInfoSection.style.display === 'none') {
+                moreInfoSection.style.display = 'block';
+                moreInfoBtn.textContent = '📋 Less Info';
+            } else {
+                moreInfoSection.style.display = 'none';
+                moreInfoBtn.textContent = '📋 More Info';
+            }
+        }
+        
+        // Update event color based on sport and type
+        function updateEventColor() {
+            const sport = document.getElementById('eventSport').value;
+            const eventType = document.getElementById('eventEventType').value;
+            const colorPreview = document.getElementById('colorPreview');
+            
+            let color = '';
+            let text = '';
+            
+            // Color coding logic
+            if (!sport || sport === 'other') {
+                color = '#ff8c00'; // Orange
+                text = 'Orange (Other sport or no selection)';
+            } else if (sport === 'volleyball') {
+                if (eventType === 'game') {
+                    color = '#0066cc'; // Blue
+                    text = 'Blue (Volleyball Game)';
+                } else {
+                    color = '#28a745'; // Green
+                    text = 'Green (Volleyball Event - not game)';
+                }
+            } else if (sport === 'basketball') {
+                if (eventType === 'game') {
+                    color = '#800080'; // Purple
+                    text = 'Purple (Basketball Game)';
+                } else {
+                    color = '#dc3545'; // Red
+                    text = 'Red (Basketball Event - not game)';
+                }
+            } else {
+                color = '#ff8c00'; // Orange
+                text = 'Orange (Other sport)';
+            }
+            
+            colorPreview.style.backgroundColor = color;
+            colorPreview.style.color = '#ffffff';
+            colorPreview.textContent = text;
+        }
+        
         // Save event to database
         async function saveEventToDatabase(event) {
             try {
@@ -1840,6 +2349,9 @@
                     end_time: event.endTime || null,
                     recurrence: event.recurrence || null,
                     recurrence_end: event.recurrenceEnd || null,
+                    sport: event.sport || null,
+                    halle: event.halle || null,
+                    event_type_category: event.eventType || null,
                     source: event.source || 'admin',
                     created_at: new Date().toISOString()
                 };
@@ -1881,6 +2393,9 @@
                     end_time: event.endTime || null,
                     recurrence: event.recurrence || null,
                     recurrence_end: event.recurrenceEnd || null,
+                    sport: event.sport || null,
+                    halle: event.halle || null,
+                    event_type_category: event.eventType || null,
                     source: event.source || 'admin'
                 };
                 
@@ -1920,6 +2435,11 @@
             const recurrence = document.getElementById('eventRecurrence').value;
             const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
             
+            // More info fields
+            const sport = document.getElementById('eventSport').value;
+            const halle = document.getElementById('eventHalle').value;
+            const eventType = document.getElementById('eventEventType').value;
+            
             if (!title || !startDate) {
                 alert('Please fill in title and start date.');
                 return;
@@ -1954,7 +2474,10 @@
                         endDate: endDate,
                         endTime: formattedEndTime,
                         recurrence: recurrence,
-                        recurrenceEnd: recurrenceEnd
+                        recurrenceEnd: recurrenceEnd,
+                        sport: sport,
+                        halle: halle,
+                        eventType: eventType
                     };
                     
                     // Log the edit
@@ -1988,6 +2511,9 @@
                     endTime: formattedEndTime,
                     recurrence: recurrence,
                     recurrenceEnd: recurrenceEnd,
+                    sport: sport,
+                    halle: halle,
+                    eventType: eventType,
                     isUserEvent: true,
                     source: 'admin'
                 };
@@ -2356,19 +2882,17 @@
                     checkboxes.forEach(cb => cb.checked = true);
                     break;
                 case 'admin':
-                    checkboxes[0].checked = true; // create_events
-                    checkboxes[1].checked = true; // manage_calendar
-                    checkboxes[2].checked = true; // admin_access
+                    document.getElementById('perm_create_events').checked = true;
+                    document.getElementById('perm_manage_calendar').checked = true;
+                    document.getElementById('perm_admin_access').checked = true;
                     break;
                 case 'hauswart':
-                    checkboxes[0].checked = true; // create_events
-                    checkboxes[1].checked = true; // manage_calendar
+                    document.getElementById('perm_create_events').checked = true;
+                    document.getElementById('perm_manage_calendar').checked = true;
                     break;
                 case 'coach':
-                    checkboxes[0].checked = true; // create_events
-                    break;
                 case 'coach_basketball':
-                    checkboxes[0].checked = true; // create_events
+                    document.getElementById('perm_create_events').checked = true;
                     break;
             }
         }
@@ -2399,9 +2923,10 @@
             
             // Set permissions
             const permissions = user.user_metadata?.permissions || [];
-            document.querySelectorAll('#permissionsContainer input[type="checkbox"]').forEach(cb => {
-                cb.checked = permissions.includes(cb.value);
-            });
+            document.getElementById('perm_create_events').checked = permissions.includes('create_events');
+            document.getElementById('perm_manage_calendar').checked = permissions.includes('manage_calendar');
+            document.getElementById('perm_admin_access').checked = permissions.includes('admin_access');
+            document.getElementById('perm_super_admin').checked = permissions.includes('super_admin');
             
             document.getElementById('userModal').style.display = 'block';
             
