@@ -225,15 +225,25 @@
         /* Event time display */
         .event-time {
             font-size: 8px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-right: 4px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-left: 4px;
             font-weight: bold;
+            flex-shrink: 0;
         }
         
         .event-content {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             width: 100%;
+        }
+        
+        .event-title {
+            flex: 1;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         /* Day popup modal styles */
@@ -1042,29 +1052,23 @@
                         }
                     }
                     
-                    // Create event content with time
+                    // Create event content with title on left and time on right
                     const eventContent = document.createElement('div');
                     eventContent.className = 'event-content';
                     
-                    // Add time if available
+                    // Add event title (left-aligned)
+                    const titleElement = document.createElement('span');
+                    titleElement.className = 'event-title';
+                    titleElement.textContent = event.title;
+                    eventContent.appendChild(titleElement);
+                    
+                    // Add time on the right if available
                     if (event.startTime) {
                         const timeElement = document.createElement('span');
                         timeElement.className = 'event-time';
                         timeElement.textContent = event.startTime;
                         eventContent.appendChild(timeElement);
-                    } else {
-                        // Add empty space for alignment
-                        const timeElement = document.createElement('span');
-                        timeElement.className = 'event-time';
-                        timeElement.textContent = '';
-                        eventContent.appendChild(timeElement);
                     }
-                    
-                    // Add event title
-                    const titleElement = document.createElement('span');
-                    titleElement.className = 'event-title';
-                    titleElement.textContent = event.title;
-                    eventContent.appendChild(titleElement);
                     
                     eventElement.appendChild(eventContent);
                     
@@ -1371,8 +1375,9 @@
                     // For multi-day events, create separate instances for each day
                     console.log(`Processing multi-day event: ${event.title} from ${event.date} to ${event.endDate}`);
                     
-                    const startDate = new Date(event.date + 'T00:00:00');
-                    const endDate = new Date(event.endDate + 'T00:00:00');
+                    // Parse dates properly to avoid timezone issues
+                    const startDate = new Date(event.date + 'T12:00:00'); // Use noon to avoid timezone issues
+                    const endDate = new Date(event.endDate + 'T12:00:00');
                     
                     if (endDate >= startDate) {
                         // Create an event for each day in the range
