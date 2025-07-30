@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plain Calendar</title>
+    <title>KSCW Calendar</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -1117,7 +1117,16 @@
                     if (event.type === 'recurring') {
                         metaText = '♻️ Recurring event';
                     } else if (event.type === 'multi' && event.originalStartDate && event.originalEndDate) {
-                        metaText = `📅 Multi-day: ${event.originalStartDate} to ${event.originalEndDate}`;
+                        // Format dates from yyyy-mm-dd to dd/mm/yyyy
+                        const formatDate = (dateString) => {
+                            if (!dateString) return '';
+                            const date = new Date(dateString);
+                            const day = String(date.getDate()).padStart(2, '0');
+                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                            const year = date.getFullYear();
+                            return `${day}/${month}/${year}`;
+                        };
+                        metaText = `📅 Multi-day: ${formatDate(event.originalStartDate)} to ${formatDate(event.originalEndDate)}`;
                     } else if (event.isUserEvent) {
                         metaText = '✏️ User event';
                     } else {
