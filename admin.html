@@ -609,7 +609,6 @@
                         <div class="form-group">
                             <label for="userRole">Role:</label>
                                                          <select id="userRole" onchange="updatePermissions()">
-                                 <option value="user">User</option>
                                  <option value="hauswart">Hauswart</option>
                                  <option value="coach">Coach Volleyball</option>
                                  <option value="coach_basketball">Coach Basketball</option>
@@ -1150,7 +1149,7 @@
   "permissions": ["create_events"]
 }</code>
                                 </div>
-                                <p><strong>Available roles:</strong> user, hauswart, coach, coach_basketball, admin, super_admin</p>
+                                <p><strong>Available roles:</strong> hauswart, coach, coach_basketball, admin, super_admin</p>
                                 <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, super_admin</p>
                                 <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
                             </td>
@@ -1317,9 +1316,6 @@
                 case 'coach_basketball':
                     checkboxes[0].checked = true; // create_events
                     break;
-                case 'user':
-                    checkboxes[0].checked = true; // create_events
-                    break;
             }
         }
         
@@ -1373,23 +1369,30 @@
             });
             
             try {
-                const updateData = {
-                    user_metadata: {
-                        display_name: displayName,
-                        role: role,
-                        permissions: permissions
-                    }
+                const userMetadata = {
+                    display_name: displayName,
+                    role: role,
+                    permissions: permissions
                 };
                 
-                // Only update password if provided
-                if (password) {
-                    updateData.password = password;
-                }
+                // Call the Edge Function to update user metadata
+                const response = await fetch('/functions/v1/update-user-metadata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${supabaseKey}`
+                    },
+                    body: JSON.stringify({
+                        userId: userId,
+                        userMetadata: userMetadata,
+                        password: password || null
+                    })
+                });
                 
-                const { data, error } = await supabase.auth.admin.updateUserById(userId, updateData);
+                const result = await response.json();
                 
-                if (error) {
-                    alert(`Error updating user: ${error.message}`);
+                if (!response.ok) {
+                    alert(`Error updating user: ${result.error}`);
                 } else {
                     alert(`User updated successfully!`);
                     closeUserModal();
