@@ -767,6 +767,52 @@
                     <input type="date" id="eventRecurrenceEnd" />
                 </div>
                 
+                <!-- More Info Section -->
+                <div class="form-row">
+                    <button type="button" class="btn btn-secondary" onclick="toggleMoreInfo()" id="moreInfoBtn">📋 Mehr Info</button>
+                </div>
+                
+                <div id="moreInfoSection" style="display: none;">
+                    <div class="form-row">
+                        <label for="eventSport">Sport:</label>
+                        <select id="eventSport" onchange="updateEventColor()">
+                            <option value="">Keine Auswahl</option>
+                            <option value="volleyball">Volleyball</option>
+                            <option value="basketball">Basketball</option>
+                            <option value="other">Andere</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="eventHalle">Halle:</label>
+                        <select id="eventHalle">
+                            <option value="">Keine Auswahl</option>
+                            <option value="halle_a">Halle A</option>
+                            <option value="halle_b">Halle B</option>
+                            <option value="halle_c">Halle C</option>
+                            <option value="other">Andere</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <label for="eventEventType">Typ:</label>
+                        <select id="eventEventType" onchange="updateEventColor()">
+                            <option value="">Keine Auswahl</option>
+                            <option value="event">Event</option>
+                            <option value="tournament">Tournament</option>
+                            <option value="game">Game</option>
+                            <option value="training">Training</option>
+                            <option value="other">Andere</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div id="colorPreview" style="padding: 10px; border-radius: 4px; margin-top: 10px; text-align: center; font-weight: bold;">
+                            Farbe wird basierend auf Sport und Typ bestimmt
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideEventForm()" id="cancelBtn">Abbrechen</button>
                     <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">Löschen</button>
@@ -1508,6 +1554,17 @@
             document.getElementById('eventEndTime').value = '';
             document.getElementById('eventRecurrence').value = 'weekly';
             document.getElementById('eventRecurrenceEnd').value = '';
+            
+            // Clear more info fields
+            document.getElementById('eventSport').value = '';
+            document.getElementById('eventHalle').value = '';
+            document.getElementById('eventEventType').value = '';
+            document.getElementById('moreInfoSection').style.display = 'none';
+            document.getElementById('moreInfoBtn').textContent = '📋 Mehr Info';
+            document.getElementById('colorPreview').style.backgroundColor = '';
+            document.getElementById('colorPreview').style.color = '';
+            document.getElementById('colorPreview').textContent = 'Farbe wird basierend auf Sport und Typ bestimmt';
+            
             handleEventTypeChange();
         }
         
@@ -1551,6 +1608,59 @@
             }
         }
         
+        // Toggle more info section
+        function toggleMoreInfo() {
+            const moreInfoSection = document.getElementById('moreInfoSection');
+            const moreInfoBtn = document.getElementById('moreInfoBtn');
+            
+            if (moreInfoSection.style.display === 'none') {
+                moreInfoSection.style.display = 'block';
+                moreInfoBtn.textContent = '📋 Weniger Info';
+            } else {
+                moreInfoSection.style.display = 'none';
+                moreInfoBtn.textContent = '📋 Mehr Info';
+            }
+        }
+        
+        // Update event color based on sport and type
+        function updateEventColor() {
+            const sport = document.getElementById('eventSport').value;
+            const eventType = document.getElementById('eventEventType').value;
+            const colorPreview = document.getElementById('colorPreview');
+            
+            let color = '';
+            let text = '';
+            
+            // Color coding logic
+            if (!sport || sport === 'other') {
+                color = '#ff8c00'; // Orange
+                text = 'Orange (Andere Sportart oder keine Auswahl)';
+            } else if (sport === 'volleyball') {
+                if (eventType === 'game') {
+                    color = '#0066cc'; // Blue
+                    text = 'Blau (Volleyball Game)';
+                } else {
+                    color = '#28a745'; // Green
+                    text = 'Grün (Volleyball Event - kein Game)';
+                }
+            } else if (sport === 'basketball') {
+                if (eventType === 'game') {
+                    color = '#800080'; // Purple
+                    text = 'Lila (Basketball Game)';
+                } else {
+                    color = '#dc3545'; // Red
+                    text = 'Rot (Basketball Event - kein Game)';
+                }
+            } else {
+                color = '#ff8c00'; // Orange
+                text = 'Orange (Andere Sportart)';
+            }
+            
+            colorPreview.style.backgroundColor = color;
+            colorPreview.style.color = '#ffffff';
+            colorPreview.textContent = text;
+        }
+        
         // Update event in database
         async function updateEventInDatabase(event) {
             try {
@@ -1564,6 +1674,9 @@
                     end_time: event.endTime || null,
                     recurrence: event.recurrence || null,
                     recurrence_end: event.recurrenceEnd || null,
+                    sport: event.sport || null,
+                    halle: event.halle || null,
+                    event_type_category: event.eventType || null,
                     source: event.source || 'manual'
                 };
                 
@@ -1604,6 +1717,11 @@
             const recurrence = document.getElementById('eventRecurrence').value;
             const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
             
+            // More info fields
+            const sport = document.getElementById('eventSport').value;
+            const halle = document.getElementById('eventHalle').value;
+            const eventType = document.getElementById('eventEventType').value;
+            
             if (!title || !startDate) {
                 alert(t('fillTitleDate'));
                 return;
@@ -1639,7 +1757,10 @@
                         endDate: endDate,
                         endTime: formattedEndTime,
                         recurrence: recurrence,
-                        recurrenceEnd: recurrenceEnd
+                        recurrenceEnd: recurrenceEnd,
+                        sport: sport,
+                        halle: halle,
+                        eventType: eventType
                     };
                     
                     // Log the edit
@@ -1668,6 +1789,9 @@
                     endTime: formattedEndTime,
                     recurrence: recurrence,
                     recurrenceEnd: recurrenceEnd,
+                    sport: sport,
+                    halle: halle,
+                    eventType: eventType,
                     isUserEvent: true,
                     source: 'manual'
                 };
@@ -1705,6 +1829,18 @@
             document.getElementById('eventEndTime').value = event.endTime || '';
             document.getElementById('eventRecurrence').value = event.recurrence || 'weekly';
             document.getElementById('eventRecurrenceEnd').value = event.recurrenceEnd || '';
+            
+            // Populate more info fields
+            document.getElementById('eventSport').value = event.sport || '';
+            document.getElementById('eventHalle').value = event.halle || '';
+            document.getElementById('eventEventType').value = event.eventType || '';
+            
+            // Update color preview if more info is available
+            if (event.sport || event.eventType) {
+                document.getElementById('moreInfoSection').style.display = 'block';
+                document.getElementById('moreInfoBtn').textContent = '📋 Weniger Info';
+                updateEventColor();
+            }
             
             handleEventTypeChange();
             handleAllDayChange();
