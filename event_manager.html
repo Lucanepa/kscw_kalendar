@@ -198,12 +198,19 @@
         .event-item {
             background: #f8f9fa;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 10px;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .event-item:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
         }
         
         .event-info {
@@ -212,18 +219,22 @@
         
         .event-title {
             font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 5px;
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
         }
         
         .event-meta {
             color: #666;
             font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
         }
         
         .event-actions {
             display: flex;
-            gap: 5px;
+            gap: 8px;
+            flex-shrink: 0;
         }
         
         .event-type-badge {
@@ -385,6 +396,24 @@
         .nav-links a:hover {
             opacity: 1;
         }
+        
+        /* Language switch styles */
+        .language-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .language-switch:hover {
+            background: #005a87;
+        }
     </style>
 </head>
 <body>
@@ -395,6 +424,7 @@
                 <span id="userEmail"></span>
                 <button class="logout-btn" onclick="logout()">Abmelden</button>
             </div>
+            <button class="language-switch" onclick="toggleLanguage()" id="languageSwitch">🇺🇸 English</button>
         </div>
         
         <!-- Authentication Section -->
@@ -526,6 +556,7 @@
                 
                 <div class="form-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideEventForm()">Abbrechen</button>
+                    <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">Löschen</button>
                     <button type="button" class="btn" onclick="saveEvent()">Ereignis speichern</button>
                 </div>
             </form>
@@ -543,6 +574,308 @@
         let userEvents = [];
         let editingEventId = null;
         let currentUser = null;
+        let currentLanguage = 'de'; // Default to German
+        
+        // Translation object
+        const translations = {
+            de: {
+                // Header
+                eventManager: '📅 Event Manager',
+                logout: 'Abmelden',
+                languageSwitch: '🇺🇸 English',
+                
+                // Navigation
+                backToCalendar: '⬅️ Zurück zum Kalender',
+                
+                // Authentication
+                authTitle: '🔐 Event Manager Authentifizierung',
+                authDescription: 'Bitte melden Sie sich an, um Ereignisse zu erstellen und zu verwalten.',
+                signIn: 'Anmelden',
+                email: 'E-Mail:',
+                password: 'Passwort:',
+                emailPlaceholder: 'Ihre E-Mail-Adresse eingeben',
+                passwordPlaceholder: 'Ihr Passwort eingeben',
+                
+                // Event Management
+                eventManagement: '📅 Ereignisverwaltung',
+                addEvent: '➕ Ereignis hinzufügen',
+                refreshEvents: '🔄 Ereignisse aktualisieren',
+                
+                // Modal
+                addEventTitle: 'Ereignis hinzufügen',
+                editEventTitle: 'Ereignis bearbeiten',
+                title: 'Titel:',
+                description: 'Beschreibung:',
+                type: 'Typ:',
+                startDate: 'Startdatum:',
+                startTime: 'Startzeit:',
+                endDate: 'Enddatum:',
+                endTime: 'Endzeit:',
+                recurrence: 'Wiederholung:',
+                until: 'Bis:',
+                allDay: 'Ganztägig',
+                titlePlaceholder: 'Ereignistitel',
+                descriptionPlaceholder: 'Optionale Beschreibung',
+                cancel: 'Abbrechen',
+                saveEvent: 'Ereignis speichern',
+                
+                // Event Types
+                single: 'Einzeltag',
+                multi: 'Mehrtägig',
+                recurring: 'Wiederkehrend',
+                
+                // Recurrence
+                daily: 'Täglich',
+                weekly: 'Wöchentlich',
+                monthly: 'Monatlich',
+                yearly: 'Jährlich',
+                
+                // Event Display
+                date: 'Datum:',
+                time: 'Zeit:',
+                end: 'Ende:',
+                allDayDisplay: 'Ganztägig',
+                recurringDisplay: 'Wiederkehrend:',
+                edit: 'Bearbeiten',
+                
+                // Messages
+                noEvents: 'Noch keine Ereignisse erstellt. Klicken Sie auf "Ereignis hinzufügen" um Ihr erstes Ereignis zu erstellen!',
+                fillRequiredFields: 'Bitte füllen Sie alle Felder aus.',
+                fillTitleDate: 'Bitte füllen Sie Titel und Startdatum aus.',
+                endDateRequired: 'Enddatum ist für mehrtägige Ereignisse erforderlich.',
+                endDateAfterStart: 'Enddatum muss nach oder gleich dem Startdatum sein.',
+                confirmDelete: 'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten?',
+                authSuccess: '✅ Anmeldung erfolgreich! Willkommen,',
+                noPermission: '❌ Sie haben keine Berechtigung für den Event Manager.',
+                authError: '❌ Bei der Anmeldung ist ein Fehler aufgetreten.',
+                loadError: 'Fehler beim Laden Ihrer Ereignisse aus der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung und aktualisieren Sie die Seite.',
+                saveError: 'Fehler beim Speichern Ihrer Ereignisse in der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung.',
+                noUsers: 'No users found.'
+            },
+            en: {
+                // Header
+                eventManager: '📅 Event Manager',
+                logout: 'Logout',
+                languageSwitch: '🇩🇪 Deutsch',
+                
+                // Navigation
+                backToCalendar: '⬅️ Back to Calendar',
+                
+                // Authentication
+                authTitle: '🔐 Event Manager Authentication',
+                authDescription: 'Please sign in to create and manage events.',
+                signIn: 'Sign In',
+                email: 'Email:',
+                password: 'Password:',
+                emailPlaceholder: 'Enter your email address',
+                passwordPlaceholder: 'Enter your password',
+                
+                // Event Management
+                eventManagement: '📅 Event Management',
+                addEvent: '➕ Add Event',
+                refreshEvents: '🔄 Refresh Events',
+                
+                // Modal
+                addEventTitle: 'Add Event',
+                editEventTitle: 'Edit Event',
+                title: 'Title:',
+                description: 'Description:',
+                type: 'Type:',
+                startDate: 'Start Date:',
+                startTime: 'Start Time:',
+                endDate: 'End Date:',
+                endTime: 'End Time:',
+                recurrence: 'Recurrence:',
+                until: 'Until:',
+                allDay: 'All Day',
+                titlePlaceholder: 'Event title',
+                descriptionPlaceholder: 'Optional description',
+                cancel: 'Cancel',
+                saveEvent: 'Save Event',
+                
+                // Event Types
+                single: 'Single Day',
+                multi: 'Multi-Day',
+                recurring: 'Recurring',
+                
+                // Recurrence
+                daily: 'Daily',
+                weekly: 'Weekly',
+                monthly: 'Monthly',
+                yearly: 'Yearly',
+                
+                // Event Display
+                date: 'Date:',
+                time: 'Time:',
+                end: 'End:',
+                allDayDisplay: 'All Day',
+                recurringDisplay: 'Recurring:',
+                edit: 'Edit',
+                
+                // Messages
+                noEvents: 'No events created yet. Click "Add Event" to create your first event!',
+                fillRequiredFields: 'Please fill in all fields.',
+                fillTitleDate: 'Please fill in title and start date.',
+                endDateRequired: 'End date is required for multi-day events.',
+                endDateAfterStart: 'End date must be after or equal to start date.',
+                confirmDelete: 'Are you sure you want to delete this event?',
+                authSuccess: '✅ Sign in successful! Welcome,',
+                noPermission: '❌ You do not have permission for the Event Manager.',
+                authError: '❌ An error occurred during sign in.',
+                loadError: 'Error loading your events from the database. Please check your internet connection and refresh the page.',
+                saveError: 'Error saving your events to the database. Please check your internet connection.',
+                noUsers: 'No users found.'
+            }
+        };
+        
+        // Function to get translation
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+        
+        // Function to toggle language
+        function toggleLanguage() {
+            currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
+            updateLanguageUI();
+            updateAllText();
+        }
+        
+        // Function to update language UI
+        function updateLanguageUI() {
+            const languageSwitch = document.getElementById('languageSwitch');
+            if (currentLanguage === 'de') {
+                languageSwitch.textContent = '🇺🇸 English';
+            } else {
+                languageSwitch.textContent = '🇩🇪 Deutsch';
+            }
+        }
+        
+        // Function to update all text on the page
+        function updateAllText() {
+            // Update header
+            document.querySelector('.header h1').textContent = t('eventManager');
+            document.querySelector('.logout-btn').textContent = t('logout');
+            
+            // Update navigation
+            const backLinks = document.querySelectorAll('a[href="index.html"]');
+            backLinks.forEach(link => {
+                link.textContent = t('backToCalendar');
+            });
+            
+            // Update auth section
+            const authTitle = document.querySelector('.login-form h2');
+            if (authTitle) authTitle.textContent = t('authTitle');
+            
+            const authDesc = document.querySelector('.login-form p');
+            if (authDesc) authDesc.textContent = t('authDescription');
+            
+            const signInBtn = document.querySelector('.btn[onclick="signIn()"]');
+            if (signInBtn) signInBtn.textContent = t('signIn');
+            
+            // Update form labels
+            const emailLabel = document.querySelector('label[for="loginEmail"]');
+            if (emailLabel) emailLabel.textContent = t('email');
+            
+            const passwordLabel = document.querySelector('label[for="loginPassword"]');
+            if (passwordLabel) passwordLabel.textContent = t('password');
+            
+            // Update placeholders
+            const emailInput = document.getElementById('loginEmail');
+            if (emailInput) emailInput.placeholder = t('emailPlaceholder');
+            
+            const passwordInput = document.getElementById('loginPassword');
+            if (passwordInput) passwordInput.placeholder = t('passwordPlaceholder');
+            
+            // Update event management section
+            const eventManagementTitle = document.querySelector('.control-section h3');
+            if (eventManagementTitle) eventManagementTitle.textContent = t('eventManagement');
+            
+            const addEventBtn = document.querySelector('.btn[onclick="showAddEventForm()"]');
+            if (addEventBtn) addEventBtn.textContent = t('addEvent');
+            
+            const refreshBtn = document.querySelector('.btn[onclick="refreshEvents()"]');
+            if (refreshBtn) refreshBtn.textContent = t('refreshEvents');
+            
+            // Update modal
+            updateModalText();
+            
+            // Update event list
+            renderEventsList();
+        }
+        
+        // Function to update modal text
+        function updateModalText() {
+            const modalTitle = document.getElementById('modalTitle');
+            if (modalTitle) {
+                modalTitle.textContent = editingEventId ? t('editEventTitle') : t('addEventTitle');
+            }
+            
+            // Update form labels
+            const titleLabel = document.querySelector('#eventForm label:first-child');
+            if (titleLabel) titleLabel.textContent = t('title');
+            
+            const descLabel = document.querySelector('#eventForm label:nth-child(2)');
+            if (descLabel) descLabel.textContent = t('description');
+            
+            const typeLabel = document.querySelector('#eventForm label:nth-child(3)');
+            if (typeLabel) typeLabel.textContent = t('type');
+            
+            const startDateLabel = document.querySelector('#eventForm label:nth-child(4)');
+            if (startDateLabel) startDateLabel.textContent = t('startDate');
+            
+            const allDayLabel = document.querySelector('#eventForm label:nth-child(5)');
+            if (allDayLabel) allDayLabel.textContent = t('allDay');
+            
+            const startTimeLabel = document.querySelector('#eventForm label:nth-child(6)');
+            if (startTimeLabel) startTimeLabel.textContent = t('startTime');
+            
+            const endDateLabel = document.querySelector('#eventForm label:nth-child(7)');
+            if (endDateLabel) endDateLabel.textContent = t('endDate');
+            
+            const endTimeLabel = document.querySelector('#eventForm label:nth-child(8)');
+            if (endTimeLabel) endTimeLabel.textContent = t('endTime');
+            
+            const recurrenceLabel = document.querySelector('#eventForm label:nth-child(9)');
+            if (recurrenceLabel) recurrenceLabel.textContent = t('recurrence');
+            
+            const untilLabel = document.querySelector('#eventForm label:nth-child(10)');
+            if (untilLabel) untilLabel.textContent = t('until');
+            
+            // Update placeholders
+            const titleInput = document.getElementById('eventTitle');
+            if (titleInput) titleInput.placeholder = t('titlePlaceholder');
+            
+            const descInput = document.getElementById('eventDescription');
+            if (descInput) descInput.placeholder = t('descriptionPlaceholder');
+            
+            // Update buttons
+            const cancelBtn = document.querySelector('.btn-secondary[onclick="hideEventForm()"]');
+            if (cancelBtn) cancelBtn.textContent = t('cancel');
+            
+            const saveBtn = document.querySelector('.btn[onclick="saveEvent()"]');
+            if (saveBtn) saveBtn.textContent = t('saveEvent');
+            
+            // Update select options
+            updateSelectOptions();
+        }
+        
+        // Function to update select options
+        function updateSelectOptions() {
+            const eventTypeSelect = document.getElementById('eventType');
+            if (eventTypeSelect) {
+                eventTypeSelect.options[0].text = t('single');
+                eventTypeSelect.options[1].text = t('multi');
+                eventTypeSelect.options[2].text = t('recurring');
+            }
+            
+            const recurrenceSelect = document.getElementById('eventRecurrence');
+            if (recurrenceSelect) {
+                recurrenceSelect.options[0].text = t('daily');
+                recurrenceSelect.options[1].text = t('weekly');
+                recurrenceSelect.options[2].text = t('monthly');
+                recurrenceSelect.options[3].text = t('yearly');
+            }
+        }
         
         // Check if user is already authenticated
         async function checkAuth() {
@@ -569,7 +902,7 @@
             const messageDiv = document.getElementById('authMessage');
             
             if (!email || !password) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Bitte füllen Sie alle Felder aus.</div>';
+                messageDiv.innerHTML = `<div class="error-message">❌ ${t('fillRequiredFields')}</div>`;
                 return;
             }
             
@@ -589,16 +922,16 @@
                     const permissions = currentUser.user_metadata?.permissions || [];
                     
                     if (userRole && permissions.includes('create_events')) {
-                        messageDiv.innerHTML = `<div class="success-message">✅ Anmeldung erfolgreich! Willkommen, ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
+                        messageDiv.innerHTML = `<div class="success-message">${t('authSuccess')} ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
                         showEventManagerContent();
                         loadUserEvents();
                     } else {
-                        messageDiv.innerHTML = '<div class="error-message">❌ Sie haben keine Berechtigung für den Event Manager.</div>';
+                        messageDiv.innerHTML = `<div class="error-message">${t('noPermission')}</div>`;
                         await logout();
                     }
                 }
             } catch (error) {
-                messageDiv.innerHTML = '<div class="error-message">❌ Bei der Anmeldung ist ein Fehler aufgetreten.</div>';
+                messageDiv.innerHTML = `<div class="error-message">${t('authError')}</div>`;
                 console.error('Sign in error:', error);
             }
         }
@@ -706,7 +1039,7 @@
                 console.error('Failed to load events from Supabase:', error);
                 userEvents = [];
                 renderEventsList();
-                alert('Fehler beim Laden Ihrer Ereignisse aus der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung und aktualisieren Sie die Seite.');
+                alert(t('loadError'));
             }
         }
         
@@ -764,7 +1097,7 @@
                 
             } catch (error) {
                 console.error('Failed to save events to Supabase:', error);
-                alert('Fehler beim Speichern Ihrer Ereignisse in der Datenbank. Bitte überprüfen Sie Ihre Internetverbindung.');
+                alert(t('saveError'));
                 throw error; // Re-throw to prevent silent failures
             }
         }
@@ -780,7 +1113,7 @@
             eventsList.innerHTML = '';
             
             if (userEvents.length === 0) {
-                eventsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Noch keine Ereignisse erstellt. Klicken Sie auf "Ereignis hinzufügen" um Ihr erstes Ereignis zu erstellen!</p>';
+                eventsList.innerHTML = `<p style="text-align: center; color: #666; padding: 20px;">${t('noEvents')}</p>`;
                 return;
             }
             
@@ -801,20 +1134,20 @@
                 const eventMeta = document.createElement('div');
                 eventMeta.className = 'event-meta';
                 
-                let metaText = `Datum: ${event.date}`;
+                let metaText = `${t('date')} ${event.date}`;
                 
                 // Check if it's an all-day event (no start time)
                 if (!event.startTime && !event.endTime) {
-                    metaText += ` | Ganztägig`;
+                    metaText += ` | ${t('allDayDisplay')}`;
                 } else if (event.startTime) {
-                    metaText += ` | Zeit: ${event.startTime}`;
+                    metaText += ` | ${t('time')} ${event.startTime}`;
                 }
                 
                 if (event.endDate && event.type === 'multi') {
-                    metaText += ` | Ende: ${event.endDate}`;
+                    metaText += ` | ${t('end')} ${event.endDate}`;
                 }
                 if (event.type === 'recurring') {
-                    metaText += ` | Wiederkehrend: ${event.recurrence}`;
+                    metaText += ` | ${t('recurringDisplay')} ${event.recurrence}`;
                 }
                 if (event.description) {
                     metaText += ` | ${event.description}`;
@@ -827,13 +1160,13 @@
                 
                 if (event.type === 'multi') {
                     eventTypeBadge.classList.add('badge-multi');
-                    eventTypeBadge.textContent = 'Mehrtägig';
+                    eventTypeBadge.textContent = t('multi');
                 } else if (event.type === 'recurring') {
                     eventTypeBadge.classList.add('badge-recurring');
-                    eventTypeBadge.textContent = 'Wiederkehrend';
+                    eventTypeBadge.textContent = t('recurring');
                 } else {
                     eventTypeBadge.classList.add('badge-single');
-                    eventTypeBadge.textContent = 'Einzeltag';
+                    eventTypeBadge.textContent = t('single');
                 }
                 
                 eventInfo.appendChild(eventTitle);
@@ -845,7 +1178,7 @@
                 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'btn btn-small btn-warning';
-                editBtn.textContent = 'Bearbeiten';
+                editBtn.textContent = t('edit');
                 editBtn.onclick = () => editEvent(event);
                 
                 eventActions.appendChild(editBtn);
@@ -860,8 +1193,11 @@
         // Event Form Management
         function showAddEventForm() {
             editingEventId = null;
-            document.getElementById('modalTitle').textContent = 'Ereignis hinzufügen';
+            document.getElementById('modalTitle').textContent = t('addEventTitle');
             document.getElementById('eventModal').style.display = 'block';
+            
+            // Hide delete button for new events
+            document.getElementById('deleteEventBtn').style.display = 'none';
             
             // Set default date to today
             const defaultDate = new Date().toISOString().split('T')[0];
@@ -944,17 +1280,17 @@
             const recurrenceEnd = document.getElementById('eventRecurrenceEnd').value;
             
             if (!title || !startDate) {
-                alert('Bitte füllen Sie Titel und Startdatum aus.');
+                alert(t('fillTitleDate'));
                 return;
             }
             
             if (type === 'multi') {
                 if (!endDate) {
-                    alert('Enddatum ist für mehrtägige Ereignisse erforderlich.');
+                    alert(t('endDateRequired'));
                     return;
                 }
                 if (new Date(endDate) < new Date(startDate)) {
-                    alert('Enddatum muss nach oder gleich dem Startdatum sein.');
+                    alert(t('endDateAfterStart'));
                     return;
                 }
             }
@@ -1008,7 +1344,10 @@
         // Edit event
         function editEvent(event) {
             editingEventId = event.id;
-            document.getElementById('modalTitle').textContent = 'Ereignis bearbeiten';
+            document.getElementById('modalTitle').textContent = t('editEventTitle');
+            
+            // Show delete button for editing
+            document.getElementById('deleteEventBtn').style.display = 'inline-block';
             
             // Populate form with event data
             document.getElementById('eventTitle').value = event.title || '';
@@ -1030,6 +1369,21 @@
             document.getElementById('eventModal').style.display = 'block';
         }
         
+        // Delete event
+        function deleteEvent() {
+            if (!editingEventId) return;
+            
+            if (confirm(t('confirmDelete'))) {
+                const eventIndex = userEvents.findIndex(e => e.id === editingEventId);
+                if (eventIndex !== -1) {
+                    userEvents.splice(eventIndex, 1);
+                    saveUserEvents();
+                    renderEventsList();
+                    hideEventForm();
+                }
+            }
+        }
+        
 
         
         // Refresh events
@@ -1038,6 +1392,7 @@
         }
         
         // Initialize
+        updateLanguageUI();
         checkAuth();
     </script>
 </body>
