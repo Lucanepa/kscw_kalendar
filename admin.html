@@ -1110,12 +1110,53 @@
                 const tbody = document.getElementById('usersTableBody');
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Loading users...</td></tr>';
                 
-                // Get all users from Supabase
-                const { data: users, error } = await supabase.auth.admin.listUsers();
+                // Try to get users using the admin API
+                let users = [];
+                let error = null;
                 
-                if (error) {
-                    console.error('Error loading users:', error);
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #dc3545;">Error loading users. Please check console for details.</td></tr>';
+                try {
+                    const { data, error: adminError } = await supabase.auth.admin.listUsers();
+                    if (adminError) {
+                        console.warn('Admin API failed, trying alternative method:', adminError);
+                        throw adminError;
+                    }
+                    users = data || [];
+                } catch (adminError) {
+                    console.log('Admin API not available, showing manual setup instructions');
+                    // Show manual setup instructions instead
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                                <h3>👥 User Management</h3>
+                                <p>To manage users and their roles, please use the Supabase Dashboard:</p>
+                                <ol style="text-align: left; max-width: 500px; margin: 20px auto;">
+                                    <li>Go to your Supabase project dashboard</li>
+                                    <li>Navigate to Authentication → Users</li>
+                                    <li>Click on a user to edit their metadata</li>
+                                    <li>Add the following JSON to their user_metadata:</li>
+                                </ol>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
+                                    <strong>Example for Super Admin (Your Account):</strong><br>
+                                    <code>{
+  "display_name": "Luca Canepa",
+  "role": "super_admin",
+  "permissions": ["create_events", "manage_calendar", "admin_access", "scorer_access", "super_admin"]
+}</code>
+                                </div>
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
+                                    <strong>Example for Scorer Users:</strong><br>
+                                    <code>{
+  "display_name": "Coach Name",
+  "role": "scorer",
+  "permissions": ["scorer_access"]
+}</code>
+                                </div>
+                                <p><strong>Available roles:</strong> user, hauswart, coach, scorer, admin, super_admin</p>
+                                <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, scorer_access, super_admin</p>
+                                <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
+                            </td>
+                        </tr>
+                    `;
                     return;
                 }
                 
