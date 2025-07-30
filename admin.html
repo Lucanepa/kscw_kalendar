@@ -301,6 +301,135 @@
         .auth-form.active {
             display: block;
         }
+        
+        /* User Management Styles */
+        .admin-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .admin-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .admin-tab.active {
+            color: #007cba;
+            border-bottom: 2px solid #007cba;
+        }
+        
+        .admin-section {
+            display: none;
+        }
+        
+        .admin-section.active {
+            display: block;
+        }
+        
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .user-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .user-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .role-admin {
+            background: #dc3545;
+        }
+        
+        .role-hauswart {
+            background: #fd7e14;
+        }
+        
+        .role-coach {
+            background: #28a745;
+        }
+        
+        .role-user {
+            background: #6c757d;
+        }
+        
+        .permission-chip {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 2px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 10px;
+            color: #495057;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -315,6 +444,12 @@
         
         <!-- Authentication Section -->
         <div class="auth-section" id="authSection">
+            <div style="margin-bottom: 20px;">
+                <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
+                    ⬅️ Back to Calendar
+                </a>
+            </div>
+            
             <div class="login-form">
                 <h2>🔐 Admin Authentication</h2>
                 <p>Please sign in to access event management.</p>
@@ -348,61 +483,142 @@
         <div class="admin-content" id="adminContent">
             <div style="margin-bottom: 20px;">
                 <a href="index.html" style="color: #007cba; text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 5px;">
-                    ⬅️ Zurück zum Kalender
+                    ⬅️ Back to Calendar
                 </a>
             </div>
             
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Total Events</h3>
-                    <div class="number" id="totalEvents">0</div>
+            <!-- Admin Tabs -->
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="switchTab('events')">📅 Event Management</button>
+                <button class="admin-tab" onclick="switchTab('users')">👥 User Management</button>
+            </div>
+            
+            <!-- Events Section -->
+            <div class="admin-section active" id="eventsSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Events</h3>
+                        <div class="number" id="totalEvents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>User Events</h3>
+                        <div class="number" id="userEvents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>External Events</h3>
+                        <div class="number" id="externalEvents">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Multi-day Events</h3>
+                        <div class="number" id="multiDayEvents">0</div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <h3>User Events</h3>
-                    <div class="number" id="userEvents">0</div>
+                
+                <div class="search-filters">
+                    <input type="text" id="searchInput" placeholder="Search events..." onkeyup="filterEvents()" />
+                    <select id="typeFilter" onchange="filterEvents()">
+                        <option value="">All Types</option>
+                        <option value="user">User Events</option>
+                        <option value="external">External Events</option>
+                        <option value="multi">Multi-day</option>
+                        <option value="recurring">Recurring</option>
+                    </select>
+                    <input type="date" id="dateFilter" onchange="filterEvents()" />
+                    <button class="btn" onclick="exportEvents()">📥 Export Events</button>
+                    <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
                 </div>
-                <div class="stat-card">
-                    <h3>External Events</h3>
-                    <div class="number" id="externalEvents">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Multi-day Events</h3>
-                    <div class="number" id="multiDayEvents">0</div>
+                
+                <table class="events-table" id="eventsTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsTableBody">
+                        <!-- Events will be populated here -->
+                    </tbody>
+                </table>
+                
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be generated here -->
                 </div>
             </div>
             
-            <div class="search-filters">
-                <input type="text" id="searchInput" placeholder="Search events..." onkeyup="filterEvents()" />
-                <select id="typeFilter" onchange="filterEvents()">
-                    <option value="">All Types</option>
-                    <option value="user">User Events</option>
-                    <option value="external">External Events</option>
-                    <option value="multi">Multi-day</option>
-                    <option value="recurring">Recurring</option>
-                </select>
-                <input type="date" id="dateFilter" onchange="filterEvents()" />
-                <button class="btn" onclick="exportEvents()">📥 Export Events</button>
-                <button class="btn btn-secondary" onclick="refreshData()">🔄 Refresh</button>
+            <!-- Users Section -->
+            <div class="admin-section" id="usersSection">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn" onclick="showCreateUserModal()">➕ Create New User</button>
+                    <button class="btn btn-secondary" onclick="loadUsers()">🔄 Refresh Users</button>
+                </div>
+                
+                <table class="user-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Display Name</th>
+                            <th>Role</th>
+                            <th>Permissions</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
             </div>
-            
-            <table class="events-table" id="eventsTable">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="eventsTableBody">
-                    <!-- Events will be populated here -->
-                </tbody>
-            </table>
-            
-            <div class="pagination" id="pagination">
-                <!-- Pagination will be generated here -->
+        </div>
+        
+        <!-- Create/Edit User Modal -->
+        <div id="userModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeUserModal()">&times;</span>
+                <h2 id="modalTitle">Create New User</h2>
+                
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="userEmail">Email:</label>
+                        <input type="email" id="userEmail" required />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="userPassword">Password:</label>
+                        <input type="password" id="userPassword" required />
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userDisplayName">Display Name:</label>
+                            <input type="text" id="userDisplayName" required />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="userRole">Role:</label>
+                            <select id="userRole" onchange="updatePermissions()">
+                                <option value="user">User</option>
+                                <option value="hauswart">Hauswart</option>
+                                <option value="coach">Coach Volleyball</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Permissions:</label>
+                        <div id="permissionsContainer">
+                            <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
+                            <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
+                            <label><input type="checkbox" value="admin_access"> Admin Access</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Create User</button>
+                </form>
             </div>
         </div>
     </div>
@@ -460,9 +676,19 @@
                     messageDiv.innerHTML = `<div class="error-message">❌ ${error.message}</div>`;
                 } else {
                     currentUser = data.user;
-                    messageDiv.innerHTML = '<div class="success-message">✅ Login successful!</div>';
-                    showAdminContent();
-                    loadEvents();
+                    
+                    // Check user role and permissions for admin access
+                    const userRole = currentUser.user_metadata?.role;
+                    const permissions = currentUser.user_metadata?.permissions || [];
+                    
+                    if (userRole && permissions.includes('admin_access')) {
+                        messageDiv.innerHTML = `<div class="success-message">✅ Login successful! Welcome, ${currentUser.user_metadata?.display_name || currentUser.email}</div>`;
+                        showAdminContent();
+                        loadEvents();
+                    } else {
+                        messageDiv.innerHTML = '<div class="error-message">❌ You do not have permission to access the admin panel.</div>';
+                        await logout();
+                    }
                 }
             } catch (error) {
                 messageDiv.innerHTML = '<div class="error-message">❌ An error occurred during sign in.</div>';
@@ -494,7 +720,10 @@
             document.getElementById('userInfo').style.display = 'flex';
             
             if (currentUser) {
-                document.getElementById('userEmail').textContent = currentUser.email;
+                // Display user info with role if available
+                const userRole = currentUser.user_metadata?.role || 'user';
+                const displayName = currentUser.user_metadata?.display_name || currentUser.email;
+                document.getElementById('userEmail').textContent = `${displayName} (${userRole})`;
             }
         }
         
@@ -828,6 +1057,154 @@
         // Refresh data
         function refreshData() {
             loadEvents();
+        }
+        
+        // ===== USER MANAGEMENT FUNCTIONS =====
+        
+        // Switch between admin tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.admin-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            if (tabName === 'events') {
+                document.getElementById('eventsSection').classList.add('active');
+            } else if (tabName === 'users') {
+                document.getElementById('usersSection').classList.add('active');
+                loadUsers();
+            }
+        }
+        
+        // Load all users
+        async function loadUsers() {
+            try {
+                // Note: This requires admin privileges and should be done server-side
+                // For now, we'll show a message about using the Supabase dashboard
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #666;">
+                            <h3>👥 User Management</h3>
+                            <p>To manage users and their roles, please use the Supabase Dashboard:</p>
+                            <ol style="text-align: left; max-width: 500px; margin: 20px auto;">
+                                <li>Go to your Supabase project dashboard</li>
+                                <li>Navigate to Authentication → Users</li>
+                                <li>Click on a user to edit their metadata</li>
+                                <li>Add the following JSON to their user_metadata:</li>
+                            </ol>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
+                                <strong>Example for Hauswart:</strong><br>
+                                <code>{
+  "display_name": "John Doe",
+  "role": "hauswart",
+  "permissions": ["create_events", "manage_calendar"]
+}</code>
+                            </div>
+                            <p><strong>Available roles:</strong> user, hauswart, coach, admin</p>
+                            <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access</p>
+                        </td>
+                    </tr>
+                `;
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+        
+        // Show create user modal
+        function showCreateUserModal() {
+            document.getElementById('modalTitle').textContent = 'Create New User';
+            document.getElementById('userForm').reset();
+            document.getElementById('userModal').style.display = 'block';
+            updatePermissions();
+        }
+        
+        // Close user modal
+        function closeUserModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+        
+        // Update permissions based on role
+        function updatePermissions() {
+            const role = document.getElementById('userRole').value;
+            const permissionsContainer = document.getElementById('permissionsContainer');
+            const checkboxes = permissionsContainer.querySelectorAll('input[type="checkbox"]');
+            
+            // Reset all checkboxes
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Set permissions based on role
+            switch (role) {
+                case 'admin':
+                    checkboxes.forEach(cb => cb.checked = true);
+                    break;
+                case 'hauswart':
+                    checkboxes[0].checked = true; // create_events
+                    checkboxes[1].checked = true; // manage_calendar
+                    break;
+                case 'coach':
+                    checkboxes[0].checked = true; // create_events
+                    break;
+                case 'user':
+                    checkboxes[0].checked = true; // create_events
+                    break;
+            }
+        }
+        
+        // Handle user form submission
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            const displayName = document.getElementById('userDisplayName').value;
+            const role = document.getElementById('userRole').value;
+            
+            // Get selected permissions
+            const permissions = [];
+            document.querySelectorAll('#permissionsContainer input[type="checkbox"]:checked').forEach(cb => {
+                permissions.push(cb.value);
+            });
+            
+            try {
+                // Create user with metadata
+                const { data, error } = await supabase.auth.admin.createUser({
+                    email: email,
+                    password: password,
+                    user_metadata: {
+                        display_name: displayName,
+                        role: role,
+                        permissions: permissions
+                    }
+                });
+                
+                if (error) {
+                    alert(`Error creating user: ${error.message}`);
+                } else {
+                    alert(`User created successfully! Email: ${email}`);
+                    closeUserModal();
+                    loadUsers();
+                }
+            } catch (error) {
+                alert(`Error creating user: ${error.message}`);
+                console.error('Create user error:', error);
+            }
+        });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('userModal');
+            if (event.target === modal) {
+                closeUserModal();
+            }
         }
         
         // Initialize
