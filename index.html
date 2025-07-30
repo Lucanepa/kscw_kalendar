@@ -1038,6 +1038,16 @@
             return translations[currentLanguage][key] || key;
         }
         
+        // Function to clean iCal text (remove escaped characters)
+        function cleanIcalText(text) {
+            if (!text) return '';
+            return text
+                .replace(/\\n/g, '\n')  // Replace literal \n with actual line breaks
+                .replace(/\\/g, '')  // Remove all backslashes
+                .replace(/\n\n+/g, '\n')  // Replace multiple line breaks with single
+                .trim();  // Remove leading/trailing whitespace
+        }
+        
         // Function to toggle language
         function toggleLanguage() {
             currentLanguage = currentLanguage === 'de' ? 'en' : 'de';
@@ -1832,11 +1842,14 @@
             
             // Location information (for games)
             if (event.location) {
+                // Clean up location text using the utility function
+                let cleanLocation = cleanIcalText(event.location);
+                
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📍</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('location')}</span> ${event.location}
+                            <span class="event-detail-label">${t('location')}</span> ${cleanLocation}
                         </div>
                     </div>`;
             }
@@ -1918,22 +1931,28 @@
             
             // Venue (for games)
             if (event.venue) {
+                // Clean up venue text using the utility function
+                let cleanVenue = cleanIcalText(event.venue);
+                
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏟️</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('venue')}</span> ${event.venue}
+                            <span class="event-detail-label">${t('venue')}</span> ${cleanVenue}
                         </div>
                     </div>`;
             }
             
             // Address (for games)
             if (event.address) {
+                // Clean up address text using the utility function
+                let cleanAddress = cleanIcalText(event.address);
+                
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📍</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('address')}</span> ${event.address}
+                            <span class="event-detail-label">${t('address')}</span> ${cleanAddress}
                         </div>
                     </div>`;
             }
@@ -1951,11 +1970,8 @@
             
             // Description (for user events or additional info)
             if (event.description && !event.isUserEvent) {
-                // Clean up the description text - replace \n with actual line breaks and remove extra whitespace
-                let cleanDescription = event.description
-                    .replace(/\\n/g, '\n')  // Replace literal \n with actual line breaks
-                    .replace(/\n\n+/g, '\n')  // Replace multiple line breaks with single
-                    .trim();  // Remove leading/trailing whitespace
+                // Clean up the description text using the utility function
+                let cleanDescription = cleanIcalText(event.description);
                 
                 detailsHTML += `
                     <div class="event-detail-row">
@@ -2095,7 +2111,7 @@
                     } else if (event.isUserEvent) {
                         metaText = currentLanguage === 'de' ? '✏️ Benutzer-Ereignis' : '✏️ User event';
                     } else {
-                        metaText = currentLanguage === 'de' ? '📅 Externes Ereignis' : '📅 External event';
+                        metaText = currentLanguage === 'de' ? 'Automatic Feed' : 'Automatic Feed';
                     }
                     
                     // Add end time if available
