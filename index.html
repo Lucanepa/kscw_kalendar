@@ -384,6 +384,174 @@
         .events-container::-webkit-scrollbar-thumb:hover {
             background: #a1a1a1;
         }
+        
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body {
+                margin: 10px;
+            }
+            
+            .calendar {
+                max-width: 100%;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .nav {
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .nav button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            .nav span {
+                font-size: 16px;
+                font-weight: bold;
+            }
+            
+            .header a {
+                font-size: 11px;
+                margin-right: 10px;
+            }
+            
+            .grid {
+                grid-template-columns: repeat(7, 1fr);
+                font-size: 12px;
+            }
+            
+            .weekday {
+                padding: 8px 4px;
+                font-size: 11px;
+            }
+            
+            .day {
+                min-height: 60px;
+                padding: 3px;
+            }
+            
+            .day-number {
+                font-size: 12px;
+                margin-bottom: 3px;
+            }
+            
+            .event {
+                font-size: 10px;
+                padding: 2px 4px;
+                margin-bottom: 1px;
+                border-radius: 2px;
+            }
+            
+            .event.multi-day.first-day {
+                border-radius: 2px 0 0 2px;
+            }
+            
+            .event.multi-day.middle-day {
+                border-radius: 0;
+            }
+            
+            .event.multi-day.last-day {
+                border-radius: 0 2px 2px 0;
+            }
+            
+            .event.multi-day.single-day {
+                border-radius: 2px;
+            }
+            
+            /* Day popup mobile fixes */
+            .day-popup-content {
+                width: 95%;
+                max-width: none;
+                margin: 10% auto;
+                max-height: 80vh;
+            }
+            
+            .day-popup-header h3 {
+                font-size: 16px;
+            }
+            
+            .day-event-item {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+            
+            .day-event-title {
+                font-size: 14px;
+            }
+            
+            .day-event-meta {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                margin: 5px;
+            }
+            
+            .header {
+                padding: 10px;
+            }
+            
+            .nav button {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            
+            .nav span {
+                font-size: 14px;
+            }
+            
+            .grid {
+                font-size: 11px;
+            }
+            
+            .weekday {
+                padding: 6px 2px;
+                font-size: 10px;
+            }
+            
+            .day {
+                min-height: 50px;
+                padding: 2px;
+            }
+            
+            .day-number {
+                font-size: 11px;
+            }
+            
+            .event {
+                font-size: 9px;
+                padding: 1px 3px;
+            }
+            
+            .day-popup-content {
+                margin: 5% auto;
+                padding: 15px;
+            }
+            
+            .day-popup-header h3 {
+                font-size: 14px;
+            }
+            
+            .day-event-item {
+                padding: 8px;
+            }
+            
+            .day-event-title {
+                font-size: 13px;
+            }
+            
+            .day-event-meta {
+                font-size: 11px;
+            }
+        }
 </style>
 </head>
 <body>
