@@ -1482,8 +1482,22 @@
                 
                 if (user && !error) {
                     currentUser = user;
-                    showAdminContent();
-                    loadEvents();
+                    
+                    // Check user role and permissions for admin access
+                    const userRole = currentUser.user_metadata?.role;
+                    const permissions = currentUser.user_metadata?.permissions || [];
+                    
+                    if (userRole && permissions.includes('admin_access')) {
+                        showAdminContent();
+                        loadEvents();
+                    } else {
+                        // User is logged in but doesn't have admin access
+                        const userRole = currentUser.user_metadata?.role || 'user';
+                        const displayName = currentUser.user_metadata?.display_name || currentUser.email;
+                        const messageDiv = document.getElementById('authMessage');
+                        messageDiv.innerHTML = `<div class="error-message">❌ Keine Berechtigung für Admin Panel<br><br>Benutzer: ${displayName}<br>Rolle: ${userRole}<br><br>Sie benötigen die Berechtigung "admin_access" um auf das Admin Panel zuzugreifen. Bitte kontaktieren Sie einen Administrator.</div>`;
+                        showAuthSection();
+                    }
                 } else {
                     showAuthSection();
                 }
@@ -1590,11 +1604,10 @@
         function clearAuthForms() {
             const loginEmail = document.getElementById('loginEmail');
             const loginPassword = document.getElementById('loginPassword');
-            const authMessage = document.getElementById('authMessage');
             
             if (loginEmail) loginEmail.value = '';
             if (loginPassword) loginPassword.value = '';
-            if (authMessage) authMessage.innerHTML = '';
+            // Don't clear authMessage to preserve error messages
         }
         
 
