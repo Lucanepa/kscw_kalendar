@@ -1043,8 +1043,12 @@
             if (!text) return '';
             return text
                 .replace(/\\n/g, '\n')  // Replace literal \n with actual line breaks
-                .replace(/\\/g, '')  // Remove all backslashes
+                .replace(/\\,/g, ',')  // Replace escaped commas with regular commas
+                .replace(/\\;/g, ';')  // Replace escaped semicolons with regular semicolons
+                .replace(/\\"/g, '"')  // Replace escaped quotes with regular quotes
+                .replace(/\\/g, '')  // Remove any remaining backslashes
                 .replace(/\n\n+/g, '\n')  // Replace multiple line breaks with single
+                .replace(/\s+/g, ' ')  // Replace multiple spaces with single space
                 .trim();  // Remove leading/trailing whitespace
         }
         
@@ -1856,42 +1860,51 @@
             
             // Team information (for games)
             if (event.homeTeam) {
+                // Clean up home team text
+                let cleanHomeTeam = cleanIcalText(event.homeTeam);
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon"><img src="https://www.kscw.ch/clubdesk/fileservlet?type=file&id=1000716&s=djEt3z7ABYLi8hd4sWeb8Qisb2m20xnaKr4H9W6HvJnKgDU=" width="20" height="20"alt="home icon"></span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('home')}</span> ${event.homeTeam}
+                            <span class="event-detail-label">${t('home')}</span> ${cleanHomeTeam}
                         </div>
                     </div>`;
             }
             if (event.awayTeam) {
+                // Clean up away team text
+                let cleanAwayTeam = cleanIcalText(event.awayTeam);
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">⚔️</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('away')}</span> ${event.awayTeam}
+                            <span class="event-detail-label">${t('away')}</span> ${cleanAwayTeam}
                         </div>
                     </div>`;
             }
             
             // Score information (for completed games)
             if (event.homeScore !== undefined && event.awayScore !== undefined) {
+                // Clean up team names for score display
+                let cleanHomeTeam = event.homeTeam ? cleanIcalText(event.homeTeam) : (currentLanguage === 'de' ? 'Heim' : 'Home');
+                let cleanAwayTeam = event.awayTeam ? cleanIcalText(event.awayTeam) : (currentLanguage === 'de' ? 'Auswärts' : 'Away');
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏆</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('score')}</span> ${event.homeTeam || (currentLanguage === 'de' ? 'Heim' : 'Home')} ${event.homeScore} - ${event.awayScore} ${event.awayTeam || (currentLanguage === 'de' ? 'Auswärts' : 'Away')}
+                            <span class="event-detail-label">${t('score')}</span> ${cleanHomeTeam} ${event.homeScore} - ${event.awayScore} ${cleanAwayTeam}
                         </div>
                     </div>`;
             }
             
             // League/Competition information
             if (event.league) {
+                // Clean up league text
+                let cleanLeague = cleanIcalText(event.league);
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏆</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('league')}</span> ${event.league}
+                            <span class="event-detail-label">${t('league')}</span> ${cleanLeague}
                         </div>
                     </div>`;
             }
@@ -1909,22 +1922,26 @@
             
             // Result (for completed games)
             if (event.result) {
+                // Clean up result text
+                let cleanResult = cleanIcalText(event.result);
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">📊</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('result')}</span> ${event.result}
+                            <span class="event-detail-label">${t('result')}</span> ${cleanResult}
                         </div>
                     </div>`;
             }
             
             // League Info (detailed league information)
             if (event.leagueInfo) {
+                // Clean up league info text
+                let cleanLeagueInfo = cleanIcalText(event.leagueInfo);
                 detailsHTML += `
                     <div class="event-detail-row">
                         <span class="event-detail-icon">🏅</span>
                         <div class="event-detail-text">
-                            <span class="event-detail-label">${t('leagueInfo')}</span> ${event.leagueInfo}
+                            <span class="event-detail-label">${t('leagueInfo')}</span> ${cleanLeagueInfo}
                         </div>
                     </div>`;
             }
