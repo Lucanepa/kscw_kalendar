@@ -612,7 +612,7 @@
                                  <option value="user">User</option>
                                  <option value="hauswart">Hauswart</option>
                                  <option value="coach">Coach Volleyball</option>
-                                 <option value="scorer">Scorer (Scorer Tables Only)</option>
+                                 <option value="coach_basketball">Coach Basketball</option>
                                  <option value="admin">Admin</option>
                                  <option value="super_admin">Super Admin (Full Access)</option>
                              </select>
@@ -625,7 +625,6 @@
                              <label><input type="checkbox" value="create_events" checked> Create Events</label><br>
                              <label><input type="checkbox" value="manage_calendar"> Manage Calendar</label><br>
                              <label><input type="checkbox" value="admin_access"> Admin Access</label><br>
-                             <label><input type="checkbox" value="scorer_access"> Scorer Tables Access</label><br>
                              <label><input type="checkbox" value="super_admin"> Super Admin (Full Access)</label>
                          </div>
                     </div>
@@ -1140,19 +1139,19 @@
                                     <code>{
   "display_name": "Luca Canepa",
   "role": "super_admin",
-  "permissions": ["create_events", "manage_calendar", "admin_access", "scorer_access", "super_admin"]
+  "permissions": ["create_events", "manage_calendar", "admin_access", "super_admin"]
 }</code>
                                 </div>
                                 <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0; text-align: left;">
-                                    <strong>Example for Scorer Users:</strong><br>
+                                    <strong>Example for Coach Basketball:</strong><br>
                                     <code>{
   "display_name": "Coach Name",
-  "role": "scorer",
-  "permissions": ["scorer_access"]
+  "role": "coach_basketball",
+  "permissions": ["create_events"]
 }</code>
                                 </div>
-                                <p><strong>Available roles:</strong> user, hauswart, coach, scorer, admin, super_admin</p>
-                                <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, scorer_access, super_admin</p>
+                                <p><strong>Available roles:</strong> user, hauswart, coach, coach_basketball, admin, super_admin</p>
+                                <p><strong>Available permissions:</strong> create_events, manage_calendar, admin_access, super_admin</p>
                                 <p><strong>Note:</strong> You can also use the <a href="fix-user-metadata.html" target="_blank">Fix User Metadata Tool</a> to update your own account.</p>
                             </td>
                         </tr>
@@ -1315,8 +1314,8 @@
                 case 'coach':
                     checkboxes[0].checked = true; // create_events
                     break;
-                case 'scorer':
-                    checkboxes[3].checked = true; // scorer_access
+                case 'coach_basketball':
+                    checkboxes[0].checked = true; // create_events
                     break;
                 case 'user':
                     checkboxes[0].checked = true; // create_events
