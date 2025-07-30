@@ -1474,6 +1474,9 @@
                 // Find and remove the event from the array
                 const eventIndex = allEvents.findIndex(e => e.id === event.id);
                 if (eventIndex !== -1) {
+                    // Log the deletion before removing the event
+                    logEventChange('delete', event);
+                    
                     allEvents.splice(eventIndex, 1);
                     // Update filtered events
                     filterEvents();
@@ -1519,6 +1522,24 @@
         
         // Event modal functions
         let editingEventId = null;
+        
+        function showAddEventModal() {
+            editingEventId = null;
+            document.getElementById('eventModalTitle').textContent = 'Add Event';
+            
+            // Hide delete button for new events
+            document.getElementById('deleteEventBtn').style.display = 'none';
+            
+            // Set default date to today
+            const defaultDate = new Date().toISOString().split('T')[0];
+            document.getElementById('eventStartDate').value = defaultDate;
+            
+            // Clear form
+            clearEventForm();
+            
+            // Show modal
+            document.getElementById('eventModal').style.display = 'block';
+        }
         
         function closeEventModal() {
             document.getElementById('eventModal').style.display = 'none';
