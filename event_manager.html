@@ -327,13 +327,14 @@
         .modal-content {
             background-color: white;
             margin: 5% auto;
-            padding: 30px;
-            border-radius: 8px;
+            padding: 40px;
+            border-radius: 12px;
             width: 90%;
             max-width: 600px;
             position: relative;
             max-height: 80vh;
             overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .close {
@@ -348,30 +349,74 @@
             color: #000;
         }
         
+        .modal-content h2 {
+            margin: 0 0 30px 0;
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
         .form-row {
             display: flex;
             flex-direction: column;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            align-items: flex-start;
         }
         
         .form-row label {
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
             color: #333;
+            font-size: 14px;
+            min-width: 120px;
         }
         
         .form-row input,
         .form-row select,
         .form-row textarea {
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-row input:focus,
+        .form-row select:focus,
+        .form-row textarea:focus {
+            outline: none;
+            border-color: #007cba;
+            box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
         }
         
         .form-row textarea {
             min-height: 80px;
             resize: vertical;
+        }
+        
+        /* Special styling for checkbox row */
+        .form-row:has(input[type="checkbox"]) {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-row:has(input[type="checkbox"]) label {
+            margin-bottom: 0;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-row:has(input[type="checkbox"]) input[type="checkbox"] {
+            width: auto;
+            margin: 0;
         }
         
         .form-buttons {
@@ -494,17 +539,17 @@
             
             <form id="eventForm">
                 <div class="form-row">
-                    <label>Titel:</label>
+                    <label id="titleLabel">Titel:</label>
                     <input type="text" id="eventTitle" placeholder="Ereignistitel" required />
                 </div>
                 
                 <div class="form-row">
-                    <label>Beschreibung:</label>
+                    <label id="descriptionLabel">Beschreibung:</label>
                     <textarea id="eventDescription" placeholder="Optionale Beschreibung"></textarea>
                 </div>
                 
                 <div class="form-row">
-                    <label>Typ:</label>
+                    <label id="typeLabel">Typ:</label>
                     <select id="eventType" onchange="handleEventTypeChange()">
                         <option value="single">Einzeltag</option>
                         <option value="multi">Mehrtägig</option>
@@ -513,34 +558,34 @@
                 </div>
                 
                 <div class="form-row">
-                    <label>Startdatum:</label>
+                    <label id="startDateLabel">Startdatum:</label>
                     <input type="date" id="eventStartDate" required />
                 </div>
                 
                 <div class="form-row">
-                    <label>
+                    <label id="allDayLabel">
                         <input type="checkbox" id="eventAllDay" onchange="handleAllDayChange()" />
-                        Ganztägig
+                        <span id="allDayText">Ganztägig</span>
                     </label>
                 </div>
                 
                 <div class="form-row" id="timeRow">
-                    <label>Startzeit:</label>
+                    <label id="startTimeLabel">Startzeit:</label>
                     <input type="time" id="eventStartTime" />
                 </div>
                 
                 <div class="form-row" id="endDateRow" style="display: none;">
-                    <label>Enddatum:</label>
+                    <label id="endDateLabel">Enddatum:</label>
                     <input type="date" id="eventEndDate" />
                 </div>
                 
                 <div class="form-row" id="endTimeRow" style="display: none;">
-                    <label>Endzeit:</label>
+                    <label id="endTimeLabel">Endzeit:</label>
                     <input type="time" id="eventEndTime" />
                 </div>
                 
                 <div class="form-row" id="recurringRow" style="display: none;">
-                    <label>Wiederholung:</label>
+                    <label id="recurrenceLabel">Wiederholung:</label>
                     <select id="eventRecurrence">
                         <option value="daily">Täglich</option>
                         <option value="weekly">Wöchentlich</option>
@@ -550,14 +595,14 @@
                 </div>
                 
                 <div class="form-row" id="recurringEndRow" style="display: none;">
-                    <label>Bis:</label>
+                    <label id="untilLabel">Bis:</label>
                     <input type="date" id="eventRecurrenceEnd" />
                 </div>
                 
                 <div class="form-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="hideEventForm()">Abbrechen</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEventForm()" id="cancelBtn">Abbrechen</button>
                     <button type="button" class="btn btn-danger" id="deleteEventBtn" onclick="deleteEvent()" style="display: none;">Löschen</button>
-                    <button type="button" class="btn" onclick="saveEvent()">Ereignis speichern</button>
+                    <button type="button" class="btn" onclick="saveEvent()" id="saveBtn">Ereignis speichern</button>
                 </div>
             </form>
         </div>
@@ -618,6 +663,7 @@
                 descriptionPlaceholder: 'Optionale Beschreibung',
                 cancel: 'Abbrechen',
                 saveEvent: 'Ereignis speichern',
+                delete: 'Löschen',
                 
                 // Event Types
                 single: 'Einzeltag',
@@ -692,6 +738,7 @@
                 descriptionPlaceholder: 'Optional description',
                 cancel: 'Cancel',
                 saveEvent: 'Save Event',
+                delete: 'Delete',
                 
                 // Event Types
                 single: 'Single Day',
@@ -810,35 +857,35 @@
                 modalTitle.textContent = editingEventId ? t('editEventTitle') : t('addEventTitle');
             }
             
-            // Update form labels
-            const titleLabel = document.querySelector('#eventForm label:first-child');
+            // Update form labels using IDs
+            const titleLabel = document.getElementById('titleLabel');
             if (titleLabel) titleLabel.textContent = t('title');
             
-            const descLabel = document.querySelector('#eventForm label:nth-child(2)');
+            const descLabel = document.getElementById('descriptionLabel');
             if (descLabel) descLabel.textContent = t('description');
             
-            const typeLabel = document.querySelector('#eventForm label:nth-child(3)');
+            const typeLabel = document.getElementById('typeLabel');
             if (typeLabel) typeLabel.textContent = t('type');
             
-            const startDateLabel = document.querySelector('#eventForm label:nth-child(4)');
+            const startDateLabel = document.getElementById('startDateLabel');
             if (startDateLabel) startDateLabel.textContent = t('startDate');
             
-            const allDayLabel = document.querySelector('#eventForm label:nth-child(5)');
-            if (allDayLabel) allDayLabel.textContent = t('allDay');
+            const allDayText = document.getElementById('allDayText');
+            if (allDayText) allDayText.textContent = t('allDay');
             
-            const startTimeLabel = document.querySelector('#eventForm label:nth-child(6)');
+            const startTimeLabel = document.getElementById('startTimeLabel');
             if (startTimeLabel) startTimeLabel.textContent = t('startTime');
             
-            const endDateLabel = document.querySelector('#eventForm label:nth-child(7)');
+            const endDateLabel = document.getElementById('endDateLabel');
             if (endDateLabel) endDateLabel.textContent = t('endDate');
             
-            const endTimeLabel = document.querySelector('#eventForm label:nth-child(8)');
+            const endTimeLabel = document.getElementById('endTimeLabel');
             if (endTimeLabel) endTimeLabel.textContent = t('endTime');
             
-            const recurrenceLabel = document.querySelector('#eventForm label:nth-child(9)');
+            const recurrenceLabel = document.getElementById('recurrenceLabel');
             if (recurrenceLabel) recurrenceLabel.textContent = t('recurrence');
             
-            const untilLabel = document.querySelector('#eventForm label:nth-child(10)');
+            const untilLabel = document.getElementById('untilLabel');
             if (untilLabel) untilLabel.textContent = t('until');
             
             // Update placeholders
@@ -848,12 +895,15 @@
             const descInput = document.getElementById('eventDescription');
             if (descInput) descInput.placeholder = t('descriptionPlaceholder');
             
-            // Update buttons
-            const cancelBtn = document.querySelector('.btn-secondary[onclick="hideEventForm()"]');
+            // Update buttons using IDs
+            const cancelBtn = document.getElementById('cancelBtn');
             if (cancelBtn) cancelBtn.textContent = t('cancel');
             
-            const saveBtn = document.querySelector('.btn[onclick="saveEvent()"]');
+            const saveBtn = document.getElementById('saveBtn');
             if (saveBtn) saveBtn.textContent = t('saveEvent');
+            
+            const deleteBtn = document.getElementById('deleteEventBtn');
+            if (deleteBtn) deleteBtn.textContent = t('delete');
             
             // Update select options
             updateSelectOptions();
